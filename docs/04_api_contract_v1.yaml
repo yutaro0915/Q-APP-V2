@@ -1,0 +1,666 @@
+openapi: 3.0.3
+info:
+  title: Kyudai Campus SNS API
+  version: 1.0.0
+  description: |
+    九大学内SNS v1 のAPI契約（フリーズ版・更新）。
+    - Base: /api/v1
+    - 認証: Bearer（/auth/bootstrap で取得）
+    - ページング: cursor（20件固定, snapshotAtで並び固定, 有効24h）
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Auth
+  - name: Profile
+  - name: Uploads
+  - name: Threads
+  - name: Comments
+  - name: Reactions
+  - name: Search
+
+paths:
+  /auth/bootstrap:
+    post:
+      tags: [Auth]
+      summary: 匿名ユーザー作成 & セッショントークン発行
+      operationId: authBootstrap
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BootstrapRequest'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/X-Request-Id' }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BootstrapResponse'
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /auth/session:
+    get:
+      tags: [Auth]
+      summary: 現在のセッション確認
+      operationId: getSession
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: OK
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    delete:
+      tags: [Auth]
+      summary: ログアウト（セッション失効）
+      operationId: deleteSession
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /auth/me/profile:
+    get:
+      tags: [Profile]
+      summary: 自分のプロフィール取得（学部・学年・公開フラグ）
+      operationId: getMyProfile
+      security: [ { bearerAuth: [] } ]
+      responses:
+        '200':
+          description: OK
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyProfile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [Profile]
+      summary: 自分のプロフィール更新（学部・学年・公開フラグ）
+      operationId: updateMyProfile
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateMyProfileRequest' }
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /uploads/presign:
+    post:
+      tags: [Uploads]
+      summary: S3 直PUT用プリサイン発行
+      operationId: createPresign
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PresignRequest' }
+      responses:
+        '200':
+          description: OK
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PresignResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /threads:
+    post:
+      tags: [Threads]
+      summary: スレッド作成
+      operationId: createThread
+      security: [ { bearerAuth: [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateThreadRequest' }
+      responses:
+        '201':
+          description: Created
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreatedResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+    get:
+      tags: [Threads]
+      summary: スレッド一覧（Hot / 新着）
+      operationId: listThreads
+      parameters:
+        - in: query
+          name: sort
+          required: false
+          schema: { type: string, enum: [hot, new], default: hot }
+        - in: query
+          name: type
+          description: 固定タグ '種別' の値フィルタ
+          required: false
+          schema: { type: string, enum: [question, notice, recruit, chat] }
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:  { $ref: '#/components/headers/X-Request-Id' }
+            X-Snapshot-At: { $ref: '#/components/headers/X-Snapshot-At' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedThreadCards' }
+
+  /threads/{id}:
+    get:
+      tags: [Threads]
+      summary: スレッド詳細の取得（本文・タグ・カウント・著者公開属性）
+      operationId: getThread
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '200':
+          description: OK
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [thread]
+                properties:
+                  thread: { $ref: '#/components/schemas/ThreadDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Threads]
+      summary: スレッド削除（ソフト削除）
+      operationId: deleteThread
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /threads/{id}/comments:
+    get:
+      tags: [Comments]
+      summary: コメント一覧（時系列ASC、cursorページング）
+      operationId: listComments
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: OK
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedComments' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Comments]
+      summary: コメント作成（時系列固定）
+      operationId: createComment
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCommentRequest' }
+      responses:
+        '201':
+          description: Created
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CreatedResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /comments/{id}:
+    delete:
+      tags: [Comments]
+      summary: コメント削除（ソフト削除）
+      operationId: deleteComment
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /threads/{id}/reactions:
+    post:
+      tags: [Reactions]
+      summary: スレッドへのリアクション（up/save）
+      operationId: reactThread
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReactionRequestThread' }
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /comments/{id}/reactions:
+    post:
+      tags: [Reactions]
+      summary: コメントへのリアクション（up）
+      operationId: reactComment
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReactionRequestComment' }
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /threads/{id}/solve:
+    post:
+      tags: [Threads]
+      summary: 解決フラグの設定/解除（※質問スレのみ許可）
+      description: |
+        対象スレッドが `tags` に {"key":"種別","value":"question"} を含む場合のみ操作可能。
+        それ以外の種別に対しては 400 VALIDATION_ERROR（details.reason=NOT_APPLICABLE）。
+      operationId: solveThread
+      security: [ { bearerAuth: [] } ]
+      parameters:
+        - $ref: '#/components/parameters/ThreadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SolveRequest' }
+      responses:
+        '204':
+          description: No Content
+          headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /search:
+    get:
+      tags: [Search]
+      summary: スレッド検索（pg_trgm, relevance/new）
+      operationId: searchThreads
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string, minLength: 1, maxLength: 100 }
+        - in: query
+          name: sort
+          required: false
+          schema: { type: string, enum: [relevance, new], default: relevance }
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Request-Id:  { $ref: '#/components/headers/X-Request-Id' }
+            X-Snapshot-At: { $ref: '#/components/headers/X-Snapshot-At' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PaginatedThreadCards' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Cursor:
+      in: query
+      name: cursor
+      required: false
+      schema:
+        type: string
+        description: base64url(JSON)。20件固定、nextCursorがある限り継続可（上限200件/24h）。Hot/検索はsnapshotAtで並び固定。
+    ThreadId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, pattern: '^(thr)_[A-Za-z0-9]+' }
+    CommentId:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, pattern: '^(cmt)_[A-Za-z0-9]+' }
+
+  headers:
+    X-Request-Id:
+      description: リクエスト相関ID
+      schema: { type: string }
+    X-Snapshot-At:
+      description: 並び固定に使用したスナップショット時刻（ISO8601, UTC）
+      schema: { type: string, format: date-time }
+    X-RateLimit-Limit:
+      schema: { type: integer }
+    X-RateLimit-Remaining:
+      schema: { type: integer }
+    X-RateLimit-Reset:
+      schema: { type: integer, description: epoch seconds }
+    Retry-After:
+      schema: { type: integer, description: seconds }
+
+  responses:
+    BadRequest:
+      description: 400 Bad Request
+      headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Unauthorized:
+      description: 401 Unauthorized
+      headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: 403 Forbidden
+      headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    NotFound:
+      description: 404 Not Found
+      headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Conflict:
+      description: 409 Conflict（リアクション重複など）
+      headers: { X-Request-Id: { $ref: '#/components/headers/X-Request-Id' } }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    RateLimited:
+      description: 429 Too Many Requests
+      headers:
+        X-Request-Id: { $ref: '#/components/headers/X-Request-Id' }
+        Retry-After: { $ref: '#/components/headers/Retry-After' }
+        X-RateLimit-Limit: { $ref: '#/components/headers/X-RateLimit-Limit' }
+        X-RateLimit-Remaining: { $ref: '#/components/headers/X-RateLimit-Remaining' }
+        X-RateLimit-Reset: { $ref: '#/components/headers/X-RateLimit-Reset' }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+
+  schemas:
+    # ---- Auth
+    BootstrapRequest:
+      type: object
+      properties:
+        device_secret:
+          type: string
+          description: 任意。端末側ランダム文字列のハッシュなど。
+          maxLength: 256
+    BootstrapResponse:
+      type: object
+      required: [userId, token, expiresAt]
+      properties:
+        userId: { type: string }
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+    SessionResponse:
+      type: object
+      required: [userId]
+      properties:
+        userId: { type: string }
+
+    # ---- Profile
+    MyProfile:
+      type: object
+      required: [userId, faculty_public, year_public]
+      properties:
+        userId: { type: string }
+        faculty: { type: string, nullable: true, maxLength: 50 }
+        year: { type: integer, nullable: true, minimum: 1, maximum: 10 }
+        faculty_public: { type: boolean }
+        year_public: { type: boolean }
+    UpdateMyProfileRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        faculty: { type: string, nullable: true, maxLength: 50 }
+        year: { type: integer, nullable: true, minimum: 1, maximum: 10 }
+        faculty_public: { type: boolean }
+        year_public: { type: boolean }
+
+    # ---- Uploads
+    PresignRequest:
+      type: object
+      required: [mime, size]
+      properties:
+        mime:
+          type: string
+          enum: [image/webp, image/jpeg, image/png]
+        size:
+          type: integer
+          minimum: 1
+          maximum: 5242880
+    PresignResponse:
+      type: object
+      required: [key, url, headers]
+      properties:
+        key: { type: string }
+        url: { type: string, format: uri }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+
+    # ---- Threads/Comments DTO
+    Tag:
+      type: object
+      required: [key, value]
+      properties:
+        key:
+          type: string
+          enum: ['種別','場所','締切','授業コード']
+        value:
+          type: string
+    AuthorAffiliation:
+      type: object
+      properties:
+        faculty: { type: string }
+        year: { type: integer, minimum: 1, maximum: 10 }
+    ThreadCard:
+      type: object
+      required:
+        [id, title, excerpt, tags, heat, replies, saves, createdAt, hasImage, solved]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        excerpt: { type: string }
+        tags:
+          type: array
+          items: { $ref: '#/components/schemas/Tag' }
+          maxItems: 4
+        heat: { type: integer, minimum: 0, maximum: 100 }
+        replies: { type: integer, minimum: 0 }
+        saves: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        lastReplyAt: { type: string, format: date-time, nullable: true }
+        hasImage: { type: boolean }
+        imageThumbUrl: { type: string, format: uri, nullable: true }
+        solved:
+          type: boolean
+          description: 質問スレで解決済みなら true（それ以外の種別は常に false）
+        authorAffiliation:
+          $ref: '#/components/schemas/AuthorAffiliation'
+          nullable: true
+    ThreadDetail:
+      type: object
+      required:
+        [id, title, body, tags, upCount, saveCount, createdAt, lastActivityAt, hasImage]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        body: { type: string }
+        tags:
+          type: array
+          items: { $ref: '#/components/schemas/Tag' }
+          maxItems: 4
+        upCount: { type: integer, minimum: 0 }
+        saveCount: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+        lastActivityAt: { type: string, format: date-time }
+        solvedCommentId: { type: string, nullable: true }
+        hasImage: { type: boolean }
+        imageUrl: { type: string, format: uri, nullable: true }
+        authorAffiliation:
+          $ref: '#/components/schemas/AuthorAffiliation'
+          nullable: true
+    Comment:
+      type: object
+      required: [id, body, createdAt, upCount, hasImage]
+      properties:
+        id: { type: string }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        upCount: { type: integer, minimum: 0 }
+        hasImage: { type: boolean }
+        imageUrl: { type: string, format: uri, nullable: true }
+        authorAffiliation:
+          $ref: '#/components/schemas/AuthorAffiliation'
+          nullable: true
+
+    # ---- Requests
+    CreateThreadRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 60 }
+        body:  { type: string, maxLength: 2000, default: "" }
+        tags:
+          type: array
+          items: { $ref: '#/components/schemas/Tag' }
+          maxItems: 4
+        imageKey:
+          type: string
+          nullable: true
+    CreateCommentRequest:
+      type: object
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 1000 }
+        imageKey:
+          type: string
+          nullable: true
+    ReactionRequestThread:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [up, save] }
+    ReactionRequestComment:
+      type: object
+      required: [kind]
+      properties:
+        kind: { type: string, enum: [up] }
+    SolveRequest:
+      type: object
+      required: [commentId]
+      properties:
+        commentId:
+          type: string
+          nullable: true
+          description: nullで解除
+
+    # ---- Wrappers
+    PaginatedThreadCards:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/ThreadCard' }
+        nextCursor:
+          type: string
+          nullable: true
+    PaginatedComments:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Comment' }
+        nextCursor:
+          type: string
+          nullable: true
+
+    CreatedResponse:
+      type: object
+      required: [id, createdAt]
+      properties:
+        id: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, CONFLICT, RATE_LIMITED, INTERNAL]
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                additionalProperties: true
+                properties:
+                  field: { type: string, description: '対象フィールド（例: thread.tags）' }
+                  reason: { type: string, description: 'NOT_APPLICABLE/TOO_LONG など' }
+                  required: { type: string, description: '適用に必要な条件など' }
+            requestId: { type: string }
