@@ -63,3 +63,7 @@ definition_of_done:
   - "環境変数DATABASE_URLの形式が明記されている"
   - "セキュリティ設定が02の仕様と一致"
 ---
+# done:
+#   finished_at: 2025-08-08T14:22:28Z
+#   result: GREEN
+#   note: ""
