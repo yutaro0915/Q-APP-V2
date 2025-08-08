@@ -78,7 +78,7 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Check changed files count
+      - name: Check changed files count (One-File Rule)
         run: |
           # PR内の変更ファイル数を確認（docs/とissues/を除く）
           changed_files=$(git diff --name-only origin/main...HEAD | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' || true)
@@ -92,6 +92,13 @@ jobs:
             exit 1
           fi
 
+      - name: Ensure CSV updated when PR opened
+        if: github.event_name == 'pull_request'
+        run: |
+          if ! git diff --name-only origin/main...HEAD | grep -q '^docs/issues_progress_index.csv$'; then
+            echo "Warning: docs/issues_progress_index.csv not updated in this PR"
+          fi
+
   validate-spec:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'api-change')
@@ -101,3 +108,12 @@ jobs:
       - name: Validate OpenAPI spec
         run: |
           npx @apidevtools/swagger-cli validate docs/04_api_contract_v1.yaml
+
+  lint-prompts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check agent prompts exist
+        run: |
+          test -f .claude/prompts/agent-impl.md
+          test -f .claude/prompts/agent-review.md
