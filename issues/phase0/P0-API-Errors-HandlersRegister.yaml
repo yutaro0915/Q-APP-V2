@@ -1,0 +1,45 @@
+id: P0-API-Errors-HandlersRegister
+phase: 0
+layer: API
+area: Errors
+action: HandlersRegister
+target_file: backend/app/main.py
+test_file: backend/tests/test_error_handlers_integration.py
+depends_on: ["P0-API-Errors"]
+spec_refs:
+  - "04b"  # API規約（ErrorResponse/X-Request-Id）
+  - "05"   # バックエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "util/errors.py のハンドラをアプリに登録し、04b形式に統一する。main.py の独自ハンドラは撤去する。"
+  
+  content_requirements:
+    - section: "例外ハンドラ登録"
+      items:
+        - "BaseAPIException -> api_exception_handler を app.add_exception_handler に登録"
+        - "HTTPException -> http_exception_handler を登録"
+        - "RequestValidationError -> validation_exception_handler を登録"
+    - section: "main.py クリーンアップ"
+      items:
+        - "@app.exception_handler による独自ハンドラ定義を削除"
+    - section: "requestId"
+      items:
+        - "全てのエラー応答ボディに error.requestId を含める（utilハンドラが設定）"
+
+output_format: "FastAPI アプリ初期化コード（main.py 変更）"
+
+constraints:
+  - "04b_api_conventions_v1.md の ErrorResponse 形式に完全準拠"
+  - "全応答ヘッダに X-Request-Id を付与（既存ミドルウェアと整合）"
+
+test_specification:
+  validation:
+    - "HTTPException(404) が error.code=NOT_FOUND, error.requestId を含んで返る"
+    - "ValidationError が error.code=VALIDATION_ERROR, details 配列を含んで返る"
+    - "X-Request-Id ヘッダが常に付与される"
+
+definition_of_done:
+  - "main.py で util/errors の3種ハンドラ登録が行われている"
+  - "main.py の独自例外ハンドラ定義が撤去されている"
+  - "統合テストがGREEN"

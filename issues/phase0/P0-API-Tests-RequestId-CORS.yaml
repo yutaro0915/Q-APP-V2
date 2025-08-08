@@ -1,0 +1,37 @@
+id: P0-API-Tests-RequestId-CORS
+phase: 0
+layer: API
+area: Tests
+action: RequestId-CORS
+target_file: backend/tests/test_request_id_middleware.py
+test_file: backend/tests/test_request_id_middleware.py
+depends_on: ["P0-API-Middleware-RequestId-CORS"]
+spec_refs:
+  - "04b"  # X-Request-Id / CORS
+estimated_loc: 40
+
+specification:
+  purpose: "X-Request-Id ミドルウェアと CORS の基本動作を検証する統合テストを追加する。"
+  
+  content_requirements:
+    - section: "Request-Id"
+      items:
+        - "要求に X-Request-Id を付与すると、応答で同値が返る"
+        - "要求に無い場合も応答で非空の X-Request-Id が返る"
+    - section: "CORS"
+      items:
+        - "許可Originでのプリフライトが200となる"
+        - "未許可Originでのプリフライトが拒否される（ヘッダ無し/適切な挙動）"
+
+output_format: "pytest テストコード"
+
+constraints:
+  - "FastAPI TestClient を使用し、設定変更は環境変数で行う"
+
+test_specification:
+  validation:
+    - "Request-Id の往復確認（有/無）"
+    - "CORSの許可/不許可の両ケースを確認"
+
+definition_of_done:
+  - "test_request_id_middleware.py が追加され、GREEN"

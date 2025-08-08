@@ -1,0 +1,34 @@
+id: P0-API-Tests-IdGen
+phase: 0
+layer: API
+area: Tests
+action: IdGen
+target_file: backend/tests/test_idgen.py
+test_file: backend/tests/test_idgen.py
+depends_on: ["P0-API-Util-IdGen"]
+spec_refs:
+  - "03"  # データモデル（ID形式）
+  - "05"  # バックエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "prefix_ULID 生成ユーティリティの単体テストを追加する。"
+  
+  content_requirements:
+    - section: "生成形式"
+      items:
+        - "各prefixで {prefix}_{ULID26} を生成"
+        - "正規表現 ID_PATTERN に一致"
+    - section: "ユニーク性（簡易）"
+      items:
+        - "短時間で複数生成して重複しないことを確認（確率的）"
+
+output_format: "pytest テストコード"
+
+test_specification:
+  validation:
+    - "全prefixで正規表現一致"
+    - "重複が発生しない（サンプル100程度）"
+
+definition_of_done:
+  - "test_idgen.py が追加され、GREEN"

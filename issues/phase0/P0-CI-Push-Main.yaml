@@ -1,0 +1,27 @@
+id: P0-CI-Push-Main
+phase: 0
+layer: CI
+area: Workflow
+action: Push-Main
+target_file: .github/workflows/ci.yml
+test_file: null
+depends_on: []
+spec_refs:
+  - "21"  # CI戦略
+estimated_loc: 10
+
+specification:
+  purpose: "main 直運用に合わせ、CI のトリガを push(main) に対応させる。"
+  
+  content_requirements:
+    - section: "トリガ"
+      items:
+        - "on.push.branches に main を追加（pull_request は併存可）"
+    - section: "frontendテスト"
+      items:
+        - "vitest の一回実行 (--run) を利用する設定に更新（任意）"
+
+output_format: "GitHub Actions Workflow YAML"
+
+definition_of_done:
+  - "push(main) で CI が走ること"

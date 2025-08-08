@@ -1,0 +1,36 @@
+id: P0-API-Tests-Cursor
+phase: 0
+layer: API
+area: Tests
+action: Cursor
+target_file: backend/tests/test_cursor.py
+test_file: backend/tests/test_cursor.py
+depends_on: ["P0-API-Util-Cursor"]
+spec_refs:
+  - "04a"  # DTO/ページング
+  - "04b"  # カーソル規約
+estimated_loc: 40
+
+specification:
+  purpose: "cursor.encode/decode と comments/threads のアンカー検証、snapshot期限切れ検出のテストを追加する。"
+  
+  content_requirements:
+    - section: "往復同値"
+      items:
+        - "任意オブジェクトの encode→decode が同値"
+    - section: "アンカー検証"
+      items:
+        - "comments: (createdAt,id)"
+        - "threads: (createdAt,id[,score][,snapshotAt])"
+    - section: "snapshot期限切れ"
+      items:
+        - "24h以上で True を返す"
+
+output_format: "pytest テストコード"
+
+test_specification:
+  validation:
+    - "正/異常系（不正format/欠落）の網羅"
+
+definition_of_done:
+  - "test_cursor.py が追加され、GREEN"
