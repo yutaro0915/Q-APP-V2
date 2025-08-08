@@ -160,3 +160,252 @@ def test_get_thread_by_id_validates_id_format():
         mock_conn.fetchrow.assert_not_called()
     
     asyncio.run(run_test())
+
+
+def test_list_threads_new_without_cursor():
+    """Test list_threads_new returns threads in correct order without cursor."""
+    mock_conn = AsyncMock()
+    
+    # Mock threads data
+    mock_threads = [
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN3",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Thread 3",
+            "body": "Body 3",
+            "created_at": datetime(2024, 1, 3, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        },
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN2",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Thread 2",
+            "body": "Body 2",
+            "created_at": datetime(2024, 1, 2, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        },
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN1",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Thread 1",
+            "body": "Body 1",
+            "created_at": datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        }
+    ]
+    
+    mock_conn.fetch = AsyncMock(return_value=mock_threads)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.list_threads_new()
+        
+        assert "items" in result
+        assert "nextCursor" in result
+        assert len(result["items"]) == 3
+        
+        # Check ordering - newest first
+        assert result["items"][0]["id"] == "thr_01HX123456789ABCDEFGHJKMN3"
+        assert result["items"][1]["id"] == "thr_01HX123456789ABCDEFGHJKMN2"
+        assert result["items"][2]["id"] == "thr_01HX123456789ABCDEFGHJKMN1"
+        
+        # Verify SQL query
+        mock_conn.fetch.assert_called_once()
+        query = mock_conn.fetch.call_args[0][0]
+        assert "SELECT" in query
+        assert "FROM threads" in query
+        assert "deleted_at IS NULL" in query
+        assert "ORDER BY created_at DESC, id DESC" in query
+        assert "LIMIT" in query
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_with_cursor():
+    """Test list_threads_new with cursor pagination."""
+    from app.services.cursor import encode
+    
+    mock_conn = AsyncMock()
+    
+    # Mock threads after cursor
+    mock_threads = [
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN2",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Thread 2",
+            "body": "Body 2",
+            "created_at": datetime(2024, 1, 2, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        },
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN1",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Thread 1",
+            "body": "Body 1",
+            "created_at": datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        }
+    ]
+    
+    mock_conn.fetch = AsyncMock(return_value=mock_threads)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Create cursor pointing to thread 3
+        cursor_obj = {
+            "v": 1,
+            "createdAt": "2024-01-03T00:00:00Z",
+            "id": "thr_01HX123456789ABCDEFGHJKMN3"
+        }
+        cursor = encode(cursor_obj)
+        
+        result = await repo.list_threads_new(cursor=cursor)
+        
+        assert len(result["items"]) == 2
+        assert result["items"][0]["id"] == "thr_01HX123456789ABCDEFGHJKMN2"
+        assert result["items"][1]["id"] == "thr_01HX123456789ABCDEFGHJKMN1"
+        
+        # Check that cursor was used in query
+        query = mock_conn.fetch.call_args[0][0]
+        assert "(created_at, id) < ($1, $2)" in query or "created_at < $1 OR (created_at = $1 AND id < $2)" in query
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_limit():
+    """Test list_threads_new respects limit parameter."""
+    mock_conn = AsyncMock()
+    
+    # Mock more threads than limit
+    mock_threads = []
+    for i in range(5, 0, -1):  # 5 threads in DESC order
+        mock_threads.append({
+            "id": f"thr_01HX123456789ABCDEFGHJKMN{i}",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": f"Thread {i}",
+            "body": f"Body {i}",
+            "created_at": datetime(2024, 1, i, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        })
+    
+    mock_conn.fetch = AsyncMock(return_value=mock_threads[:3])
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.list_threads_new(limit=3)
+        
+        assert len(result["items"]) == 3
+        
+        # Check LIMIT in query
+        query = mock_conn.fetch.call_args[0][0]
+        limit_param = mock_conn.fetch.call_args[0][1] if len(mock_conn.fetch.call_args[0]) > 1 else None
+        # Should fetch limit+1 to check for more
+        assert limit_param == 4 or "LIMIT 4" in query
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_has_more():
+    """Test list_threads_new correctly determines if there are more pages."""
+    mock_conn = AsyncMock()
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Case 1: Has more pages (returns limit+1 items)
+        mock_threads_with_more = []
+        for i in range(4):  # 4 threads when limit is 3
+            mock_threads_with_more.append({
+                "id": f"thr_01HX123456789ABCDEFGHJKMN{4-i}",
+                "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+                "title": f"Thread {4-i}",
+                "body": f"Body {4-i}",
+                "created_at": datetime(2024, 1, 4-i, 0, 0, 0, tzinfo=timezone.utc),
+                "deleted_at": None
+            })
+        
+        mock_conn.fetch = AsyncMock(return_value=mock_threads_with_more)
+        result = await repo.list_threads_new(limit=3)
+        
+        # Should only return 3 items but set nextCursor
+        assert len(result["items"]) == 3
+        assert result["nextCursor"] is not None
+        
+        # Case 2: No more pages (returns less than limit+1)
+        mock_threads_no_more = mock_threads_with_more[:2]  # Only 2 threads
+        mock_conn.fetch = AsyncMock(return_value=mock_threads_no_more)
+        result = await repo.list_threads_new(limit=3)
+        
+        assert len(result["items"]) == 2
+        assert result["nextCursor"] is None
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_max_limit():
+    """Test list_threads_new enforces maximum limit of 200."""
+    mock_conn = AsyncMock()
+    mock_conn.fetch = AsyncMock(return_value=[])
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Try with limit > 200
+        result = await repo.list_threads_new(limit=500)
+        
+        # Should cap at 200 (+1 for has_more check)
+        query = mock_conn.fetch.call_args[0][0]
+        limit_param = mock_conn.fetch.call_args[0][-1]
+        assert limit_param == 201 or "LIMIT 201" in query
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_excludes_deleted():
+    """Test list_threads_new excludes soft-deleted threads."""
+    mock_conn = AsyncMock()
+    
+    # Mock data should not include deleted threads
+    # The query should filter them out
+    mock_threads = [
+        {
+            "id": "thr_01HX123456789ABCDEFGHJKMN1",
+            "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+            "title": "Active Thread",
+            "body": "Body",
+            "created_at": datetime(2024, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+            "deleted_at": None
+        }
+    ]
+    
+    mock_conn.fetch = AsyncMock(return_value=mock_threads)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.list_threads_new()
+        
+        # Verify deleted_at IS NULL is in query
+        query = mock_conn.fetch.call_args[0][0]
+        assert "deleted_at IS NULL" in query
+        
+        # Result should only have non-deleted threads
+        assert len(result["items"]) == 1
+        assert result["items"][0]["deleted_at"] is None
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_invalid_cursor():
+    """Test list_threads_new handles invalid cursor gracefully."""
+    mock_conn = AsyncMock()
+    mock_conn.fetch = AsyncMock(return_value=[])
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Invalid cursor should be handled
+        result = await repo.list_threads_new(cursor="invalid_cursor_xxx")
+        
+        # Should return empty result or raise appropriate error
+        assert "items" in result
+        assert result["items"] == []
+        assert result["nextCursor"] is None
+    
+    asyncio.run(run_test())

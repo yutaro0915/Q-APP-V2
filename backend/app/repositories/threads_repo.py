@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 
+from app.services.cursor import encode, decode, CursorDecodeError
 from app.util.idgen import generate_id
 
 
@@ -88,11 +89,87 @@ class ThreadRepository:
     async def list_threads_new(
         self,
         *,
-        cursor: Optional[dict] = None,
+        cursor: Optional[str] = None,
         limit: int = 20,
-    ) -> dict:
-        """Return items and nextCursor for timeline 'new'."""
-        raise NotImplementedError
+    ) -> Dict[str, Any]:
+        """Return items and nextCursor for timeline 'new'.
+        
+        Args:
+            cursor: Optional cursor string for pagination
+            limit: Number of items to return (default 20, max 200)
+            
+        Returns:
+            Dict with 'items' list and optional 'nextCursor'
+        """
+        # Enforce maximum limit
+        if limit > 200:
+            limit = 200
+        
+        # Parse cursor if provided
+        anchor_created_at = None
+        anchor_id = None
+        
+        if cursor:
+            try:
+                cursor_obj = decode(cursor)
+                # Validate cursor format
+                if cursor_obj.get("v") != 1:
+                    # Invalid cursor, just ignore it
+                    pass
+                else:
+                    anchor_created_at = cursor_obj.get("createdAt")
+                    anchor_id = cursor_obj.get("id")
+            except CursorDecodeError:
+                # Invalid cursor, proceed without it
+                pass
+        
+        # Build query
+        if anchor_created_at and anchor_id:
+            # With cursor: get threads before the anchor
+            query = """
+                SELECT * FROM threads
+                WHERE deleted_at IS NULL
+                  AND (created_at, id) < ($1, $2)
+                ORDER BY created_at DESC, id DESC
+                LIMIT $3
+            """
+            # Fetch limit+1 to check if there are more
+            rows = await self._db.fetch(query, anchor_created_at, anchor_id, limit + 1)
+        else:
+            # Without cursor: get latest threads
+            query = """
+                SELECT * FROM threads
+                WHERE deleted_at IS NULL
+                ORDER BY created_at DESC, id DESC
+                LIMIT $1
+            """
+            # Fetch limit+1 to check if there are more
+            rows = await self._db.fetch(query, limit + 1)
+        
+        # Convert rows to list of dicts
+        items = [dict(row) for row in rows]
+        
+        # Check if there are more pages
+        has_more = len(items) > limit
+        if has_more:
+            # Remove the extra item
+            items = items[:limit]
+        
+        # Generate next cursor if there are more pages
+        next_cursor = None
+        if has_more and items:
+            last_item = items[-1]
+            cursor_obj = {
+                "v": 1,
+                "createdAt": last_item["created_at"].isoformat().replace("+00:00", "Z"),
+                "id": last_item["id"]
+            }
+            next_cursor = encode(cursor_obj)
+        
+        return {
+            "items": items,
+            "nextCursor": next_cursor
+        }
 
     async def soft_delete_thread(self, *, thread_id: str, author_id: str) -> None:
         """Soft delete the thread (set deleted_at)."""
