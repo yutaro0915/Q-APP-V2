@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-FRONT-APIClient
+#   assignee: claude_agent
+#   start_at: 2025-08-08T14:06:49Z
+#   note: ""
 id: P0-FRONT-APIClient
 phase: 0
 layer: FRONT
