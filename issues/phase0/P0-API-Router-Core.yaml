@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-API-Router-Core
+#   assignee: implementer
+#   start_at: 2025-08-08T12:16:28Z
+#   note: ""
 id: P0-API-Router-Core
 phase: 0
 layer: API
