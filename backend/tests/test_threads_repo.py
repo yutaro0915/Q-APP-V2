@@ -535,3 +535,263 @@ def test_soft_delete_thread_validates_thread_id():
         mock_conn.fetchrow.assert_not_called()
     
     asyncio.run(run_test())
+
+
+def test_create_thread_basic():
+    """Test create_thread creates a new thread successfully."""
+    mock_conn = AsyncMock()
+    
+    # Mock successful insert
+    mock_conn.fetchrow = AsyncMock(return_value={
+        "id": "thr_01HX123456789ABCDEFGHJKMNP",
+        "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+        "title": "Test Thread",
+        "body": "Test body content",
+        "up_count": 0,
+        "save_count": 0,
+        "solved_comment_id": None,
+        "heat": 0.0,
+        "created_at": datetime.now(timezone.utc),
+        "last_activity_at": datetime.now(timezone.utc),
+        "deleted_at": None
+    })
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        thread_id = await repo.create_thread(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            title="Test Thread",
+            body="Test body content"
+        )
+        
+        assert thread_id == "thr_01HX123456789ABCDEFGHJKMNP"
+        
+        # Verify the query was called
+        mock_conn.fetchrow.assert_called_once()
+        query = mock_conn.fetchrow.call_args[0][0]
+        params = mock_conn.fetchrow.call_args[0][1:]
+        
+        # Check query structure
+        assert "INSERT INTO threads" in query
+        assert "RETURNING *" in query
+        
+        # Check parameters
+        assert len(params) == 11  # id, author_id, title, body, created_at, last_activity_at, heat, up_count, save_count, solved_comment_id, deleted_at
+        assert params[0].startswith("thr_")  # Generated thread ID
+        assert params[1] == "usr_01HX123456789ABCDEFGHJKMNP"
+        assert params[2] == "Test Thread"
+        assert params[3] == "Test body content"
+    
+    asyncio.run(run_test())
+
+
+def test_create_thread_with_tags_and_image():
+    """Test create_thread with tags and image_key."""
+    mock_conn = AsyncMock()
+    
+    # Mock successful insert
+    mock_conn.fetchrow = AsyncMock(return_value={
+        "id": "thr_01HX123456789ABCDEFGHJKMNP",
+        "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+        "title": "Test Thread with Tags",
+        "body": "Body with image",
+        "up_count": 0,
+        "save_count": 0,
+        "solved_comment_id": None,
+        "heat": 0.0,
+        "created_at": datetime.now(timezone.utc),
+        "last_activity_at": datetime.now(timezone.utc),
+        "deleted_at": None
+    })
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        thread_id = await repo.create_thread(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            title="Test Thread with Tags",
+            body="Body with image",
+            tags=["question", "programming"],
+            image_key="2024/01/15/thr_01HX123456789ABCDEFGHJKMNP.webp"
+        )
+        
+        assert thread_id == "thr_01HX123456789ABCDEFGHJKMNP"
+        
+        # Note: tags and image_key are handled by separate tables in later phases
+        # For now, just ensure the basic thread creation works
+        mock_conn.fetchrow.assert_called_once()
+    
+    asyncio.run(run_test())
+
+
+def test_create_thread_id_generation():
+    """Test that create_thread generates valid thread IDs."""
+    mock_conn = AsyncMock()
+    
+    # Store generated IDs to check
+    generated_ids = []
+    
+    async def capture_id(*args):
+        # Capture the generated ID from the INSERT query parameters
+        generated_ids.append(args[1])  # ID is first parameter after query
+        return {
+            "id": args[1],
+            "author_id": args[2],
+            "title": args[3],
+            "body": args[4],
+            "up_count": 0,
+            "save_count": 0,
+            "solved_comment_id": None,
+            "heat": 0.0,
+            "created_at": datetime.now(timezone.utc),
+            "last_activity_at": datetime.now(timezone.utc),
+            "deleted_at": None
+        }
+    
+    mock_conn.fetchrow = AsyncMock(side_effect=capture_id)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Create multiple threads
+        for i in range(3):
+            thread_id = await repo.create_thread(
+                author_id="usr_01HX123456789ABCDEFGHJKMNP",
+                title=f"Thread {i}",
+                body=f"Body {i}"
+            )
+            assert thread_id.startswith("thr_")
+            assert len(thread_id) == 30  # thr_ (4) + ULID (26)
+        
+        # Check all generated IDs are unique
+        assert len(set(generated_ids)) == 3
+        
+        # Validate ULID format for each
+        from app.util.idgen import is_valid_id
+        for gen_id in generated_ids:
+            assert is_valid_id(gen_id)
+    
+    asyncio.run(run_test())
+
+
+def test_create_thread_timestamp_generation():
+    """Test that create_thread sets correct timestamps."""
+    mock_conn = AsyncMock()
+    
+    captured_timestamps = []
+    
+    async def capture_timestamps(*args):
+        # Capture created_at and last_activity_at
+        captured_timestamps.append({
+            "created_at": args[5],  # created_at parameter
+            "last_activity_at": args[6]  # last_activity_at parameter
+        })
+        return {
+            "id": args[1],
+            "author_id": args[2],
+            "title": args[3],
+            "body": args[4],
+            "up_count": 0,
+            "save_count": 0,
+            "solved_comment_id": None,
+            "heat": args[7],
+            "created_at": datetime.now(timezone.utc),
+            "last_activity_at": datetime.now(timezone.utc),
+            "deleted_at": None
+        }
+    
+    mock_conn.fetchrow = AsyncMock(side_effect=capture_timestamps)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        await repo.create_thread(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            title="Test Thread",
+            body="Test body"
+        )
+        
+        # Check timestamps were set
+        assert len(captured_timestamps) == 1
+        ts = captured_timestamps[0]
+        
+        # Both timestamps should be the same at creation
+        assert ts["created_at"] == ts["last_activity_at"]
+        
+        # Should be ISO8601 format with Z suffix
+        assert ts["created_at"].endswith("Z")
+        assert "T" in ts["created_at"]
+    
+    asyncio.run(run_test())
+
+
+def test_create_thread_id_collision_retry():
+    """Test that create_thread retries on ID collision."""
+    mock_conn = AsyncMock()
+    
+    # Simulate unique constraint violation on first attempt
+    call_count = 0
+    
+    async def simulate_collision(*args):
+        nonlocal call_count
+        call_count += 1
+        
+        if call_count == 1:
+            # First attempt: simulate unique constraint violation
+            import asyncpg
+            raise asyncpg.UniqueViolationError("duplicate key value violates unique constraint")
+        else:
+            # Second attempt: success
+            return {
+                "id": args[1],
+                "author_id": args[2],
+                "title": args[3],
+                "body": args[4],
+                "up_count": 0,
+                "save_count": 0,
+                "solved_comment_id": None,
+                "heat": 0.0,
+                "created_at": datetime.now(timezone.utc),
+                "last_activity_at": datetime.now(timezone.utc),
+                "deleted_at": None
+            }
+    
+    mock_conn.fetchrow = AsyncMock(side_effect=simulate_collision)
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        thread_id = await repo.create_thread(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            title="Test Thread",
+            body="Test body"
+        )
+        
+        # Should succeed after retry
+        assert thread_id.startswith("thr_")
+        
+        # Should have been called twice (first failed, second succeeded)
+        assert mock_conn.fetchrow.call_count == 2
+    
+    asyncio.run(run_test())
+
+
+def test_create_thread_other_db_errors():
+    """Test that create_thread propagates non-unique-constraint DB errors."""
+    mock_conn = AsyncMock()
+    
+    # Simulate a different database error
+    mock_conn.fetchrow = AsyncMock(side_effect=Exception("Database connection lost"))
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        try:
+            await repo.create_thread(
+                author_id="usr_01HX123456789ABCDEFGHJKMNP",
+                title="Test Thread",
+                body="Test body"
+            )
+            assert False, "Should have raised an exception"
+        except Exception as e:
+            assert "Database connection lost" in str(e)
+    
+    asyncio.run(run_test())

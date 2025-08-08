@@ -25,7 +25,7 @@ class ThreadRepository:
         # ISO8601 UTC string; later we may switch to timezone-aware datetime
         import datetime as _dt
 
-        return _dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+        return _dt.datetime.now(_dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     # ---- interface signatures ----
     async def create_thread(
@@ -38,7 +38,62 @@ class ThreadRepository:
         image_key: Optional[str] = None,
     ) -> str:
         """Create a new thread and return the new thread id."""
-        raise NotImplementedError
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            # Generate new ID and timestamps
+            thread_id = self._generate_thread_id()
+            now = self._now_utc()
+            
+            # Prepare INSERT query
+            query = """
+                INSERT INTO threads (
+                    id, author_id, title, body,
+                    created_at, last_activity_at, heat,
+                    up_count, save_count, solved_comment_id, deleted_at
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+                RETURNING *
+            """
+            
+            try:
+                # Execute insert
+                result = await self._db.fetchrow(
+                    query,
+                    thread_id,       # $1
+                    author_id,       # $2
+                    title,           # $3
+                    body,            # $4
+                    now,             # $5 - created_at
+                    now,             # $6 - last_activity_at
+                    0.0,             # $7 - heat (initial)
+                    0,               # $8 - up_count
+                    0,               # $9 - save_count
+                    None,            # $10 - solved_comment_id
+                    None             # $11 - deleted_at
+                )
+                
+                # Note: tags and image_key will be handled in separate tables
+                # in later phases (thread_tags, attachments)
+                
+                return result["id"]
+                
+            except Exception as e:
+                # Check if it's a unique constraint violation
+                import asyncpg
+                if isinstance(e, asyncpg.UniqueViolationError):
+                    # Retry with a new ID
+                    if attempt < max_retries - 1:
+                        continue
+                    else:
+                        # Max retries reached, propagate the error
+                        raise
+                else:
+                    # For other errors, propagate immediately
+                    raise
+        
+        # Should not reach here, but just in case
+        raise Exception("Failed to create thread after max retries")
 
     async def get_thread_by_id(self, *, thread_id: str) -> Optional[dict]:
         """Return thread row (dict) or None if not found/soft-deleted.
