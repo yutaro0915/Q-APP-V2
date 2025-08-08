@@ -40,6 +40,39 @@
 - タスク開始時は「YAMLをまず確認」。先頭の `# claim:` が他者で埋まっていないか確認し、自分のスタンプを追記してから着手。
 - 実装が完了したら、YAML末尾へ `# done:` を追記。問題発生時は `# issue:` を追記し、完了にはしない。
 
+[環境準備（必須）]
+- Python 仮想環境: 必ず uv を使用（CIと同一系）。
+  - インストール: `pipx install uv` もしくは公式配布に従う
+  - Python 準備: `uv python install 3.11`
+  - 依存同期（初回/変更時）: `cd backend && uv sync && cd ..`
+  - 実行は常に `uv run ...`（`scripts/test.sh` 内でも採用）
+- Node: `cd frontend && npm ci` を初回実行。以降は `npm test` が使える。
+- DB: 統合系テストで必要な場合は `docs/03a_ddl_postgresql_v1.sql` を適用し、`DATABASE_URL` を設定。
+
+[開発に必要な知識（要点集）]
+- ディレクトリ: `backend/app/{routers,services,repositories,schemas,util}`／テストは `backend/tests/`。フロントは `frontend/app/`、テストは `frontend/__tests__/`。
+- DTO/規約（04/04a/04b）
+  - エラー: ErrorResponse（`error.code|message|details?|requestId?`）。全応答に `X-Request-Id`。
+  - ステータス: 400/401/403/404/409/429（RateLimit時は `Retry-After`/`X-RateLimit-*`）。
+  - Solve: 非質問スレは400（`details.reason=NOT_APPLICABLE`）。
+  - Reactions: 重複は409、成功は204。
+- データモデル（03/03a）
+  - `threads`: `id, author_id, title, body, up_count, save_count, solved_comment_id, heat, created_at, last_activity_at, deleted_at`
+  - `comments`: `id, thread_id, author_id, body, up_count, created_at, deleted_at`
+  - `reactions`: UNIQUE(`user_id,target_type,target_id,kind`)
+  - `attachments`（P3）: `key,mime,width,height,size,sha256,(thread_id xor comment_id)`
+- ページング/並び（安定順）
+  - TL new: `(createdAt DESC, id DESC)` 固定20件・最大200
+  - Comments: `(createdAt ASC, id ASC)` 固定20件
+  - Hot/Search: スナップショット固定（`X-Snapshot-At`）、24h 期限
+- カーソル: base64url(JSON) のアンカー（上記タプル）を用いる。引数 `cursor` のみ（limit可変は不可）。
+- ID/時刻: `prefix_ULID`（例: `thr_*`, `cmt_*`）。時刻はDB UTC、表示はJST相対。
+- ソフト削除: `deleted_at` 設定。返却時は本文/タイトルを "[削除済み]" へ置換。画像は非表示。
+- プロフィール: `faculty <= 50`, `year 1..10`、公開フラグ（JOINで動的付与）。
+- 画像（P3）: Presign→PUT、MIME=`image/webp|jpeg|png`、size ≤ 5MB、期限~300s。クライアント前処理（2048px/EXIF除去/WebP）。
+- 検索（P3）: pg_trgm、relevance/new、スナップショット固定・重複無し。
+- One-File Rule: 実装コミットは「実装1ファイル＋テスト」。YAML/ドキュメントは補助にとどめる。
+
 目的: ブランチ/PRを使わず、main上で最小コミットを積み上げて進捗を管理する。各タスクは YAML スタンプで占有し、TDDでGREEN確認後にコミットする。1コミットあたりの実装ファイルは原則1つ（テストは除外）。
 
 前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` で backend/frontend をまとめて実行。
