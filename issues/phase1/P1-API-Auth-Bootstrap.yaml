@@ -64,3 +64,7 @@ definition_of_done:
   - "auth.pyが作成されている"
   - "bootstrapエンドポイントが動作する"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-08T17:00:00Z
+#   result: GREEN
+#   note: "Phase 1 simplified implementation"
