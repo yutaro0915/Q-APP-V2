@@ -1,3 +1,8 @@
+# claim:
+#   id: P1-API-DB-Pool
+#   assignee: claude_agent
+#   start_at: 2025-08-08T16:00:00Z
+#   note: ""
 id: P1-API-DB-Pool
 phase: 1
 layer: API
