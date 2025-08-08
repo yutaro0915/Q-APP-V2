@@ -28,17 +28,15 @@
 
 前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` で backend/frontend をまとめて実行。
 
-## 0) プレフライト（mainを最新に）
+## 0) プレフライト（任意・簡易）
 ```bash
-# ルートで実行
-git fetch origin && git checkout main && git pull --rebase origin main
+git pull --rebase  # mainを最新化（簡易）
 ```
 
-## 1) YAML選定と占有スタンプ（即コミット）
+## 1) YAML選定と占有スタンプ（即コミット・最小）
 ```bash
-# 変数を設定
-ISSUE_YAML="issues/phase2/P2-API-Repo-Comments-Insert.yaml"  # 着手するYAMLに置換
-AGENT="your_agent_name"
+ISSUE_YAML="issues/phase2/P2-API-Repo-Comments-Insert.yaml"  # 着手するYAML
+AGENT="your_agent_name"                                     # 任意の識別子
 
 # 既に占有されていないか確認（先頭10行）
 head -n 10 "$ISSUE_YAML" | grep -q '^# claim:' && { echo "Already claimed: $ISSUE_YAML"; exit 1; }
@@ -56,13 +54,11 @@ EOF
 # 先頭に差し込む（macOS対応）
 printf "%s\n" "$STAMP" | cat - "$ISSUE_YAML" > "$ISSUE_YAML.tmp" && mv "$ISSUE_YAML.tmp" "$ISSUE_YAML"
 
-# すぐに main へコミット/プッシュ（占有を可視化）
-git add "$ISSUE_YAML"
-git commit -m "chore(issue-claim): $ISSUE_ID を占有開始 (assignee=$AGENT)"
-git pull --rebase origin main && git push origin main
+# すぐにコミット（占有を可視化）
+git add "$ISSUE_YAML" && git commit -m "chore(issue-claim): $ISSUE_ID start (assignee=$AGENT)" && git push
 ```
 
-## 2) TDD（ローカルでRED→GREEN、コミットはGREEN後のみ）
+## 2) TDD（RED→GREEN、コミットはGREEN後のみ）
 ```bash
 # 実装対象とテストファイルのパスをセット
 IMPL_FILE="backend/app/repositories/comments_repo.py"   # 例: 実装ファイル
@@ -70,55 +66,47 @@ TEST_FILE="backend/tests/test_comments_insert.py"      # 例: テストファイ
 
 # まずテストを書いて RED を確認（コミットはしない）
 # ... テスト編集 ...
-bash scripts/test.sh || echo "RED OK（まだコミットしない）"
+bash scripts/test.sh || echo "RED（まだコミットしない）"
 
 # 実装して GREEN にする（必要に応じてリファクタ）
 # ... 実装編集 ...
-bash scripts/test.sh  # ここは必ずGREENになるまで繰り返す
+bash scripts/test.sh  # GREENになるまで繰り返す
 ```
 
 ## 3) コミット（実装1 + テストのみ）
 ```bash
-# 非メタ・非テストの変更ファイル数を事前チェック（原則1つ）
-CHANGED_IMPL_COUNT=$(git diff --name-only | \
-  grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' | \
-  grep -v '^backend/tests/' | grep -v '^frontend/__tests__/' | \
-  wc -l | tr -d ' ')
-if [ "$CHANGED_IMPL_COUNT" -gt 1 ]; then
-  echo "Error: 変更中の実装ファイルが複数あります（1つに分割してください）"; exit 1;
-fi
-
-# 念のため再テスト（GREENであること）
+# 最終テスト（GREENでなければコミットしない）
 bash scripts/test.sh || { echo "Tests failed. Commit aborted."; exit 1; }
 
-# 変更対象のみを明示的にステージしてコミット（実装1 + テスト）
-git add "$IMPL_FILE" "$TEST_FILE"
-COMMIT_MSG="feat($ISSUE_ID): 実装/テストを追加（One-File Rule厳守）"
-git commit -m "$COMMIT_MSG"
-
-# main へ反映
-git pull --rebase origin main && git push origin main
+# 実装1 + テストのみをコミット（One-File Ruleは自律判断）
+git add "$IMPL_FILE" "$TEST_FILE" && git commit -m "feat($ISSUE_ID): implement & test" && git push
 ```
 
-## 4) CSV更新（任意・main運用）
+## 4) YAMLによる完了報告（CSVは任意・簡易）
 ```bash
-# 最低限、開始・完了時刻とステータスを追記/更新（手作業でも可）
-# 新規行の追加例（必要な列だけ一時的に埋める）。空欄は後で補完可。
-echo "$ISSUE_ID,phase?,layer?,area?,action?,$IMPL_FILE,$TEST_FILE,main,$AGENT,COMPLETED,,labels?,$(date -u +%Y-%m-%dT%H:%M:%SZ),$(date -u +%Y-%m-%dT%H:%M:%SZ)," >> docs/issues_progress_index.csv
-
-git add docs/issues_progress_index.csv
-git commit -m "chore(progress): $ISSUE_ID の進捗をCSVに反映"
-git pull --rebase origin main && git push origin main
+# YAMLの末尾に完了コメントブロックを追記して可視化（CSVは任意）
+COMPLETE=$(cat <<EOF
+# done:
+#   finished_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+#   result: GREEN
+#   note: ""
+EOF
+)
+printf "\n%s\n" "$COMPLETE" >> "$ISSUE_YAML"
+git add "$ISSUE_YAML" && git commit -m "chore(issue-done): $ISSUE_ID finished" && git push
 ```
 
-## 失敗時のリカバリ
+## 問題発生時（YAMLへ追記して完了にしない）
 ```bash
-# ワーキングツリーを破棄してやり直し
-git restore -SW .
-
-# 直前のコミットを元に戻す（mainに誤って入れた場合）
-# 影響が大きければ revert を使い、その後に修正版を再コミット
-git revert --no-edit HEAD && git push origin main
+# YAMLに障害メモを残す（doneは付けない）
+ISSUE_NOTE=$(cat <<EOF
+# issue:
+#   at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+#   note: "症状/原因/対処メモ"
+EOF
+)
+printf "\n%s\n" "$ISSUE_NOTE" >> "$ISSUE_YAML"
+git add "$ISSUE_YAML" && git commit -m "chore(issue-note): $ISSUE_ID incident noted" && git push
 ```
 
 ## 重要な原則

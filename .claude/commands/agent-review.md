@@ -14,25 +14,18 @@
 
 前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` を使用。
 
-## 1) 直近コミットの抽出
+## 1) 対象コミットの抽出（簡易）
 ```bash
-# 直近の対象コミットを1件（または範囲）特定
-LAST_COMMIT=$(git rev-parse HEAD)
-PREV_COMMIT=$(git rev-parse HEAD^)
+LAST_COMMIT=$(git rev-parse HEAD); PREV_COMMIT=$(git rev-parse HEAD^)
 ```
 
-## 2) 変更点の検証（One-File Rule / YAMLスタンプ）
+## 2) 変更点の検証（実装1＋テスト目安 / YAMLスタンプ）
 ```bash
-# 実装ファイルの変更数（docs/issues/.github とテスト除外）
-git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | \
-  grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' | \
-  grep -v '^backend/tests/' | grep -v '^frontend/__tests__/' | \
-  wc -l
+# 実装ファイルの変更数目安（docs/issues/.github とテスト除外）
+git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' | grep -v '^backend/tests/' | grep -v '^frontend/__tests__/' | wc -l
 
 # YAMLが変更されていれば先頭スタンプを確認
-for f in $(git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep '^issues/.*\.yaml$' || true); do
-  head -n 10 "$f" | grep -q '^# claim:' && echo "claim OK in $f" || echo "no claim in $f (許容: 実装のみのコミットなど)"
-done
+for f in $(git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep '^issues/.*\.yaml$' || true); do head -n 10 "$f" | grep -q '^# claim:' && echo "claim OK in $f" || echo "no claim in $f (許容)"; done
 ```
 
 ## 3) 自動テスト
