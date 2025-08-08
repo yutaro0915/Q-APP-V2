@@ -15,7 +15,7 @@
 フロー（毎PR）:
 1) 紐づく YAML を特定: PRタイトル/Body の YAML id から issues/**/ を開く。
 2) 仕様突き合わせ: spec_refs/ specification/ constraints/ test_specification/ DoD を PR の変更と比較し、完全一致を確認。YAML先頭に claim ブロック（コメント）がある場合、PRの実装者（またはブランチ作成者）と整合しているかを確認し、未整合や多重claimが見つかった場合は修正要求。
-3) 変更範囲: One-File Rule 準拠か。例外がある場合は理由の妥当性を確認。
+3) 変更範囲: One-File Rule 準拠か。例外がある場合は理由の妥当性を確認。ドキュメント操作や副次的なファイルに関しては追跡しない。
 4) テスト:
    - CI の結果（backend/frontend）を確認。
    - 追加/変更テストが RED→GREEN の妥当な流れかをレビュー。
