@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-CI-Push-Main
+#   assignee: claude_agent
+#   start_at: 2025-08-08T15:58:00Z
+#   note: ""
 id: P0-CI-Push-Main
 phase: 0
 layer: CI
