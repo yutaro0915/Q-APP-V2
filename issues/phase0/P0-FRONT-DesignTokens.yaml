@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-FRONT-DesignTokens
+#   assignee: claude_agent
+#   start_at: 2025-08-08T14:04:02Z
+#   note: "Enhance existing globals.css with design tokens"
 id: P0-FRONT-DesignTokens
 phase: 0
 layer: FRONT
