@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-INFRA-VPC-Connector
+#   assignee: claude_agent
+#   start_at: 2025-08-08T14:24:56Z
+#   note: ""
 id: P0-INFRA-VPC-Connector
 phase: 0
 layer: INFRA
