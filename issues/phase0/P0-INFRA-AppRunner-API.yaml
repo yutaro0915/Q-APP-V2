@@ -63,3 +63,7 @@ definition_of_done:
   - "手順書が完成している"
   - "環境変数一覧が明記されている"
   - "自動デプロイが設定されている"
+# done:
+#   finished_at: 2025-08-08T14:18:49Z
+#   result: GREEN
+#   note: ""
