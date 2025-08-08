@@ -46,7 +46,7 @@
   - Python 準備: `uv python install 3.11`
   - 依存同期（初回/変更時）: `cd backend && uv sync && cd ..`
   - 実行は常に `uv run ...`（`scripts/test.sh` 内でも採用）
-- Node: `cd frontend && npm ci` を初回実行。以降は `npm test` が使える。
+- Node: `cd frontend && npm ci`（Node 20）。テストは一回実行にするため `npm test -- --run` を推奨。
 - DB: 統合系テストで必要な場合は `docs/03a_ddl_postgresql_v1.sql` を適用し、`DATABASE_URL` を設定。
 
 [開発に必要な知識（要点集）]
@@ -115,16 +115,23 @@ TEST_FILE="backend/tests/test_comments_insert.py"      # 例: テストファイ
 
 # まずテストを書いて RED を確認（コミットはしない）
 # ... テスト編集 ...
+# Frontendのみ素早く回す場合（watchを避ける）
+cd frontend && npm test -- --run || echo "RED（まだコミットしない）"; cd -
+# 全体検証（backend+frontend）
 bash scripts/test.sh || echo "RED（まだコミットしない）"
 
 # 実装して GREEN にする（必要に応じてリファクタ）
 # ... 実装編集 ...
+# Frontendのみ素早く回す場合
+cd frontend && npm test -- --run || exit 1; cd -
+# 最終的には全体をGREENに
 bash scripts/test.sh  # GREENになるまで繰り返す
 ```
 
 ## 3) コミット（実装1 + テストのみ）
 ```bash
 # 最終テスト（GREENでなければコミットしない）
+# Frontend変更のみであっても、最終段は全体テストを実行
 bash scripts/test.sh || { echo "Tests failed. Commit aborted."; exit 1; }
 
 # 実装1 + テストのみをコミット（One-File Ruleは自律判断）

@@ -46,6 +46,9 @@ for f in $(git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep '^issues/.*
 
 ## 3) 自動テスト
 ```bash
+# まずはfrontend単体を一回実行（watch無効）
+cd frontend && npm test -- --run || { echo "Frontend failed"; exit 1; }; cd -
+# 次に全体（backend+frontend）
 bash scripts/test.sh || { echo "Tests failed. 要フォローアップ"; exit 1; }
 ```
 
