@@ -44,3 +44,8 @@ test_specification:
 definition_of_done:
   - "cursor.py が作成されている"
   - "正/異常系テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-08T13:52:52Z
+#   result: GREEN
+#   note: "Implemented cursor utilities with base64url encoding and validation"
