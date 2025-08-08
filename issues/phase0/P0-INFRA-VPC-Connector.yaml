@@ -54,3 +54,7 @@ definition_of_done:
   - "手順書が完成している"
   - "ネットワーク構成図（テキスト）が含まれている"
   - "接続テスト手順が明記されている"
+# done:
+#   finished_at: 2025-08-08T14:26:26Z
+#   result: GREEN
+#   note: ""
