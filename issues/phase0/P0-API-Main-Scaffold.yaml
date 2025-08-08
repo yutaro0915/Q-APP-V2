@@ -61,3 +61,7 @@ definition_of_done:
   - "main.pyが作成されている"
   - "uvicornで起動可能"
   - "OpenAPIドキュメントが生成される"
+# done:
+#   finished_at: 2025-08-08T13:39:53Z
+#   result: GREEN
+#   note: "Implemented main.py with X-Request-Id, logging, error handling, and CORS middlewares"
