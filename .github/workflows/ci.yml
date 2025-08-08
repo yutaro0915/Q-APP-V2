@@ -99,6 +99,46 @@ jobs:
             echo "Warning: docs/issues_progress_index.csv not updated in this PR"
           fi
 
+      - name: Guard: implementation PR must reference an existing claim (and delete it)
+        if: github.event_name == 'pull_request'
+        run: |
+          # 非メタ領域の変更がある場合（=実装PR想定）、対応する claim の削除を必須化
+          changed_non_meta=$(git diff --name-only origin/main...HEAD | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' || true)
+          if [ -n "$changed_non_meta" ]; then
+            echo "Detected non-meta changes:" && echo "$changed_non_meta"
+            deleted_claims=$(git diff --name-status origin/main...HEAD | awk '$1=="D" {print $2}' | grep '^issues/_claims/' || true)
+            added_claims=$(git diff --name-status origin/main...HEAD | awk '$1=="A" {print $2}' | grep '^issues/_claims/' || true)
+            del_count=$(echo "$deleted_claims" | grep -c . || echo 0)
+            add_count=$(echo "$added_claims" | grep -c . || echo 0)
+            if [ $del_count -ne 1 ]; then
+              echo "Error: Implementation PR must delete exactly one existing claim file under issues/_claims/."
+              echo "Hint: まず claim 専用PRで issues/_claims/<ISSUE_ID>.claim を追加→ この実装PRでそのファイルを削除してください。"
+              exit 1
+            fi
+            if [ $add_count -gt 0 ]; then
+              echo "Error: Do not add claim files in implementation PR. Create a separate claim-only PR first."
+              exit 1
+            fi
+          fi
+
+      - name: Guard: claim-only PR must be unique
+        if: github.event_name == 'pull_request'
+        run: |
+          # クレーム専用PR（issues/_claims/ のみ追加・変更）の一意性を確認
+          all_changed=$(git diff --name-only origin/main...HEAD || true)
+          changed_non_claim=$(echo "$all_changed" | grep -v '^issues/_claims/' | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' || true)
+          added_claims=$(git diff --name-status origin/main...HEAD | awk '$1=="A" {print $2}' | grep '^issues/_claims/' || true)
+          if [ -z "$changed_non_claim" ] && [ -n "$added_claims" ]; then
+            # PR が claim 追加だけで構成されている場合、既存重複をチェック
+            for f in $added_claims; do
+              if git cat-file -e origin/main:$f; then
+                echo "Error: Claim already exists in main: $f"
+                exit 1
+              fi
+            done
+            echo "Claim uniqueness check passed."
+          fi
+
   validate-spec:
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.labels.*.name, 'api-change')
