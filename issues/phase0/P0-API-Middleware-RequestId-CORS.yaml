@@ -48,3 +48,8 @@ definition_of_done:
   - "X-Request-Id ヘッダが全エンドポイント応答に含まれる"
   - "CORS 設定が main.py に実装されている"
   - "基本テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-08T13:55:11Z
+#   result: GREEN
+#   note: "Middleware already implemented in main.py, added comprehensive tests"
