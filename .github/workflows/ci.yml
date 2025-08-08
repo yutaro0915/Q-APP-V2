@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -69,7 +71,7 @@ jobs:
       
       - name: Run tests
         working-directory: frontend
-        run: npm test
+        run: npm test -- --run
 
   check-files:
     runs-on: ubuntu-latest
