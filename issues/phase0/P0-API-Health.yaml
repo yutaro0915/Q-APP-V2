@@ -50,3 +50,7 @@ definition_of_done:
   - "health.pyが作成されている"
   - "テストファイルが作成されている"
   - "/health エンドポイントが動作する"
+# done:
+#   finished_at: 2025-08-08T13:46:43Z
+#   result: GREEN
+#   note: "Implemented health check router with proper response model"
