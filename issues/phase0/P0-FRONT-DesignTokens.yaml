@@ -69,3 +69,7 @@ definition_of_done:
   - "globals.cssが作成されている"
   - "デザイントークンが定義されている"
   - "基本的なリセットCSSが含まれている"
+# done:
+#   finished_at: 2025-08-08T14:06:09Z
+#   result: GREEN
+#   note: "Implemented complete design system with Kyudai colors, typography, spacing"
