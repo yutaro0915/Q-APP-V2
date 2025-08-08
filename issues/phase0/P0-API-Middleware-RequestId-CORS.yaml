@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-API-Middleware-RequestId-CORS
+#   assignee: claude_agent
+#   start_at: 2025-08-08T13:53:30Z
+#   note: "Already implemented in main.py, adding tests"
 id: P0-API-Middleware-RequestId-CORS
 phase: 0
 layer: API
