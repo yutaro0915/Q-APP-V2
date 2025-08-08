@@ -1,3 +1,8 @@
+# claim:
+#   id: P1-API-Auth-Bootstrap
+#   assignee: claude_agent
+#   start_at: 2025-08-08T16:15:00Z
+#   note: ""
 id: P1-API-Auth-Bootstrap
 phase: 1
 layer: API
