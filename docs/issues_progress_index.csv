@@ -2,3 +2,4 @@ id,phase,layer,area,action,target_file,test_file,branch,assignee,status,pr_numbe
 P0-API-Main-Scaffold,0,API,Main,Scaffold,backend/app/main.py,,feat/P0-API-Main-Scaffold,agent-impl,ISSUED,,,2025-08-08T00:00:00Z,,
 P0-API-Router-Core,0,API,Router,Core,backend/app/routers/__init__.py,,feat/P0-API-Router-Core,agent-impl,ISSUED,,,2025-08-08T00:00:00Z,,
 P0-API-Util-IdGen,0,API,Util,IdGen,backend/app/util/idgen.py,backend/tests/test_idgen.py,feat/P0-API-Util-IdGen,agent-impl,ISSUED,,,2025-08-08T00:00:00Z,,
+P0-API-Util-Cursor,0,API,Util,Cursor,backend/app/services/cursor.py,backend/tests/test_cursor.py,feat/P0-API-Util-Cursor,agent-impl,ISSUED,,,2025-08-08T00:00:00Z,,
