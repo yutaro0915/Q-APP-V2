@@ -409,3 +409,129 @@ def test_list_threads_new_invalid_cursor():
         assert result["nextCursor"] is None
     
     asyncio.run(run_test())
+
+
+def test_soft_delete_thread_by_owner():
+    """Test soft_delete_thread succeeds when called by the owner."""
+    mock_conn = AsyncMock()
+    
+    # Mock successful update (returns the updated row)
+    mock_conn.fetchrow = AsyncMock(return_value={
+        "id": "thr_01HX123456789ABCDEFGHJKMNP"
+    })
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.soft_delete_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is True
+        
+        # Verify the SQL query
+        mock_conn.fetchrow.assert_called_once()
+        query = mock_conn.fetchrow.call_args[0][0]
+        assert "UPDATE threads" in query
+        assert "SET deleted_at" in query
+        assert "WHERE id = $2" in query  # thread_id is second param
+        assert "AND author_id = $3" in query  # author_id is third param
+        assert "AND deleted_at IS NULL" in query
+        assert "RETURNING id" in query
+        
+        # Verify parameters (deleted_at timestamp, thread_id, author_id)
+        params = mock_conn.fetchrow.call_args[0][1:]
+        assert len(params) == 3
+        # First param is timestamp (deleted_at)
+        assert params[1] == "thr_01HX123456789ABCDEFGHJKMNP"
+        assert params[2] == "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    asyncio.run(run_test())
+
+
+def test_soft_delete_thread_by_non_owner():
+    """Test soft_delete_thread fails when called by non-owner."""
+    mock_conn = AsyncMock()
+    
+    # Mock no rows updated (returns None)
+    mock_conn.fetchrow = AsyncMock(return_value=None)
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.soft_delete_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_DIFFERENT123456789ABCDEFGH"
+        )
+        
+        assert result is False
+        
+        # Query should still be executed
+        mock_conn.fetchrow.assert_called_once()
+    
+    asyncio.run(run_test())
+
+
+def test_soft_delete_thread_already_deleted():
+    """Test soft_delete_thread fails when thread is already deleted."""
+    mock_conn = AsyncMock()
+    
+    # Mock no rows updated because deleted_at IS NULL fails
+    mock_conn.fetchrow = AsyncMock(return_value=None)
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.soft_delete_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is False
+        
+        # The query should include deleted_at IS NULL check
+        query = mock_conn.fetchrow.call_args[0][0]
+        assert "deleted_at IS NULL" in query
+    
+    asyncio.run(run_test())
+
+
+def test_soft_delete_thread_nonexistent():
+    """Test soft_delete_thread fails when thread doesn't exist."""
+    mock_conn = AsyncMock()
+    
+    # Mock no rows found
+    mock_conn.fetchrow = AsyncMock(return_value=None)
+    
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        result = await repo.soft_delete_thread(
+            thread_id="thr_NONEXISTENT123456789ABCDEF",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is False
+    
+    asyncio.run(run_test())
+
+
+def test_soft_delete_thread_validates_thread_id():
+    """Test soft_delete_thread validates thread ID format."""
+    mock_conn = AsyncMock()
+    repo = ThreadRepository(db=mock_conn)
+    
+    async def run_test():
+        # Invalid thread ID format should return False without querying
+        result = await repo.soft_delete_thread(
+            thread_id="invalid_id_format",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is False
+        
+        # Should not query database for invalid ID
+        mock_conn.fetchrow.assert_not_called()
+    
+    asyncio.run(run_test())

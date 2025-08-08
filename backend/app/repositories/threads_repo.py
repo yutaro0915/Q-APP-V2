@@ -171,7 +171,38 @@ class ThreadRepository:
             "nextCursor": next_cursor
         }
 
-    async def soft_delete_thread(self, *, thread_id: str, author_id: str) -> None:
-        """Soft delete the thread (set deleted_at)."""
-        raise NotImplementedError
+    async def soft_delete_thread(self, *, thread_id: str, author_id: str) -> bool:
+        """Soft delete the thread (set deleted_at).
+        
+        Args:
+            thread_id: Thread ID to delete
+            author_id: User ID of the requester (must be the owner)
+            
+        Returns:
+            True if deletion succeeded, False otherwise
+        """
+        # Validate thread ID format
+        if not self._is_valid_thread_id(thread_id):
+            return False
+        
+        # Get current timestamp for deleted_at
+        now = self._now_utc()
+        
+        # Update the thread only if:
+        # 1. The thread exists
+        # 2. The requester is the owner
+        # 3. The thread is not already deleted
+        query = """
+            UPDATE threads
+            SET deleted_at = $1
+            WHERE id = $2
+              AND author_id = $3
+              AND deleted_at IS NULL
+            RETURNING id
+        """
+        
+        result = await self._db.fetchrow(query, now, thread_id, author_id)
+        
+        # If a row was updated, result will contain the id
+        return result is not None
 
