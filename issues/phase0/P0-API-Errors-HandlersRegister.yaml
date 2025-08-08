@@ -48,3 +48,7 @@ definition_of_done:
   - "main.py で util/errors の3種ハンドラ登録が行われている"
   - "main.py の独自例外ハンドラ定義が撤去されている"
   - "統合テストがGREEN"
+# done:
+#   finished_at: 2025-08-08T15:57:30Z
+#   result: GREEN
+#   note: ""
