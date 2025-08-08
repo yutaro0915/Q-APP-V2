@@ -1,3 +1,4 @@
 id,phase,layer,area,action,target_file,test_file,branch,assignee,status,pr_number,labels,start_at,end_at,notes
 P0-API-Middleware-RequestId-CORS,0,API,Middleware,RequestId-CORS,backend/app/main.py,backend/tests/test_request_id_middleware.py,feat/P0-API-Middleware-RequestId-CORS,implementer,IN_PROGRESS,,"api-change",2025-08-08T00:00:00Z,,
+P0-API-Util-IdGen,0,API,Util,IdGen,backend/app/util/idgen.py,backend/tests/test_idgen.py,feat/P0-API-Util-IdGen,Implementer-Agent,IN_PROGRESS,,,"2025-08-08T12:06:20Z",,
 
