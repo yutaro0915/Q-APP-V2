@@ -45,3 +45,7 @@ definition_of_done:
   - "__init__.pyが作成されている"
   - "パッケージとして認識される"
   - "インポートエラーが発生しない"
+# done:
+#   finished_at: 2025-08-08T13:56:46Z
+#   result: GREEN
+#   note: "Created routers package initialization with __all__ export"
