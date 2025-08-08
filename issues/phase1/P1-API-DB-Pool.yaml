@@ -64,3 +64,7 @@ definition_of_done:
   - "db.pyが作成されている"
   - "接続プールが設定されている"
   - "エラーハンドリングが実装されている"
+# done:
+#   finished_at: 2025-08-08T16:10:00Z
+#   result: GREEN
+#   note: ""
