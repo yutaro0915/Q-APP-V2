@@ -55,3 +55,8 @@ definition_of_done:
   - "get_thread_by_idメソッドが実装されている"
   - "テストが追加されている"
   - "削除済みフィルタが機能している"
+
+# done:
+#   finished_at: 2025-08-08T18:15:00Z
+#   result: GREEN
+#   note: "get_thread_by_id implemented with ID validation and soft-delete filtering"
