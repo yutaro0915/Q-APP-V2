@@ -79,3 +79,7 @@ definition_of_done:
   - "CORS/ポリシーのJSONが含まれている"
   - "環境変数S3_BUCKET等の説明がある"
 ---
+# done:
+#   finished_at: 2025-08-08T14:24:28Z
+#   result: GREEN
+#   note: ""
