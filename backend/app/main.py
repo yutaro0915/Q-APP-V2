@@ -9,6 +9,8 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.routers import health
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -137,7 +139,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/api/v1/health")
-async def health_check():
-    return {"status": "healthy"}
+# Register routers
+app.include_router(health.router, prefix="/api/v1")
