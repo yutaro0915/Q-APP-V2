@@ -72,3 +72,7 @@ definition_of_done:
   - "errors.pyが作成されている"
   - "全てのエラーコードが定義されている"
   - "例外ハンドラーが実装されている"
+# done:
+#   finished_at: 2025-08-08T13:44:50Z
+#   result: GREEN
+#   note: "Implemented error handling with all exception types and handlers"
