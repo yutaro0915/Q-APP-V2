@@ -43,7 +43,6 @@
      #   note: ""
      ```
    - 既に claim ブロックが存在する場合は中断して別の YAML を選ぶ。
-   - 補足: 後続で claim 専用PR（issues/_claims/*.claim）を作成して重複をさらに防止。
 2) GitHub Issue発行: YAMLの内容を転記して新規Issueを作成（Title=YAML id、Body=specification/constraints/test_specification/definition_of_done を要約）。issues_progress_index.csv に行を追加し、status=ISSUED、pr_number空。
 3) ブランチ作成: `feat/<yaml-id>` でブランチを切る。CSVのbranch欄を更新、status=IN_PROGRESS。
 4) TDD 実行:
