@@ -1,3 +1,8 @@
+# claim:
+#   id: P1-API-Repo-Threads-Insert
+#   assignee: impl-bot
+#   start_at: 2025-08-08T00:00:00Z
+#   note: ""
 id: P1-API-Repo-Threads-Insert
 phase: 1
 layer: API
@@ -49,3 +54,8 @@ definition_of_done:
   - "create_threadメソッドが実装されている"
   - "テストが追加されている"
   - "エラーハンドリングが実装されている"
+
+# done:
+#   finished_at: 2025-08-08T23:40:00Z
+#   result: GREEN
+#   note: "Implemented by claude_agent after impl-bot abandoned task"
