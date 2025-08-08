@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-API-Errors-HandlersRegister
+#   assignee: claude_agent
+#   start_at: 2025-08-08T15:54:00Z
+#   note: ""
 id: P0-API-Errors-HandlersRegister
 phase: 0
 layer: API
