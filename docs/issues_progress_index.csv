@@ -4,3 +4,5 @@ P0-API-Main-Scaffold,0,API,Main,Scaffold,backend/app/main.py,,feat/P0-API-Main-S
 P0-API-Router-Core,0,API,Router,Core,backend/app/routers/__init__.py,,feat/P0-API-Router-Core,implementer,IN_REVIEW,7,,,2025-08-08T12:16:28Z,,
 P0-API-Util-Cursor,0,API,Util,Cursor,backend/app/services/cursor.py,backend/tests/test_cursor.py,feat/P0-API-Util-Cursor,implementer,IN_REVIEW,9,,,2025-08-08T12:20:30Z,,
 P0-API-Util-IdGen,0,API,Util,IdGen,backend/app/util/idgen.py,backend/tests/test_idgen.py,feat/P0-API-Util-IdGen,implementer,IN_REVIEW,8,,,2025-08-08T12:10:00Z,,
+P0-API-Errors,0,API,Errors,Init,backend/app/util/errors.py,,feat/P0-API-Errors,implementer,IN_PROGRESS,,,2025-08-08T12:22:57Z,,
+P0-API-Errors,0,API,Errors,Init,backend/app/util/errors.py,,feat/P0-API-Errors,implementer,IN_REVIEW,10,,,2025-08-08T12:25:44Z,,
