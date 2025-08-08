@@ -24,6 +24,22 @@
   - TL hot: (score DESC, createdAt DESC, id DESC)
   - コメント: (createdAt ASC, id ASC)
 
+[アプリ概要（丁寧版）]
+- 目的: 学内のQ&A/ディスカッションのための軽量SNS。スレ（質問/雑談）にコメントで議論し、賛同（up）/保存（save）で評価。質問スレは「解決」を設定可能。
+- 機能: Threads（作成/一覧/詳細/削除）、Comments（作成/一覧/削除）、Reactions（thread: up/save, comment: up）、Solve、Profile、Uploads（P3）、Search（P3）、Hot並び（P4）。
+- バックエンド: FastAPI（Python 3.11）、PostgreSQL 16、S3（P3）。レイヤ構成（Repo→Service→Router）。
+- フロントエンド: Next.js 14 App Router、Tailwind、shadcn/ui。CSR前提で Bearer を付与。
+- 認証: 不透明トークン（7日TTL）、DBは sessions.token_hash を照合。JWTは不使用。
+- ID/時刻: prefix_ULID（thr_*/cmt_* 等）。DBはUTC、表示はJST相対。
+- ページング: 20件固定・cursor=base64url(JSON)。New/Comments/Hot/Search でタプル比較/スナップショット規約を遵守。
+- エラー/制限: 04bのErrorResponse統一、RateLimitは作成系とpresignに適用、429/Retry-Afterヘッダ。
+
+[フェーズ進行の基本原則]
+- 開始は必ず Phase 0 から。各フェーズには `issues/phaseX/PHASE_DoD.md` があり、DoDを満たして次フェーズへ進む（ゲート制）。
+- フェーズ横断の実装は分割して順序化（Repo→Service→Router→Front）。不足があれば新規YAML（DRAFT）を追加。
+- タスク開始時は「YAMLをまず確認」。先頭の `# claim:` が他者で埋まっていないか確認し、自分のスタンプを追記してから着手。
+- 実装が完了したら、YAML末尾へ `# done:` を追記。問題発生時は `# issue:` を追記し、完了にはしない。
+
 目的: ブランチ/PRを使わず、main上で最小コミットを積み上げて進捗を管理する。各タスクは YAML スタンプで占有し、TDDでGREEN確認後にコミットする。1コミットあたりの実装ファイルは原則1つ（テストは除外）。
 
 前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` で backend/frontend をまとめて実行。

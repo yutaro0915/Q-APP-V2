@@ -10,6 +10,17 @@
   - `docs/06_frontend_design_nextjs_v1.md`（データ受け渡し/CSR/SSR）
 - 不変条件（抜粋）: 認証（不透明トークン/7日）、ID（prefix_ULID）、コメントASC、リアクション409、SolveのNOT_APPLICABLE、20件固定/200上限、ErrorResponse統一。
 
+[アプリ概要（丁寧版）]
+- 目的: 学内のQ&A/ディスカッション用SNS。スレとコメントで議論し、賛同/保存で評価。質問スレは解決設定可。
+- バックエンド: FastAPI + PostgreSQL、レイヤ（Repo→Service→Router）。P3でS3/検索、P4でHot。
+- フロント: Next.js 14、CSR主体、Tailwind/shadcn/ui。Bearer付与でAPI呼び出し。
+- 規約: 04/04a/04b/03/03a/05/06に準拠。カーソル/スナップショットやErrorResponseを厳密に確認。
+
+[レビュー進行の基本原則]
+- フェーズは `issues/phaseX/PHASE_DoD.md` を満たして次へ進む。DoD未達の機能が混在していないかを確認。
+- 変更は「実装1＋テスト」に収まっているか（目安）。越える場合は分割提案。
+- YAMLは先頭の `# claim:`、末尾の `# done:` または途中の `# issue:` を確認。done未満は未完と判断。
+
 目的: PRなしで main へ直接反映されるため、コミット後に即時の自動テストと仕様照合を行い、必要であれば直ちにフォローアップコミット/リバートを実施する。
 
 前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` を使用。
