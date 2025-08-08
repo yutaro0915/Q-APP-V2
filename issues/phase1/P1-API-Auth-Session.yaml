@@ -56,3 +56,8 @@ definition_of_done:
   - "sessionエンドポイントが実装されている"
   - "認証ミドルウェアが実装されている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-08T18:00:00Z
+#   result: GREEN
+#   note: "All tests passing (87 backend, 15 frontend)"

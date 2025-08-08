@@ -5,14 +5,16 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-from app.core.db import get_db_pool
+from app.core import db
 from app.util.errors import UnauthorizedException
 from app.util.idgen import generate_id
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+security = HTTPBearer()
 
 
 class BootstrapRequest(BaseModel):
@@ -27,6 +29,11 @@ class BootstrapResponse(BaseModel):
     expiresAt: str
 
 
+class SessionResponse(BaseModel):
+    """Session response model."""
+    userId: str
+
+
 def generate_token() -> str:
     """Generate a secure random token."""
     return secrets.token_urlsafe(32)
@@ -37,6 +44,55 @@ def hash_token(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+async def get_current_user(authorization: str) -> str:
+    """Get current user from Bearer token.
+    
+    Args:
+        authorization: Authorization header value
+        
+    Returns:
+        User ID
+        
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
+    # Check Bearer prefix
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authorization header"
+        )
+    
+    # Extract token
+    token = authorization[7:]  # Remove "Bearer " prefix
+    token_hash = hash_token(token)
+    
+    # Query database for session
+    pool = await db.get_db_pool()
+    async with pool.acquire() as conn:
+        query = """
+            SELECT user_id, expires_at
+            FROM sessions
+            WHERE token_hash = $1
+        """
+        session = await conn.fetchrow(query, token_hash)
+        
+        if not session:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired session"
+            )
+        
+        # Check if session is expired
+        if session["expires_at"] < datetime.now(timezone.utc):
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired session"
+            )
+        
+        return session["user_id"]
+
+
 @router.post("/bootstrap", response_model=BootstrapResponse)
 async def bootstrap(request: BootstrapRequest) -> BootstrapResponse:
     """Bootstrap authentication for a user.
@@ -44,7 +100,7 @@ async def bootstrap(request: BootstrapRequest) -> BootstrapResponse:
     Creates a new user or retrieves existing user based on device_secret.
     Always creates a new session.
     """
-    pool = await get_db_pool()
+    pool = await db.get_db_pool()
     
     async with pool.acquire() as conn:
         async with conn.transaction():
@@ -84,3 +140,24 @@ async def bootstrap(request: BootstrapRequest) -> BootstrapResponse:
                 token=token,
                 expiresAt=expires_at.isoformat().replace("+00:00", "Z")
             )
+
+
+async def get_authorization_header(request: Request) -> str:
+    """Extract authorization header from request."""
+    return request.headers.get("authorization", "")
+
+
+@router.get("/session", response_model=SessionResponse)
+async def get_session(authorization: str = Depends(get_authorization_header)) -> SessionResponse:
+    """Get current session information.
+    
+    Requires Bearer token authentication.
+    
+    Returns:
+        Current user information
+        
+    Raises:
+        HTTPException: If authentication fails
+    """
+    user_id = await get_current_user(authorization)
+    return SessionResponse(userId=user_id)
