@@ -62,3 +62,8 @@ definition_of_done:
   - "threads.pyが作成されている"
   - "全てのDTOが定義されている"
   - "バリデーションが実装されている"
+
+# done:
+#   finished_at: 2025-08-08T18:08:30Z
+#   result: GREEN
+#   note: "All DTOs implemented with comprehensive validation"
