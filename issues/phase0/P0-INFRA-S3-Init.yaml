@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-INFRA-S3-Init
+#   assignee: claude_agent
+#   start_at: 2025-08-08T14:22:54Z
+#   note: ""
 ---
 id: P0-INFRA-S3-Init
 phase: 0
