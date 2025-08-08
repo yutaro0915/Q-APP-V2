@@ -84,3 +84,7 @@ definition_of_done:
   - "Dockerfile参照が含まれている"
   - "トラブルシューティング付き"
 ---
+# done:
+#   finished_at: 2025-08-08T14:20:35Z
+#   result: GREEN
+#   note: ""
