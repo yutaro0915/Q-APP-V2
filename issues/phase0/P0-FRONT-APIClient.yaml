@@ -63,3 +63,7 @@ definition_of_done:
   - "api.tsが作成されている"
   - "基本的なHTTPメソッドが実装されている"
   - "エラーハンドリングが実装されている"
+# done:
+#   finished_at: 2025-08-08T14:08:30Z
+#   result: GREEN
+#   note: "Implemented API client with TypeScript types and error handling"
