@@ -1,3 +1,8 @@
+# claim:
+#   id: P0-API-Router-Core
+#   assignee: claude_agent
+#   start_at: 2025-08-08T13:55:45Z
+#   note: ""
 id: P0-API-Router-Core
 phase: 0
 layer: API
