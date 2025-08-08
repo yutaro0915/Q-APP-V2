@@ -60,3 +60,7 @@ definition_of_done:
   - "layout.tsxが作成されている"
   - "メタデータが設定されている"
   - "npm run devで起動可能"
+# done:
+#   finished_at: 2025-08-08T14:03:24Z
+#   result: GREEN
+#   note: "Implemented Next.js 14 app with layout, metadata, fonts and styling"
