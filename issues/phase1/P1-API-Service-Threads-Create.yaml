@@ -58,3 +58,8 @@ definition_of_done:
   - "threads_service.pyが作成されている"
   - "create_threadメソッドが実装されている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-08T23:50:00Z
+#   result: GREEN
+#   note: "ThreadService created with full validation and DTO conversion"
