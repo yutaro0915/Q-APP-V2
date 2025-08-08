@@ -146,6 +146,6 @@ def test_cors_credentials():
     )
     
     assert response.status_code == 200
-    # Credentials should be allowed as per middleware configuration
-    credentials = response.headers.get("access-control-allow-credentials", "")
-    assert credentials.lower() == "true"
+    # Credentials should be False as per middleware configuration
+    # When allow_credentials=False, the header is not included
+    assert "access-control-allow-credentials" not in response.headers
