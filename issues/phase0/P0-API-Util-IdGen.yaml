@@ -41,3 +41,8 @@ test_specification:
 definition_of_done:
   - "idgen.py が作成されている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-08T13:49:25Z
+#   result: GREEN
+#   note: "Implemented ULID ID generation with prefix validation"
