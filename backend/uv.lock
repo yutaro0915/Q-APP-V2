@@ -342,6 +342,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "pydantic" },
     { name = "python-multipart" },
+    { name = "python-ulid" },
     { name = "sqlalchemy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -367,6 +368,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = "==7.4.4" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==0.23.3" },
     { name = "python-multipart", specifier = "==0.0.6" },
+    { name = "python-ulid", specifier = "==2.2.0" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "sqlalchemy", specifier = "==2.0.25" },
     { name = "uvicorn", extras = ["standard"], specifier = "==0.27.0" },
@@ -584,6 +586,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/2d/23/abcfad10c3348cb6358400f8adbc21b523bbc6c954494fd0974428068672/python_multipart-0.0.6.tar.gz", hash = "sha256:e9925a80bb668529f1b67c7fdb0a5dacdd7cbfc6fb0bff3ea443fe22bdd62132", size = 31024, upload-time = "2023-02-27T16:40:10.091Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b4/ff/b1e11d8bffb5e0e1b6d27f402eeedbeb9be6df2cdbc09356a1ae49806dbf/python_multipart-0.0.6-py3-none-any.whl", hash = "sha256:ee698bab5ef148b0a760751c261902cd096e57e10558e11aca17646b74ee1c18", size = 45711, upload-time = "2023-02-27T16:40:14.113Z" },
+]
+
+[[package]]
+name = "python-ulid"
+version = "2.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/fc/bcffc20e99ecf96652df2ad5c7dce470dfdbac750cbd92de82cbbc5efe97/python_ulid-2.2.0.tar.gz", hash = "sha256:9ec777177d396880d94be49ac7eb4ae2cd4a7474448bfdbfe911537add970aeb", size = 21595, upload-time = "2023-09-21T20:24:52.039Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/ae/f820dd4c18d7698f4ea411b1ff066ff135ca87a203d5301bd4d54f8355fb/python_ulid-2.2.0-py3-none-any.whl", hash = "sha256:ec2e69292c0b7c338a07df5e15b05270be6823675c103383e74d1d531945eab5", size = 9390, upload-time = "2023-09-21T20:24:53.543Z" },
 ]
 
 [[package]]
