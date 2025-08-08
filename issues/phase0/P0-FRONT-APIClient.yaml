@@ -3,6 +3,11 @@
 #   assignee: implementer
 #   start_at: 2025-08-08T12:30:00Z
 #   note: ""
+# claim:
+#   id: P0-FRONT-APIClient
+#   assignee: implementer
+#   start_at: 2025-08-08T12:29:59Z
+#   note: ""
 id: P0-FRONT-APIClient
 phase: 0
 layer: FRONT
