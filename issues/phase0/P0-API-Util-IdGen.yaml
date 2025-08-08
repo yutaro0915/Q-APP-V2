@@ -1,0 +1,38 @@
+id: P0-API-Util-IdGen
+phase: 0
+layer: API
+area: Util
+action: IdGen
+target_file: backend/app/util/idgen.py
+test_file: backend/tests/test_idgen.py
+depends_on: []
+spec_refs:
+  - "03"  # データモデル（ID 形式）
+  - "05"  # バックエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "prefix_ULID 生成ユーティリティの実装（全レイヤ共通）"
+  
+  content_requirements:
+    - section: "関数定義"
+      items:
+        - "def generate_id(prefix: Literal['usr','cre','ses','thr','cmt','att','rcn']) -> str"
+        - "ULID を生成し {prefix}_{ULID26} 形式で返却"
+        - "バリデーション用の正規表現定数（ID_PATTERN）を提供"
+
+  output_format: "Python ユーティリティモジュール"
+
+constraints:
+  - "Base32 ULID（26文字）"
+  - "依存を最小限に（可能なら純Python実装 or 軽量ライブラリ）"
+
+test_specification:
+  validation:
+    - "各 prefix で期待形式のIDが生成されること"
+    - "生成IDがユニーク（十分な確率）であること"
+    - "正規表現に一致すること"
+
+definition_of_done:
+  - "idgen.py が作成されている"
+  - "テストが追加されている"

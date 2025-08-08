@@ -1,0 +1,62 @@
+id: P3-FRONT-Integrate-SearchList
+phase: 3
+layer: FRONT
+area: Integrate
+action: SearchList
+target_file: frontend/app/search/page.tsx
+test_file: null
+depends_on: ["P3-FRONT-Routes-Search", "P3-FRONT-Components-SearchBox", "P1-FRONT-Components-ThreadCard"]
+spec_refs:
+  - "06"  # フロントエンド設計
+  - "04a" # ページング仕様
+estimated_loc: 40
+
+specification:
+  purpose: "検索ページへの検索結果リスト統合"
+  
+  content_requirements:
+    - section: "統合要素"
+      items:
+        - "SearchBoxとの連携"
+        - "ThreadCardリスト表示"
+        - "ページング処理"
+        - "ソート切り替え"
+    
+    - section: "スナップショット管理"
+      items:
+        - "初回検索時のsnapshot_at保持"
+        - "ページング時の一貫性維持"
+        - "24時間有効期限"
+        - "新規検索でリセット"
+    
+    - section: "インタラクション"
+      items:
+        - "「もっと見る」でページング"
+        - "新規検索で結果リセット"
+        - "ソート変更で再検索"
+        - "URLパラメータ更新"
+    
+    - section: "表示最適化"
+      items:
+        - "検索中のローディング表示"
+        - "結果の段階的表示"
+        - "スクロール位置保持"
+        - "モバイル最適化"
+
+  output_format: "TypeScript React Component更新"
+
+constraints:
+  - "既存機能との統合"
+  - "パフォーマンス考慮"
+  - "UX一貫性"
+
+test_specification:
+  validation:
+    - "検索と結果表示が連動すること"
+    - "ページングが正しく動作すること"
+    - "スナップショットが保持されること"
+
+definition_of_done:
+  - "search/page.tsxが更新されている"
+  - "全ての要素が統合されている"
+  - "スナップショット管理が実装されている"

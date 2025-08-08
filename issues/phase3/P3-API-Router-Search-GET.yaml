@@ -1,0 +1,61 @@
+id: P3-API-Router-Search-GET
+phase: 3
+layer: API
+area: Router
+action: Search-GET
+target_file: backend/app/routers/search.py
+test_file: backend/tests/test_search_router.py
+depends_on: ["P3-API-Service-Search", "P1-API-Auth-Session"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO/ページング仕様
+  - "04b"  # 規約（X-Snapshot-At / カーソル）
+  - "05"   # バックエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "GET /search エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "GET /search"
+        - "認証不要（公開）"
+        - "タグ: [\"Search\"]"
+        - "レスポンス: PaginatedThreadCards (200)"
+    
+    - section: "クエリパラメータ"
+      items:
+        - "q: str（必須、1..100）"
+        - "sort: str = \"relevance\"（relevance/new）"
+        - "cursor: Optional[str]（base64url(JSON)）"
+    
+    - section: "処理フロー"
+      items:
+        - "クエリパラメータ検証（長さ/enum/カーソルJSON）"
+        - "サービス層呼び出し"
+        - "ヘッダ X-Snapshot-At を付与"
+        - "検索結果返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "400: バリデーションエラー（短すぎる/長すぎる/不正なsort/カーソル不整合/スナップショット期限切れ）"
+        - "全応答に X-Request-Id を付与（04b）"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "クエリの検証"
+  - "適切なHTTPステータス"
+  - "OpenAPI仕様準拠"
+
+test_specification:
+  validation:
+    - "検索が実行できること"
+    - "ページングが動作すること"
+    - "不正なパラメータで400エラー"
+
+definition_of_done:
+  - "search.pyが作成されている"
+  - "GETエンドポイントが実装されている"
+  - "テストが追加されている"

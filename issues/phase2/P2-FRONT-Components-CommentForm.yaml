@@ -1,0 +1,54 @@
+id: P2-FRONT-Components-CommentForm
+phase: 2
+layer: FRONT
+area: Components
+action: CommentForm
+target_file: frontend/components/CommentForm.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 55
+
+specification:
+  purpose: "コメント投稿フォームコンポーネントの実装"
+  
+  content_requirements:
+    - section: "フォーム要素"
+      items:
+        - "textarea（最大1000文字）"
+        - "文字数カウンター"
+        - "投稿ボタン"
+        - "キャンセルボタン"
+    
+    - section: "バリデーション"
+      items:
+        - "必須入力チェック（1文字以上）"
+        - "文字数制限（1000文字）"
+        - "制御文字の除去"
+        - "リアルタイム文字数表示"
+    
+    - section: "UX機能"
+      items:
+        - "オートリサイズtextarea"
+        - "Ctrl+Enter で送信"
+        - "送信中の無効化"
+        - "エラー状態の表示"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "フォームバリデーション"
+  - "ユーザビリティ"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "フォーム入力ができること"
+    - "バリデーションが動作すること"
+    - "キーボードショートカットが動作すること"
+
+definition_of_done:
+  - "CommentForm.tsxが作成されている"
+  - "バリデーション機能"
+  - "UX機能の実装"

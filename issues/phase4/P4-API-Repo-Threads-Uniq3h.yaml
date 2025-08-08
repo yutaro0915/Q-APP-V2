@@ -1,0 +1,63 @@
+id: P4-API-Repo-Threads-Uniq3h
+phase: 4
+layer: API
+area: Repo
+action: Threads-Uniq3h
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-ListNew", "P2-API-Repo-Comments-ListAsc"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "04b"  # API規約（スナップショット/カーソル）
+  - "05"   # バックエンド設計
+  - "01"   # ドメイン不変条件（熱量）
+estimated_loc: 40
+
+specification:
+  purpose: "3時間以内のユニーク投稿者数集計メソッド"
+  
+  content_requirements:
+    - section: "メソッド追加"
+      items:
+        - "get_unique_commenters_3h() メソッド"
+        - "引数: thread_id, snapshot_at"
+        - "戻り値: ユニーク投稿者数"
+        - "snapshot_at 基準で 3時間以内のコメントを集計"
+    
+    - section: "SQL実装"
+      items:
+        - "comments から DISTINCT author_id を集計"
+        - "WHERE thread_id = $1 AND deleted_at IS NULL"
+        - "AND created_at > $2 - interval '3 hours'  # $2 = snapshot_at"
+        - "COUNT(DISTINCT author_id) を返却"
+    
+    - section: "集計ロジック"
+      items:
+        - "対象はコメント投稿者のみ（スレッド作成者は含めない）"
+        - "重複除去（同一 author_id）"
+        - "削除済みコメントは除外"
+    
+    - section: "パフォーマンス"
+      items:
+        - "インデックス活用（idx_comments_alive_thread_created）"
+        - "サブクエリ最適化"
+        - "キャッシュ考慮（将来）"
+
+  output_format: "Python リポジトリメソッド"
+
+constraints:
+  - "3時間の時間枠厳守"
+  - "削除済み除外"
+  - "効率的なクエリ"
+
+test_specification:
+  validation:
+    - "ユニーク数が正しく集計されること"
+    - "3時間を超える投稿が除外されること"
+    - "重複が除去されること"
+
+definition_of_done:
+  - "get_unique_participants_3hメソッドが追加されている"
+  - "SQL集計が正しく実装されている"
+  - "テストが追加されている"

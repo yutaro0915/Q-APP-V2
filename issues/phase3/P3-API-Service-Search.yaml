@@ -1,0 +1,62 @@
+id: P3-API-Service-Search
+phase: 3
+layer: API
+area: Service
+action: Search
+target_file: backend/app/services/search_service.py
+test_file: backend/tests/test_search_service.py
+depends_on: ["P3-API-Repo-Search", "P1-API-Service-Threads-ListNew"]
+spec_refs:
+  - "05"  # バックエンド設計
+  - "04"  # APIコントラクト
+  - "04a" # DTO/ページング
+  - "04b" # 規約（X-Snapshot-At / カーソル）
+estimated_loc: 50
+
+specification:
+  purpose: "検索サービスロジックの実装"
+  
+  content_requirements:
+    - section: "SearchServiceクラス"
+      items:
+        - "search_threads() メソッド"
+        - "引数: q (1..100), sort: 'relevance'|'new', cursor"
+        - "リポジトリ呼び出し→ Paginated<ThreadCard> へ整形"
+        - "X-Snapshot-At を返却用に保持（ルーターでヘッダ付与）"
+    
+    - section: "クエリ処理"
+      items:
+        - "クエリのtrim()と正規化"
+        - "最小文字数チェック（1文字以上）"
+        - "最大文字数チェック（100文字以下）"
+        - "特殊文字のエスケープ（SQLインジェクション対策はプレースホルダで担保）"
+    
+    - section: "スナップショット管理"
+      items:
+        - "初回検索: snapshot_at生成"
+        - "カーソル指定時: snapshot_at保持"
+        - "24時間有効"
+        - "カーソルにsnapshot_at含める"
+    
+    - section: "レスポンス構築"
+      items:
+        - "PaginatedThreadCards（items,nextCursor）へ整形"
+        - "excerpt は既存設計に準拠（必要ならDTO側で生成）"
+
+  output_format: "Python サービスクラス"
+
+constraints:
+  - "検索クエリの安全な処理"
+  - "適切なエラーハンドリング"
+  - "パフォーマンス考慮"
+
+test_specification:
+  validation:
+    - "検索が実行できること"
+    - "空クエリで400エラー"
+    - "スナップショットが保持されること"
+
+definition_of_done:
+  - "search_service.pyが作成されている"
+  - "search_threadsメソッドが実装されている"
+  - "スナップショット管理が実装されている"

@@ -1,0 +1,33 @@
+id: P1-API-Test-Threads-Create
+phase: 1
+layer: API
+area: Test
+action: Threads-Create
+target_file: backend/tests/test_threads_create.py
+test_file: null
+depends_on: ["P1-API-Router-Threads-POST", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"  # APIコントラクト
+estimated_loc: 50
+
+specification:
+  purpose: "スレッド作成APIのテスト"
+  
+  content_requirements:
+    - section: "正常系テスト"
+      items:
+        - "認証ありでPOST /threads（CreateThreadRequest）"
+        - "201 Createdが返ること（CreatedResponse）"
+        - "作成されたスレッドがGET /threads/{id}で取得できること"
+    
+    - section: "異常系テスト"
+      items:
+        - "認証なしで401エラー"
+        - "不正なデータで400エラー"
+        - "長すぎるタイトルで400エラー"
+
+  output_format: "Python pytest"
+
+definition_of_done:
+  - "テストが全てパスする"
+  - "カバレッジ80%以上"

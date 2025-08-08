@@ -1,0 +1,63 @@
+id: P3-API-Repo-Attachments
+phase: 3
+layer: API
+area: Repo
+action: Attachments
+target_file: backend/app/repositories/attachments_repo.py
+test_file: backend/tests/test_attachments_repo.py
+depends_on: ["P1-API-DB-Pool"]
+spec_refs:
+  - "03"  # データモデル
+  - "03a" # DDL
+  - "07"  # S3アップロード仕様
+  - "05"  # バックエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "添付ファイル管理リポジトリの実装"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "AttachmentRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "添付ファイルCRUD操作"
+    
+    - section: "基本メソッド"
+      items:
+        - "create_attachment(id, key, mime, width, height, size, sha256)"
+        - "link_to_thread(attachment_id, thread_id)  # v1は各投稿/コメント 0/1枚に制限"
+        - "link_to_comment(attachment_id, comment_id)"
+        - "get_by_thread(thread_id)"
+        - "get_by_comment(comment_id)"
+    
+    - section: "SQL実装"
+      items:
+        - "attachmentsテーブル操作（DDL準拠: XOR制約, MIME CHECK）"
+        - "ID生成（att_* 形式）"
+        - "position列は持たない（v1は各0/1枚）"
+        - "CASCADEは threads/comments 側のDELETEを前提に参照（物理削除はしない）"
+    
+    - section: "制約管理"
+      items:
+        - "各投稿/コメント 0/1枚（サービスで担保）"
+        - "MIME は 04a/DDL のホワイトリストに一致"
+        - "S3キー形式検証（04a）"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "asyncpg使用"
+  - "トランザクション管理"
+  - "適切な型ヒント"
+
+test_specification:
+  validation:
+    - "添付ファイルが登録できること"
+    - "スレッド/コメントに紐付けできること"
+    - "制限数を超えるとエラーになること"
+
+definition_of_done:
+  - "attachments_repo.pyが作成されている"
+  - "全てのメソッドが実装されている"
+  - "テストが追加されている"

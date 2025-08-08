@@ -1,0 +1,64 @@
+id: P3-API-Repo-Search
+phase: 3
+layer: API
+area: Repo
+action: Search
+target_file: backend/app/repositories/search_repo.py
+test_file: backend/tests/test_search_repo.py
+depends_on: ["P1-API-DB-Pool"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL（pg_trgm）
+  - "04"   # APIコントラクト
+  - "04a"  # DTO/ページング
+  - "04b"  # 規約（X-Snapshot-At / カーソル）
+  - "05"   # バックエンド設計
+estimated_loc: 80
+
+specification:
+  purpose: "全文検索リポジトリ（pg_trgm使用）"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "SearchRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "pg_trgm拡張機能使用"
+    
+    - section: "検索メソッド"
+      items:
+        - "search_threads(query, sort: 'relevance'|'new', cursor, snapshot_at)"
+        - "引数: 検索クエリ、ソート順、カーソル、スナップショット"
+        - "スナップショット固定（24時間、有効期限チェック）"
+    
+    - section: "SQL実装"
+      items:
+        - "threads.title/body/tags JOIN（必要に応じて）"
+        - "similarity()関数で関連度計算（03/05 に準拠）"
+        - "ORDER BY score DESC, id DESC（relevance時）"
+        - "ORDER BY created_at DESC, id DESC（new時）"
+    
+    - section: "カーソルページング"
+      items:
+        - "初回検索時: snapshot_at 記録（レスポンスヘッダ X-Snapshot-At）"
+        - "2ページ目以降: snapshot_at 固定"
+        - "重複排除（アンカーとのタプル比較）"
+        - "最大200件制限（nextCursor 無しで終端）"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "pg_trgm必須"
+  - "インデックス活用"
+  - "スナップショット一貫性"
+
+test_specification:
+  validation:
+    - "キーワード検索が動作すること"
+    - "関連度順/新着順が選択できること"
+    - "ページングで重複がないこと"
+
+definition_of_done:
+  - "search_repo.pyが作成されている"
+  - "pg_trgm検索が実装されている"
+  - "スナップショット固定が実装されている"

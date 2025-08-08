@@ -1,0 +1,60 @@
+id: P2-API-Repo-Comments-ListAsc
+phase: 2
+layer: API
+area: Repo
+action: Comments-ListAsc
+target_file: backend/app/repositories/comments_repo.py
+test_file: backend/tests/test_comments_repo.py
+depends_on: ["P2-API-Repo-Comments-Init"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "スレッドのコメント一覧を時系列昇順で取得"
+  
+  content_requirements:
+    - section: "SELECTメソッド"
+      items:
+        - "async def list_comments_by_thread(thread_id, anchor_created_at: datetime | None, anchor_id: str | None, limit: int = 20)"
+        - "deleted_at IS NULL で削除済みを除外"
+        - "ORDER BY created_at ASC, id ASC（ASC固定）"
+        - "アンカーがある場合は (created_at, id) > (:anchorCreatedAt, :anchorId)"
+    
+    - section: "SQLクエリ"
+      items:
+        - "SELECT id, body, up_count, created_at,"
+        - "CASE WHEN u.faculty_public AND u.faculty IS NOT NULL THEN u.faculty END AS author_faculty,"
+        - "CASE WHEN u.year_public AND u.year IS NOT NULL THEN u.year END AS author_year"
+        - "FROM comments c JOIN users u ON u.id = c.author_id"
+        - "WHERE c.thread_id = $1 AND c.deleted_at IS NULL"
+        - "AND ($2 IS NULL OR (c.created_at, c.id) > ($2, $3))"
+        - "ORDER BY c.created_at ASC, c.id ASC"
+        - "LIMIT 20"
+    
+    - section: "データ変換"
+      items:
+        - "DB行を内部DTOへ変換（authorAffiliation は services 層でDTOに詰め替え）"
+        - "リストとして返却／空リストも適切に処理"
+
+  output_format: "Python async メソッド"
+
+constraints:
+  - "パフォーマンス最適化"
+  - "インデックス活用"
+  - "メモリ効率的な処理"
+
+test_specification:
+  validation:
+    - "コメントが時系列順で取得されること"
+    - "削除済みコメントが除外されること"
+    - "存在しないスレッドで空リストが返されること"
+
+definition_of_done:
+  - "get_comments_by_thread_idメソッドが実装されている"
+  - "ソート順が正しいこと"
+  - "テストケースが追加されている"

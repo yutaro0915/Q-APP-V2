@@ -1,0 +1,62 @@
+id: P3-FRONT-Integrate-ThreadForm-Image
+phase: 3
+layer: FRONT
+area: Integrate
+action: ThreadForm-Image
+target_file: frontend/components/ThreadForm.tsx
+test_file: null
+depends_on: ["P1-FRONT-Components-ThreadForm", "P3-FRONT-Actions-PresignPut"]
+spec_refs:
+  - "06"  # フロントエンド設計
+  - "07"  # S3アップロード仕様
+estimated_loc: 60
+
+specification:
+  purpose: "ThreadFormコンポーネントへの画像アップロード機能統合"
+  
+  content_requirements:
+    - section: "UI追加"
+      items:
+        - "画像追加ボタン"
+        - "ファイル選択input（multiple）"
+        - "プレビューサムネイル表示"
+        - "削除ボタン（各画像）"
+        - "アップロード進捗表示"
+    
+    - section: "画像管理"
+      items:
+        - "最大1画像制限（v1仕様）"
+        - "選択画像の状態管理"
+        - "アップロード状態管理"
+        - "file_key の保持（CreateThreadRequest.imageKey に渡す）"
+    
+    - section: "アップロード処理"
+      items:
+        - "画像選択時に前処理"
+        - "プレビュー生成（URL.createObjectURL）"
+        - "投稿時にアップロード→ key を受け取り imageKey として送信"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "ファイルタイプ検証"
+        - "サイズ超過警告"
+        - "アップロード失敗時の処理"
+        - "部分的な成功の扱い"
+
+  output_format: "TypeScript React Component更新"
+
+constraints:
+  - "既存機能を壊さない"
+  - "プログレッシブエンハンスメント"
+  - "UX考慮（ローディング状態）"
+
+test_specification:
+  validation:
+    - "画像が選択できること"
+    - "プレビューが表示されること"
+    - "投稿時にアップロードされること"
+
+definition_of_done:
+  - "ThreadForm.tsxが更新されている"
+  - "画像アップロード機能が統合されている"
+  - "4画像制限が実装されている"

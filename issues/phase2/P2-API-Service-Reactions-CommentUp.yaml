@@ -1,0 +1,59 @@
+id: P2-API-Service-Reactions-CommentUp
+phase: 2
+layer: API
+area: Service
+action: Reactions-CommentUp
+target_file: backend/app/services/reactions_service.py
+test_file: backend/tests/test_reactions_service.py
+depends_on: ["P2-API-Repo-Reactions-UpsertUp", "P2-API-Schemas-Reactions"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04"  # APIコントラクト
+  - "04a" # DTO定義
+  - "04b" # API規約
+  - "01"  # ドメイン不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "コメントいいねリアクションサービスロジックの実装"
+  
+  content_requirements:
+    - section: "CommentUpServiceクラス"
+      items:
+        - "react_comment_up メソッド"
+        - "引数: user_id, comment_id"
+        - "バリデーション（cmt_* 形式・コメント存在/未削除）"
+        - "リポジトリの insert_up_if_absent(target_type='comment') を呼び出し、false の場合は CONFLICT を投げる"
+        - "成功時は None（204 No Content）"
+    
+    - section: "バリデーション"
+      items:
+        - "comment_idの形式チェック（cmt_*）"
+        - "コメントの存在確認"
+        - "削除済みコメントの制限"
+        - "自分のコメントへの制限（オプション）"
+    
+    - section: "処理フロー"
+      items:
+        - "入力バリデーション"
+        - "リポジトリで INSERT ... ON CONFLICT DO NOTHING を実行"
+        - "重複時は 409 Conflict を変換して送出（04b ErrorResponse）"
+        - "成功時は 204 No Content"
+
+  output_format: "Python サービスメソッド"
+
+constraints:
+  - "べき等性の保証"
+  - "適切なエラーハンドリング"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "コメントいいねリアクションが正しく処理されること"
+    - "同じリアクション再実行で削除されること"
+    - "存在しないコメントでエラーになること"
+
+definition_of_done:
+  - "comment_up_reactionメソッドが実装されている"
+  - "バリデーションが実装されている"
+  - "テストが追加されている"

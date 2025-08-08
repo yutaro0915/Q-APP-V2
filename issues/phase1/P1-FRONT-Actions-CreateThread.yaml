@@ -1,0 +1,53 @@
+id: P1-FRONT-Actions-CreateThread
+phase: 1
+layer: FRONT
+area: Actions
+action: CreateThread
+target_file: frontend/lib/actions/createThread.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient", "P1-FRONT-Components-ThreadForm"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "スレッド作成（CSR fetch）アクションの実装"
+  
+  content_requirements:
+    - section: "関数定義"
+      items:
+        - "createThread関数（クライアントから呼び出されるヘルパ）"
+        - "引数: FormDataまたはDTO"
+        - "POST /threads API呼び出し"
+    
+    - section: "処理フロー"
+      items:
+        - "localStorage からトークン取得して Authorization: Bearer を付与"
+        - "データバリデーション"
+        - "API呼び出し"
+        - "成功時: 画面側で再取得（必要に応じて）"
+        - "エラー時: エラー返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "401: 認証エラー"
+        - "400: バリデーションエラー"
+        - "500: サーバーエラー"
+        - "ネットワークエラー"
+
+  output_format: "TypeScript（クライアントからのfetchヘルパ）"
+
+  constraints:
+  - "クライアント側から安全に呼べるよう薄いヘルパ関数にする"
+  - "型安全性"
+
+test_specification:
+  validation:
+    - "スレッドが作成されること"
+    - "エラーが適切に処理されること"
+    - "ページが再検証されること"
+
+definition_of_done:
+  - "createThread.tsが作成されている"
+  - "Server Actionとして動作"
+  - "エラーハンドリング実装"

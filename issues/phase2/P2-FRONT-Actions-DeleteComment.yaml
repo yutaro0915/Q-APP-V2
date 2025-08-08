@@ -1,0 +1,54 @@
+id: P2-FRONT-Actions-DeleteComment
+phase: 2
+layer: FRONT
+area: Actions
+action: DeleteComment
+target_file: frontend/lib/actions/deleteComment.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "コメント削除アクションの実装"
+  
+  content_requirements:
+    - section: "アクション関数"
+      items:
+        - "deleteComment async関数"
+        - "引数: comment_id"
+        - "API呼び出し（DELETE /comments/{id}）"
+        - "レスポンス処理（204 No Content）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "認証エラー（401）"
+        - "権限エラー（403）"
+        - "コメント存在エラー（404）"
+        - "既削除エラー（409）"
+        - "適切なエラーメッセージ"
+    
+    - section: "型定義"
+      items:
+        - "DeleteCommentRequest型"
+        - "APIエラー型"
+        - "適切な型安全性"
+
+  output_format: "TypeScript Action Function"
+
+constraints:
+  - "型安全性"
+  - "エラーハンドリング"
+  - "権限チェック対応"
+
+test_specification:
+  validation:
+    - "正常にコメントが削除されること"
+    - "権限エラーが適切に処理されること"
+    - "型チェックが通ること"
+
+definition_of_done:
+  - "deleteComment.tsが作成されている"
+  - "型定義が完備されている"
+  - "エラーハンドリングが実装されている"

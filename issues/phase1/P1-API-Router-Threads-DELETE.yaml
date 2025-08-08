@@ -1,0 +1,55 @@
+id: P1-API-Router-Threads-DELETE
+phase: 1
+layer: API
+area: Router
+action: Threads-DELETE
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_threads_router.py
+depends_on: ["P1-API-Service-Threads-Delete", "P1-API-Router-Threads-GET-Detail"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "01"  # ドメイン不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "DELETE /threads/{thread_id} エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "DELETE /threads/{thread_id}"
+        - "認証必須"
+        - "パスパラメータ: thread_id"
+        - "レスポンス: 204 No Content"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "thread_id形式検証"
+        - "サービス層で削除実行"
+        - "成功時204返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "401: 認証エラー"
+        - "403: 他人のスレッド"
+        - "404: スレッドが存在しない"
+        - "400: ID形式が不正"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "所有者のみ削除可能"
+  - "論理削除のみ"
+  - "適切なHTTPステータス"
+
+test_specification:
+  validation:
+    - "所有者が削除できること"
+    - "他人のスレッドで403エラー"
+    - "認証なしで401エラー"
+
+definition_of_done:
+  - "DELETEエンドポイントが実装されている"
+  - "権限チェックが機能している"
+  - "テストが追加されている"

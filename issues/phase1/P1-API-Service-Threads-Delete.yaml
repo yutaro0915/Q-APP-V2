@@ -1,0 +1,54 @@
+id: P1-API-Service-Threads-Delete
+phase: 1
+layer: API
+area: Service
+action: Threads-Delete
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-SoftDelete", "P1-API-Service-Threads-Create"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "01"  # ドメイン不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド削除サービスロジックの実装"
+  
+  content_requirements:
+    - section: "delete_threadメソッド"
+      items:
+        - "引数: thread_id, current_user_id"
+        - "所有者確認"
+        - "リポジトリで論理削除"
+        - "成功/失敗の返却"
+    
+    - section: "権限チェック"
+      items:
+        - "削除実行前に所有者確認"
+        - "他人のスレッドは削除不可"
+        - "適切なエラーメッセージ"
+    
+    - section: "処理フロー"
+      items:
+        - "スレッド存在確認"
+        - "所有者チェック"
+        - "論理削除実行"
+        - "結果に応じた例外/返却値"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "物理削除はしない"
+  - "権限チェック必須"
+  - "適切なエラー処理"
+
+test_specification:
+  validation:
+    - "所有者が削除できること"
+    - "他人のスレッドは削除できないこと"
+    - "存在しないスレッドでエラーになること"
+
+definition_of_done:
+  - "delete_threadメソッドが実装されている"
+  - "権限チェックが機能している"
+  - "テストが追加されている"

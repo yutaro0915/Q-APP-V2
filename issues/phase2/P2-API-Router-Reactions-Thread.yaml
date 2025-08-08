@@ -1,0 +1,60 @@
+id: P2-API-Router-Reactions-Thread
+phase: 2
+layer: API
+area: Router
+action: Reactions-Thread
+target_file: backend/app/routers/reactions.py
+test_file: backend/tests/test_reactions_router.py
+depends_on: ["P2-API-Service-Reactions-ThreadUp", "P2-API-Service-Reactions-ThreadSave", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 45
+
+specification:
+  purpose: "POST /threads/{id}/reactions エンドポイント実装（204固定、重複は409）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /threads/{id}/reactions"
+        - "認証必須（Depends(get_current_user)）"
+        - "パスパラメータ: id（thr_*）"
+        - "リクエストボディ: ReactionRequestThread"
+        - "レスポンス: 204 No Content"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "id 形式検証"
+        - "kind による分岐（up/save）"
+        - "適切なサービスメソッド呼び出し"
+        - "204 No Content で返却"
+    
+    - section: "リアクション種別処理"
+      items:
+        - "up: react_thread_up サービス呼び出し"
+        - "save: react_thread_save サービス呼び出し"
+        - "不正なtypeで400エラー"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "べき等性の保証"
+  - "適切なHTTPステータス"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "いいねリアクションが動作すること（204）"
+    - "保存リアクションが動作すること（204）"
+    - "重複リアクションで409エラー（CONFLICT）"
+    - "不正なリアクション種別で400エラー"
+
+definition_of_done:
+  - "POSTエンドポイントが実装されている"
+  - "リアクション種別分岐が実装されている"
+  - "テストが追加されている"

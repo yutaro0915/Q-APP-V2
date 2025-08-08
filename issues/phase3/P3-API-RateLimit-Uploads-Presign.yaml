@@ -1,0 +1,39 @@
+id: P3-API-RateLimit-Uploads-Presign
+phase: 3
+layer: API
+area: RateLimit
+action: Uploads-Presign
+target_file: backend/app/routers/uploads.py
+test_file: backend/tests/test_rate_limit_uploads.py
+depends_on: ["P0-API-Middleware-RequestId-CORS", "P3-API-Router-Uploads-Presign"]
+spec_refs:
+  - "04b" # 規約（429/ヘッダ）
+  - "05"  # バックエンド設計
+  - "07"  # S3アップロード仕様
+estimated_loc: 30
+
+specification:
+  purpose: "Presign発行にレート制限を導入（例: 1分/3件：user+IP）"
+  
+  content_requirements:
+    - section: "制限仕様"
+      items:
+        - "直近1分に自ユーザーの発行回数を計測"
+        - "超過時 429 を返却"
+        - "ヘッダ: Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset を付与"
+
+  output_format: "FastAPI ルーター修正（依存のGuard/ミドルウェアでも可）"
+
+constraints:
+  - "誤検出時の影響を最小化（期限短）"
+  - "S3 エラーと区別可能なエラー設計"
+
+test_specification:
+  validation:
+    - "短時間に4回目で429"
+    - "429応答に必須ヘッダが含まれる"
+
+definition_of_done:
+  - "レート制限が有効"
+  - "ヘッダが付与される"
+  - "テストが追加されている"

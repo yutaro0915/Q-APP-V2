@@ -1,0 +1,55 @@
+id: P2-API-Repo-Comments-Init
+phase: 2
+layer: API
+area: Repo
+action: Comments-Init
+target_file: backend/app/repositories/comments_repo.py
+test_file: backend/tests/test_comments_repo.py
+depends_on: ["P1-API-DB-Pool", "P2-API-Schemas-Comments"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 40
+
+specification:
+  purpose: "コメントリポジトリの基本構造とインターフェース定義"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "CommentRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "基本的なCRUDメソッドのシグネチャ定義"
+    
+    - section: "共通処理"
+      items:
+        - "ID生成ヘルパー（cmt_* 形式）"
+        - "現在時刻取得ヘルパー"
+        - "SQLクエリの基本構造"
+    
+    - section: "インターフェース"
+      items:
+        - "async def create_comment(author_id, thread_id, body, image_key: str | None = None)"
+        - "async def list_comments_by_thread(thread_id, anchor_created_at: datetime | None, anchor_id: str | None, limit: int = 20)"
+        - "async def soft_delete_comment(comment_id, author_id)"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "asyncpg使用"
+  - "生SQLを使用（ORMなし）"
+  - "適切な型ヒント"
+
+test_specification:
+  validation:
+    - "クラスがインスタンス化できること"
+    - "メソッドシグネチャが正しいこと"
+    - "ID生成が正しい形式であること"
+
+definition_of_done:
+  - "comments_repo.pyが作成されている"
+  - "基本構造が定義されている"
+  - "テストファイルが作成されている"

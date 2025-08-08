@@ -1,0 +1,60 @@
+---
+id: P0-INFRA-RDS-Init
+phase: 0
+layer: INFRA
+area: RDS
+action: Init
+target_file: docs/setup/rds_setup.md
+test_file: null
+depends_on: []
+spec_refs:
+  - "02"  # システム構成
+  - "03a" # DDL
+estimated_loc: 50
+
+specification:
+  purpose: "Amazon RDS for PostgreSQL 16の初期セットアップ手順書作成"
+  
+  content_requirements:
+    - section: "RDSインスタンス作成"
+      items:
+        - "インスタンスクラス: db.t4g.small（開発環境）"
+        - "PostgreSQL 16選択"
+        - "VPC/サブネット設定"
+        - "セキュリティグループ設定（sg-rds）"
+    
+    - section: "拡張機能とDDL適用"
+      items:
+        - "pg_trgm拡張の有効化"
+        - "03a_ddl_postgresql_v1.sqlの実行手順"
+        - "接続確認コマンド"
+    
+    - section: "セキュリティグループ設定"
+      items:
+        - "インバウンド: 5432/tcp from sg-apprunner のみ"
+        - "アウトバウンド: なし"
+    
+    - section: "バックアップ設定"
+      items:
+        - "自動バックアップ: 有効"
+        - "保持期間: 7日"
+        - "スナップショット設定"
+
+  output_format: "Markdown手順書"
+
+constraints:
+  - "AWSコンソールの手順を画像なしで説明"
+  - "環境変数の例を含める"
+  - "トラブルシューティングセクション必須"
+
+test_specification:
+  validation:
+    - "手順に従ってRDSインスタンスが作成できること"
+    - "DDLが正常に適用されること"
+    - "App Runnerからの接続が可能なこと"
+
+definition_of_done:
+  - "手順書が完成している"
+  - "環境変数DATABASE_URLの形式が明記されている"
+  - "セキュリティ設定が02の仕様と一致"
+---

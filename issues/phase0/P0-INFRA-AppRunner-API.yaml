@@ -1,0 +1,60 @@
+id: P0-INFRA-AppRunner-API
+phase: 0
+layer: INFRA
+area: AppRunner
+action: API
+target_file: docs/setup/apprunner_api_setup.md
+test_file: null
+depends_on: ["P0-INFRA-RDS-Init"]
+spec_refs:
+  - "02"  # システム構成
+  - "09"  # デプロイ設定
+estimated_loc: 60
+
+specification:
+  purpose: "AWS App Runner APIサービスのセットアップ手順書作成"
+  
+  content_requirements:
+    - section: "App Runnerサービス作成"
+      items:
+        - "サービス名: kyudai-api"
+        - "ソース: ECRイメージ"
+        - "CPU: 0.25 vCPU"
+        - "メモリ: 0.5 GB"
+        - "ポート: 8080"
+        - "ヘルスチェックパス: /api/v1/health"
+    
+    - section: "環境変数設定"
+      items:
+        - "DATABASE_URL: RDS接続文字列"
+        - "CORS_ORIGINS: フロントエンドURL"
+        - "ENV: production"
+    
+    - section: "VPC Connector設定"
+      items:
+        - "RDSへの接続設定"
+        - "セキュリティグループ: sg-apprunner"
+        - "サブネット選択"
+    
+    - section: "自動デプロイ設定"
+      items:
+        - "ECRプッシュトリガー"
+        - "タグパターン: latest"
+
+  output_format: "Markdown手順書"
+
+constraints:
+  - "AWSコンソールの手順を明確に記載"
+  - "環境変数の設定例を含める"
+  - "デプロイ確認方法を含める"
+
+test_specification:
+  validation:
+    - "手順に従ってApp Runnerサービスが作成できること"
+    - "/health エンドポイントが200を返すこと"
+    - "RDSへの接続が確立できること"
+
+definition_of_done:
+  - "手順書が完成している"
+  - "環境変数一覧が明記されている"
+  - "自動デプロイが設定されている"

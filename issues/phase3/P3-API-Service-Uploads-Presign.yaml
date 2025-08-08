@@ -1,0 +1,63 @@
+id: P3-API-Service-Uploads-Presign
+phase: 3
+layer: API
+area: Service
+action: Uploads-Presign
+target_file: backend/app/services/uploads_service.py
+test_file: backend/tests/test_uploads_service.py
+depends_on: ["P3-API-Infra-S3Client"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義（PresignRequest/Response）
+  - "04b"  # API規約
+  - "07"   # S3アップロード仕様
+  - "05"   # バックエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "アップロード用Presigned URL生成サービスロジック"
+  
+  content_requirements:
+    - section: "UploadServiceクラス"
+      items:
+        - "create_presign メソッド"
+        - "引数: user_id, mime, size"
+        - "S3クライアント呼び出し（PUT URL）"
+        - "返却: key, url, headers（Content-Type）"
+    
+    - section: "バリデーション"
+      items:
+        - "ファイルサイズ上限: 5MB（5242880）"
+        - "許可MIME type: image/webp | image/jpeg | image/png"
+        - "キー形式: 04aの正規表現に合致すること（生成側で担保）"
+    
+    - section: "キー生成"
+      items:
+        - "uploads/{YYYY}/{MM}/{random}.(webp|jpg|jpeg|png)"
+        - "ULID/ランダムで一意性保証（ユーザーIDは持たない）"
+        - "年月ディレクトリ分割"
+    
+    - section: "Presigned URL設定"
+      items:
+        - "HTTPメソッド: PUT"
+        - "有効期限: 300秒（5分）"
+        - "Content-Type設定（指定MIME固定）"
+        - "Content-Length制約（size 上限）"
+
+  output_format: "Python サービスクラス"
+
+constraints:
+  - "セキュアなファイル名処理"
+  - "適切なエラーメッセージ"
+  - "S3エラーのハンドリング"
+
+test_specification:
+  validation:
+    - "正常なファイルでURL生成されること"
+    - "サイズ超過で拒否されること"
+    - "不正なMIME typeで拒否されること"
+
+definition_of_done:
+  - "uploads_service.pyが作成されている"
+  - "generate_presigned_urlメソッドが実装されている"
+  - "バリデーションが完全に実装されている"

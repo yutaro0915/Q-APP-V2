@@ -1,0 +1,63 @@
+id: P4-API-Service-Threads-HotScore
+phase: 4
+layer: API
+area: Service
+action: Threads-HotScore
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P4-API-Repo-Threads-Uniq3h", "P1-API-Service-Threads-ListNew"]
+spec_refs:
+  - "03"  # データモデル
+  - "04"  # APIコントラクト
+  - "04a" # DTO/ページング
+  - "04b" # 規約（X-Snapshot-At / カーソル）
+  - "05"  # バックエンド設計
+  - "01"  # ドメイン不変条件（熱量計算）
+estimated_loc: 50
+
+specification:
+  purpose: "スレッドのホットスコア計算と更新"
+  
+  content_requirements:
+    - section: "スコア計算メソッド"
+      items:
+        - "calculate_hot_score(snapshot_at: datetime, up_count: int, uniq3h: int, created_at: datetime) -> float"
+        - "04/05 記載の式に準拠（時間減衰）"
+        - "一覧返却時はクエリ時算出 or 5分以上経過時のみ遅延更新（任意）"
+    
+    - section: "計算式"
+      items:
+        - "hot = (up_count + 0.5*uniq3h) * exp(-hours_since_created/12)"
+        - "hours_since_created = (snapshot_at - created_at) / 3600"
+        - "スコアは 0..100 を想定（表現上）。保存時の丸め方針は実装依存"
+    
+    - section: "更新戦略（任意）"
+      items:
+        - "遅延更新（5分以上経過時のみ） or クエリ時算出"
+        - "新規コメント時のヒントフラグ設定（任意）"
+        - "hot_score キャッシュ列を持つ場合の更新方針（任意）"
+    
+    - section: "キャッシュ戦略（任意）"
+      items:
+        - "計算済みスコアの保存"
+        - "5分間の有効期限"
+        - "強制再計算オプション"
+        - "並行更新の制御"
+
+  output_format: "Python サービスメソッド"
+
+constraints:
+  - "計算式の正確性"
+  - "パフォーマンス考慮"
+  - "並行処理対応"
+
+test_specification:
+  validation:
+    - "スコアが正しく計算されること"
+    - "時間経過で減衰すること"
+    - "更新が遅延実行されること"
+
+definition_of_done:
+  - "calculate_hot_scoreメソッドが追加されている"
+  - "計算式が正しく実装されている"
+  - "遅延更新が実装されている"

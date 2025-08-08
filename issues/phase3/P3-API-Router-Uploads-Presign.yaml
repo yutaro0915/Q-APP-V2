@@ -1,0 +1,62 @@
+id: P3-API-Router-Uploads-Presign
+phase: 3
+layer: API
+area: Router
+action: Uploads-Presign
+target_file: backend/app/routers/uploads.py
+test_file: backend/tests/test_uploads_router.py
+depends_on: ["P3-API-Service-Uploads-Presign", "P1-API-Auth-Session"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義（PresignRequest/Response）
+  - "04b"  # API規約
+  - "07"   # S3アップロード仕様
+  - "05"   # バックエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "POST /uploads/presign エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /uploads/presign"
+        - "認証必須（Depends(get_current_user)）"
+        - "タグ: [\"Uploads\"]"
+        - "リクエストボディ: PresignRequest（mime, size）"
+        - "レスポンス: PresignResponse (200)"
+    
+    - section: "リクエストボディ"
+      items:
+        - "mime: 'image/webp'|'image/jpeg'|'image/png'（必須）"
+        - "size: int（1..5_242_880）"
+    
+    - section: "レスポンス構造"
+      items:
+        - "key: string（S3オブジェクトキー。形式: uploads/YYYY/MM/....(webp|jpg|jpeg|png)）"
+        - "url: string（PUT用Presigned URL）"
+        - "headers: Record<string,string>（少なくとも Content-Type）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "400: バリデーションエラー（サイズ/MIME）"
+        - "401: 認証エラー"
+        - "429: レート超過（推奨、ヘッダ付与）"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "OpenAPI仕様に準拠"
+  - "X-Request-Id付与"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "認証ありでURL生成できること"
+    - "認証なしで401エラー"
+    - "サイズ超過で400エラー"
+
+definition_of_done:
+  - "uploads.pyが作成されている"
+  - "POSTエンドポイントが実装されている"
+  - "テストが追加されている"

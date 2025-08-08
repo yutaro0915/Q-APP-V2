@@ -1,0 +1,53 @@
+id: P2-API-Service-Comments-ListAsc
+phase: 2
+layer: API
+area: Service
+action: Comments-ListAsc
+target_file: backend/app/services/comments_service.py
+test_file: backend/tests/test_comments_service.py
+depends_on: ["P2-API-Repo-Comments-ListAsc", "P2-API-Schemas-Comments"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04"  # APIコントラクト
+  - "04a" # DTO定義
+  - "04b" # API規約
+  - "03a" # DDL
+estimated_loc: 40
+
+specification:
+  purpose: "コメント一覧取得サービスロジックの実装"
+  
+  content_requirements:
+    - section: "リスト取得メソッド"
+      items:
+        - "list_comments メソッド"
+        - "引数: thread_id, cursor"
+        - "ASC固定・(createdAt, id) タプル比較でページング"
+    
+    - section: "データ変換"
+      items:
+        - "内部行 → Comment DTO への変換（削除表示ルール：該当時は body='[削除済み]'、hasImage=false、imageUrl省略）"
+        - "AuthorAffiliation の付与（公開フラグに応じて）"
+        - "PaginatedComments の構築（items,nextCursor）"
+    
+    - section: "補足"
+      items:
+        - "コメント一覧では X-Snapshot-At は不要（ASC固定）"
+
+  output_format: "Python サービスメソッド"
+
+constraints:
+  - "データプライバシーの保護"
+  - "効率的なデータ変換"
+  - "適切なDTO利用"
+
+test_specification:
+  validation:
+    - "コメント一覧が正しく取得されること"
+    - "解決コメントが分離されること"
+    - "is_mineフラグが正しく設定されること"
+
+definition_of_done:
+  - "get_comments_by_thread_idメソッドが実装されている"
+  - "DTO変換が実装されている"
+  - "テストが追加されている"

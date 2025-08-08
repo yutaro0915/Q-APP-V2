@@ -1,0 +1,54 @@
+id: P3-API-Infra-S3Client
+phase: 3
+layer: API
+area: Infra
+action: S3Client
+target_file: backend/app/infra/s3.py
+test_file: null
+depends_on: []
+spec_refs:
+  - "07"   # S3アップロード仕様
+  - "05"   # バックエンド設計
+estimated_loc: 50
+
+specification:
+  purpose: "S3クライアントラッパーの実装"
+  
+  content_requirements:
+    - section: "S3クライアント初期化"
+      items:
+        - "boto3クライアント設定"
+        - "環境変数からバケット名取得"
+        - "リージョン設定"
+        - "認証情報管理"
+    
+    - section: "基本操作"
+      items:
+        - "generate_presigned_url()"
+        - "check_object_exists()"
+        - "get_object_metadata()"
+        - "delete_object()"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "S3エラーの処理"
+        - "ネットワークエラー"
+        - "権限エラー"
+        - "適切なログ出力"
+
+  output_format: "Python S3クライアントクラス"
+
+constraints:
+  - "boto3使用（同期利用でも可。サービス層は非同期I/Oでラップ）"
+  - "環境変数による設定（S3_BUCKET, S3_REGION, S3_PUBLIC_BASE）"
+
+test_specification:
+  validation:
+    - "S3クライアントが初期化できること"
+    - "Presigned URLが生成できること"
+    - "エラーが適切に処理されること"
+
+definition_of_done:
+  - "s3.pyが作成されている"
+  - "基本的なS3操作が実装されている"
+  - "エラーハンドリングが実装されている"

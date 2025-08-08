@@ -1,0 +1,55 @@
+id: P2-FRONT-Actions-ReactionThread
+phase: 2
+layer: FRONT
+area: Actions
+action: ReactionThread
+target_file: frontend/lib/actions/reactionThread.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "スレッドリアクションアクションの実装"
+  
+  content_requirements:
+    - section: "アクション関数"
+      items:
+        - "threadUpReaction async関数"
+        - "threadSaveReaction async関数"
+        - "引数: thread_id"
+        - "API呼び出し（POST /threads/{id}/reactions）"
+    
+    - section: "リアクション種別"
+      items:
+        - "up: いいねリアクション"
+        - "save: 保存リアクション" 
+        - "適切なrequest body設定"
+        - "べき等性の考慮"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "認証エラー（401）"
+        - "スレッド存在エラー（404）"
+        - "バリデーションエラー（400）"
+        - "ネットワークエラー"
+        - "適切なエラーメッセージ"
+
+  output_format: "TypeScript Action Functions"
+
+constraints:
+  - "型安全性"
+  - "べき等性の考慮"
+  - "エラーハンドリング"
+
+test_specification:
+  validation:
+    - "いいねリアクションが動作すること"
+    - "保存リアクションが動作すること"
+    - "エラーが適切に処理されること"
+
+definition_of_done:
+  - "reactionThread.tsが作成されている"
+  - "両方のリアクション関数が実装されている"
+  - "エラーハンドリングが実装されている"

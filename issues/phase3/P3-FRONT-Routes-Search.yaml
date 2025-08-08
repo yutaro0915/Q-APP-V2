@@ -1,0 +1,61 @@
+id: P3-FRONT-Routes-Search
+phase: 3
+layer: FRONT
+area: Routes
+action: Search
+target_file: frontend/app/search/page.tsx
+test_file: null
+depends_on: ["P0-FRONT-NextApp-Init", "P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 70
+
+specification:
+  purpose: "検索ページの実装"
+  
+  content_requirements:
+    - section: "ページ構造"
+      items:
+        - "Server Component"
+        - "URLパラメータ: q（クエリ）"
+        - "URLパラメータ: sort（並び順）"
+        - "メタデータ生成"
+    
+    - section: "検索フォーム"
+      items:
+        - "検索ボックス（SearchBoxコンポーネント）"
+        - "ソート切り替え（関連度/新着）"
+        - "検索実行ボタン"
+        - "クリアボタン"
+    
+    - section: "検索結果表示"
+      items:
+        - "GET /search API呼び出し"
+        - "ThreadCardで結果表示"
+        - "検索件数表示"
+        - "「もっと見る」ボタン"
+    
+    - section: "空/エラー状態"
+      items:
+        - "検索結果0件メッセージ"
+        - "検索クエリなしの初期状態"
+        - "エラー時の表示"
+        - "検索のヒント表示"
+
+  output_format: "TypeScript React Server Component"
+
+constraints:
+  - "URLパラメータでの状態管理"
+  - "SEO対応"
+  - "レスポンシブデザイン"
+
+test_specification:
+  validation:
+    - "検索が実行できること"
+    - "結果が表示されること"
+    - "ソート切り替えが動作すること"
+
+definition_of_done:
+  - "search/page.tsxが作成されている"
+  - "検索機能が実装されている"
+  - "ページングが動作する"

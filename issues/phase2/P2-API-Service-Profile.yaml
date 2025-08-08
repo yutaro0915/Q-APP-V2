@@ -1,0 +1,58 @@
+id: P2-API-Service-Profile
+phase: 2
+layer: API
+area: Service
+action: Profile
+target_file: backend/app/services/profile_service.py
+test_file: backend/tests/test_profile_service.py
+depends_on: ["P2-API-Repo-Profile"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04"  # APIコントラクト
+  - "04a" # DTO定義
+  - "04b" # API規約
+  - "03a" # DDL
+  - "01"  # ドメイン不変条件
+estimated_loc: 50
+
+specification:
+  purpose: "プロフィール管理サービスロジックの実装"
+  
+  content_requirements:
+    - section: "ProfileServiceクラス"
+      items:
+        - "get_my_profileメソッド（自分用、MyProfile を返却）"
+        - "update_my_profileメソッド（副作用のみ・戻り値なし→204）"
+        - "get_public_profileメソッド（他人用）"
+        - "適切なDTO変換"
+    
+    - section: "バリデーション"
+      items:
+        - "faculty ≤50"
+        - "year 1..10"
+        - "値が無くても *_public は受理（公開フラグのみONも可）"
+    
+    - section: "データ変換"
+      items:
+        - "ProfileInDB → ProfileDTO変換"
+        - "公開設定に応じた情報フィルタ"
+        - "デフォルト値の適用"
+        - "プライバシー制御"
+
+  output_format: "Python サービスクラス"
+
+constraints:
+  - "プライバシー保護"
+  - "適切なバリデーション"
+  - "データの一貫性"
+
+test_specification:
+  validation:
+    - "自分のプロフィールが取得できること"
+    - "プロフィール更新ができること"
+    - "公開設定が正しく適用されること"
+
+definition_of_done:
+  - "profile_service.pyが作成されている"
+  - "全メソッドが実装されている"
+  - "テストが追加されている"

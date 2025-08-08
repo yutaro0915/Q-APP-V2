@@ -1,0 +1,56 @@
+id: P2-API-Service-Comments-Delete
+phase: 2
+layer: API
+area: Service
+action: Comments-Delete
+target_file: backend/app/services/comments_service.py
+test_file: backend/tests/test_comments_service.py
+depends_on: ["P2-API-Repo-Comments-SoftDelete", "P2-API-Schemas-Comments"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04"  # APIコントラクト
+  - "04b" # API規約
+  - "03a" # DDL
+  - "01"  # ドメイン不変条件
+estimated_loc: 25
+
+specification:
+  purpose: "コメント削除サービスロジックの実装"
+  
+  content_requirements:
+    - section: "削除メソッド"
+      items:
+        - "delete_comment メソッド"
+        - "引数: user_id, comment_id"
+        - "権限チェック"
+        - "解決コメント削除時の処理"
+    
+    - section: "ビジネスルール"
+      items:
+        - "投稿者本人のみ削除可能"
+        - "解決済みコメント削除時はスレッドの解決状態をクリア"
+        - "削除済みコメントは 404 として扱う（未存在/削除済みを同等に扱う）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "権限エラー（403 Forbidden）"
+        - "存在しないコメント（404 Not Found）"
+        - "既に削除済み（404 Not Found）"
+
+  output_format: "Python サービスメソッド"
+
+constraints:
+  - "権限チェックの厳密性"
+  - "データ整合性の保証"
+  - "適切なエラー処理"
+
+test_specification:
+  validation:
+    - "投稿者本人が削除できること"
+    - "他人のコメントは削除できないこと"
+    - "解決済みコメント削除時にスレッド状態が更新されること"
+
+definition_of_done:
+  - "delete_commentメソッドが実装されている"
+  - "ビジネスルールが実装されている"
+  - "テストが追加されている"

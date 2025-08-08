@@ -1,0 +1,62 @@
+id: P4-FRONT-Components-HeatChip
+phase: 4
+layer: FRONT
+area: Components
+action: HeatChip
+target_file: frontend/components/HeatChip.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+  - "01"  # ドメイン不変条件（熱量）
+  - "04a" # ThreadCard.solved/authorAffiliation 等の表示項目
+estimated_loc: 40
+
+specification:
+  purpose: "スレッドの熱量を表示するチップコンポーネント"
+  
+  content_requirements:
+    - section: "表示要素"
+      items:
+        - "炎アイコン（🔥）"
+        - "3h 参加者数表記"
+        - "必要に応じ ToolTip に補足（例: '過去3時間に参加した人数'）"
+        - "背景色グラデーション"
+    
+    - section: "熱量レベル（例）"
+      items:
+        - "1-2人: 表示なし"
+        - "3-4人: 小（薄色）"
+        - "5-9人: 中"
+        - "10人以上: 大（濃色）"
+    
+    - section: "スタイリング"
+      items:
+        - "インラインチップ表示"
+        - "角丸デザイン"
+        - "適切なパディング"
+        - "ホバー時のツールチップ"
+    
+    - section: "レスポンシブ"
+      items:
+        - "モバイルでコンパクト表示"
+        - "デスクトップで詳細表示"
+        - "アイコンサイズ調整"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "軽量なコンポーネント"
+  - "再利用可能"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "各レベルで表示が変わること"
+    - "1-2人で非表示になること"
+    - "ツールチップが表示されること"
+
+definition_of_done:
+  - "HeatChip.tsxが作成されている"
+  - "熱量レベル別の表示が実装されている"
+  - "レスポンシブ対応"

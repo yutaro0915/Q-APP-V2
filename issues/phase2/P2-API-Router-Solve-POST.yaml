@@ -1,0 +1,59 @@
+id: P2-API-Router-Solve-POST
+phase: 2
+layer: API
+area: Router
+action: Solve-POST
+target_file: backend/app/routers/solve.py
+test_file: backend/tests/test_solve_router.py
+depends_on: ["P2-API-Service-Solve-Set", "P2-API-Service-Solve-Clear", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 40
+
+specification:
+  purpose: "POST /threads/{id}/solve エンドポイント実装（質問スレのみ許可、成功は204）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /threads/{id}/solve"
+        - "認証必須（Depends(get_current_user)）"
+        - "パスパラメータ: id（thr_*）"
+        - "リクエストボディ: SolveRequest（{ commentId: string|null }）"
+        - "レスポンス: 204 No Content"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "id 形式検証"
+        - "commentId の有無による分岐"
+        - "適切なサービスメソッド呼び出し"
+        - "204 No Content で返却"
+    
+    - section: "リクエスト分岐"
+      items:
+        - "commentIdあり: set_solved_comment サービス呼び出し"
+        - "commentIdなし/null: clear_solved_comment サービス呼び出し"
+        - "不正なcommentId形式で400エラー"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "適切な権限チェック（スレ主のみ）"
+  - "質問スレ以外は 400 VALIDATION_ERROR（details.reason=NOT_APPLICABLE, field=thread.tags, required=question）"
+  - "構造化ログ出力 / 全応答に X-Request-Id を付与"
+
+test_specification:
+  validation:
+    - "解決設定ができること"
+    - "解決クリアができること"
+    - "権限エラーが適切に処理されること"
+
+definition_of_done:
+  - "POSTエンドポイントが実装されている"
+  - "リクエスト分岐が実装されている"
+  - "テストが追加されている"

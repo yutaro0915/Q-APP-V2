@@ -1,0 +1,53 @@
+id: P1-API-Service-Threads-Get
+phase: 1
+layer: API
+area: Service
+action: Threads-Get
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-GetById", "P1-API-Service-Threads-Create"]
+spec_refs:
+  - "05"  # FastAPI設計
+estimated_loc: 25
+
+specification:
+  purpose: "スレッド取得サービスロジックの実装"
+  
+  content_requirements:
+    - section: "get_threadメソッド"
+      items:
+        - "引数: thread_id, current_user_id"
+        - "リポジトリから取得"
+        - "is_mine判定の追加"
+        - "ThreadDTOへの変換"
+    
+    - section: "処理フロー"
+      items:
+        - "IDバリデーション"
+        - "リポジトリ呼び出し"
+        - "存在しない場合はNone"
+        - "is_mine = (user_id == current_user_id)"
+    
+    - section: "DTO変換"
+      items:
+        - "DBレコードからThreadDTOへ"
+        - "excerptの生成"
+        - "日時のISO8601形式変換"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "削除済みは取得しない"
+  - "適切な型ヒント"
+  - "None安全な処理"
+
+test_specification:
+  validation:
+    - "存在するスレッドが取得できること"
+    - "is_mineが正しく判定されること"
+    - "存在しない場合Noneが返ること"
+
+definition_of_done:
+  - "get_threadメソッドが実装されている"
+  - "DTO変換が正しく行われる"
+  - "テストが追加されている"

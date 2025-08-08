@@ -1,0 +1,38 @@
+id: P1-API-RateLimit-Threads-Create
+phase: 1
+layer: API
+area: RateLimit
+action: Threads-Create
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_rate_limit_threads.py
+depends_on: ["P0-API-Middleware-RequestId-CORS", "P1-API-Router-Threads-POST"]
+spec_refs:
+  - "04b" # 規約（429/ヘッダ）
+  - "05"  # バックエンド設計（推奨初期値）
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド作成にレート制限を導入（1分/1件：user+IP）"
+  
+  content_requirements:
+    - section: "制限仕様"
+      items:
+        - "直近1分に自ユーザーの作成回数を計測"
+        - "超過時 429 を返却"
+        - "ヘッダ: Retry-After, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset を付与"
+
+  output_format: "FastAPI ルーター修正（依存のGuard/ミドルウェアでも可）"
+
+constraints:
+  - "再実行安全（Idempotency-Key を阻害しない）"
+  - "ストアはインメモリ/DBいずれも可（テスト容易性優先）"
+
+test_specification:
+  validation:
+    - "短時間に2回目のPOSTで429"
+    - "429応答に必須ヘッダが含まれる"
+
+definition_of_done:
+  - "レート制限が有効"
+  - "ヘッダが付与される"
+  - "テストが追加されている"

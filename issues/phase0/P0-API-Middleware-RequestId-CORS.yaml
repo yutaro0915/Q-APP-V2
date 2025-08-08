@@ -1,0 +1,45 @@
+id: P0-API-Middleware-RequestId-CORS
+phase: 0
+layer: API
+area: Middleware
+action: RequestId-CORS
+target_file: backend/app/main.py
+test_file: backend/tests/test_request_id_middleware.py
+depends_on: ["P0-API-Main-Scaffold", "P0-API-Errors"]
+spec_refs:
+  - "04b"  # API規約（X-Request-Id / 429ヘッダ）
+  - "05"   # バックエンド設計（CORS/ログ）
+estimated_loc: 50
+
+specification:
+  purpose: "X-Request-Id ミドルウェアと CORS 設定の導入（全API横断）"
+  
+  content_requirements:
+    - section: "X-Request-Id ミドルウェア"
+      items:
+        - "リクエストヘッダ X-Request-Id を受理。未指定の場合はサーバ生成（ULID/UUID）"
+        - "全レスポンスに X-Request-Id を付与"
+        - "構造化ログに request_id を出力"
+    
+    - section: "CORS 設定"
+      items:
+        - "環境変数 CORS_ORIGINS を読み込み、本番フロントのみ許可（複数はカンマ区切り）"
+        - "Allow: Authorization, Content-Type"
+        - "Credentials: false（v1）"
+
+  output_format: "FastAPI アプリ初期化コード（main.py 変更）"
+
+constraints:
+  - "04b_api_conventions_v1.md に準拠（全応答に X-Request-Id）"
+  - "本番で過度に広いCORSを許可しない"
+
+test_specification:
+  validation:
+    - "要求ヘッダに X-Request-Id を付けると、応答に同値が返ること"
+    - "要求ヘッダ無しでも応答に X-Request-Id が付与されること（非空）"
+    - "許可されていない Origin からのプリフライトが拒否されること"
+
+definition_of_done:
+  - "X-Request-Id ヘッダが全エンドポイント応答に含まれる"
+  - "CORS 設定が main.py に実装されている"
+  - "基本テストが追加されている"

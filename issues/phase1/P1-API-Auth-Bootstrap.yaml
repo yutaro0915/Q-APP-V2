@@ -1,0 +1,61 @@
+id: P1-API-Auth-Bootstrap
+phase: 1
+layer: API
+area: Auth
+action: Bootstrap
+target_file: backend/app/routers/auth.py
+test_file: backend/tests/test_auth.py
+depends_on: ["P1-API-DB-Pool", "P1-API-Errors"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04a" # Auth DTO
+  - "01"  # ドメイン不変条件
+estimated_loc: 60
+
+specification:
+  purpose: "POST /auth/bootstrap エンドポイント実装（匿名認証）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /auth/bootstrap"
+        - "リクエスト: device_secret (Optional)"
+        - "レスポンス: { userId, token, expiresAt }"
+        - "新規/既存ユーザー処理"
+    
+    - section: "ユーザー作成/取得"
+      items:
+        - "device_secretなし: 新規ユーザー作成"
+        - "device_secretあり: 既存ユーザー取得"
+        - "user_id生成（usr_* 形式, ULIDベース）"
+    
+    - section: "セッション管理"
+      items:
+        - "session_id生成（ses_* 形式）"
+        - "不透明なランダムトークン生成（返却はプレーン、DBはsha256ハッシュ保存）"
+        - "有効期限: 7日（env SESSION_TTL_HOURS 準拠）"
+        - "sessionsテーブルに保存（token_hash UNIQUE）"
+    
+    - section: "DB操作"
+      items:
+        - "usersテーブル操作"
+        - "sessionsテーブル操作"
+        - "トランザクション管理"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "匿名認証のみ（Phase 1）"
+  - "device_secretの安全な管理"
+  - "JWTの適切な実装"
+
+test_specification:
+  validation:
+    - "新規ユーザーが作成されること"
+    - "既存ユーザーが取得されること"
+    - "JWTトークンが生成されること"
+
+definition_of_done:
+  - "auth.pyが作成されている"
+  - "bootstrapエンドポイントが動作する"
+  - "テストが追加されている"

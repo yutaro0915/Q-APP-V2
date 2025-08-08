@@ -1,0 +1,55 @@
+id: P2-FRONT-Actions-UpdateProfile
+phase: 2
+layer: FRONT
+area: Actions
+action: UpdateProfile
+target_file: frontend/lib/actions/updateProfile.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "プロフィール更新アクションの実装"
+  
+  content_requirements:
+    - section: "アクション関数"
+      items:
+        - "updateProfile async関数"
+        - "getMyProfile async関数"
+        - "引数: ProfileUpdateData"
+        - "API呼び出し（GET/PATCH /me/profile）"
+    
+    - section: "データ型定義"
+      items:
+        - "ProfileUpdateData型"
+        - "ProfileResponse型"
+        - "department/year enum定義"
+        - "適切なバリデーション型"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "認証エラー（401）"
+        - "バリデーションエラー（400）"
+        - "ネットワークエラー"
+        - "適切なエラーメッセージ"
+        - "楽観的更新の考慮"
+
+  output_format: "TypeScript Action Functions"
+
+constraints:
+  - "型安全性"
+  - "エラーハンドリング"
+  - "データ整合性"
+
+test_specification:
+  validation:
+    - "プロフィール取得ができること"
+    - "プロフィール更新ができること"
+    - "エラーが適切に処理されること"
+
+definition_of_done:
+  - "updateProfile.tsが作成されている"
+  - "型定義が完備されている"
+  - "エラーハンドリングが実装されている"

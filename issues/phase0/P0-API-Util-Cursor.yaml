@@ -1,0 +1,41 @@
+id: P0-API-Util-Cursor
+phase: 0
+layer: API
+area: Util
+action: Cursor
+target_file: backend/app/services/cursor.py
+test_file: backend/tests/test_cursor.py
+depends_on: []
+spec_refs:
+  - "04a" # DTO/ページング
+  - "04b" # 規約（カーソル/X-Snapshot-At）
+  - "05"  # バックエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "base64url(JSON) カーソルのエンコード/デコードと検証ユーティリティ"
+  
+  content_requirements:
+    - section: "API"
+      items:
+        - "def encode(obj: dict) -> str"
+        - "def decode(cursor: str) -> dict"
+        - "def validate_comments_cursor(obj: dict) -> tuple[Anchor|None, Errors|None]"
+        - "def validate_threads_cursor(obj: dict) -> tuple[Anchor|None, Errors|None]"
+        - "def is_snapshot_expired(snapshot_at: datetime, now: datetime) -> bool  # 24h"
+
+  output_format: "Python ユーティリティモジュール"
+
+constraints:
+  - "JSONは追加プロパティ許可、必要キーのみ検証（v=1 等）"
+  - "base64url にパディング無し"
+
+test_specification:
+  validation:
+    - "正しいカーソルの往復で同一オブジェクトになること"
+    - "期限切れ snapshotAt で 400 を起こせること"
+    - "コメント/TL のアンカー検証（タプル比較前提）"
+
+definition_of_done:
+  - "cursor.py が作成されている"
+  - "正/異常系テストが追加されている"

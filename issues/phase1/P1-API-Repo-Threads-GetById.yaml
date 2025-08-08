@@ -1,0 +1,52 @@
+id: P1-API-Repo-Threads-GetById
+phase: 1
+layer: API
+area: Repo
+action: Threads-GetById
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-Init"]
+spec_refs:
+  - "03a" # DDL
+estimated_loc: 25
+
+specification:
+  purpose: "ID指定によるスレッド取得メソッドの実装"
+  
+  content_requirements:
+    - section: "get_thread_by_idメソッド"
+      items:
+        - "引数: thread_id"
+        - "SELECT文でスレッド取得"
+        - "deleted_at IS NULLの条件"
+        - "結果をDictで返す"
+    
+    - section: "SQL実装"
+      items:
+        - "SELECT * FROM threads"
+        - "WHERE id = $1 AND deleted_at IS NULL"
+        - "単一レコード取得（fetchrow）"
+    
+    - section: "戻り値"
+      items:
+        - "存在する場合: Dict形式のレコード"
+        - "存在しない場合: None"
+        - "削除済みの場合: None"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "削除済みレコードは取得しない"
+  - "IDの形式検証（thr_* + ULID）"
+  - "適切な型ヒント"
+
+test_specification:
+  validation:
+    - "存在するIDで取得できること"
+    - "存在しないIDでNoneが返ること"
+    - "削除済みレコードが取得されないこと"
+
+definition_of_done:
+  - "get_thread_by_idメソッドが実装されている"
+  - "テストが追加されている"
+  - "削除済みフィルタが機能している"

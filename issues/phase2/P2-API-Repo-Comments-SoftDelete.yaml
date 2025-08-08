@@ -1,0 +1,56 @@
+id: P2-API-Repo-Comments-SoftDelete
+phase: 2
+layer: API
+area: Repo
+action: Comments-SoftDelete
+target_file: backend/app/repositories/comments_repo.py
+test_file: backend/tests/test_comments_repo.py
+depends_on: ["P2-API-Repo-Comments-Init"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 25
+
+specification:
+  purpose: "コメントの論理削除実装"
+  
+  content_requirements:
+    - section: "UPDATEメソッド"
+      items:
+        - "async def soft_delete_comment(comment_id, author_id)"
+        - "deleted_at に現在時刻を設定"
+        - "削除権限チェック（投稿者本人のみ）"
+        - "既に削除済みの場合はエラー"
+    
+    - section: "SQLクエリ"
+      items:
+        - "UPDATE comments SET deleted_at = NOW()"
+        - "WHERE id = $1 AND author_id = $2 AND deleted_at IS NULL"
+        - "影響行数をチェック"
+    
+    - section: "権限制御"
+      items:
+        - "author_id が一致するかチェック"
+        - "削除済みコメントは操作不可"
+        - "適切なエラーメッセージ"
+
+  output_format: "Python async メソッド"
+
+constraints:
+  - "権限チェックの厳密性"
+  - "データ整合性の保証"
+  - "監査ログ対応"
+
+test_specification:
+  validation:
+    - "投稿者本人が削除できること"
+    - "他人のコメントは削除できないこと"
+    - "既に削除済みのコメントはエラーになること"
+
+definition_of_done:
+  - "soft_delete_commentメソッドが実装されている"
+  - "権限チェックが実装されている"
+  - "テストケースが追加されている"

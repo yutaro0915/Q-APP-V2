@@ -1,0 +1,59 @@
+id: P2-API-Repo-Profile
+phase: 2
+layer: API
+area: Repo
+action: Profile
+target_file: backend/app/repositories/profile_repo.py
+test_file: backend/tests/test_profile_repo.py
+depends_on: ["P1-API-DB-Pool"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 45
+
+specification:
+  purpose: "ユーザープロフィール管理リポジトリの実装"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "ProfileRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "プロフィールCRUD操作"
+    
+    - section: "メソッド実装"
+      items:
+        - "async def get_profile_by_user_id(user_id)"
+        - "async def upsert_profile(user_id, profile_data)"
+        - "async def get_public_profile(user_id)"
+        - "デフォルトプロフィール生成"
+    
+    - section: "SQLクエリ"
+      items:
+        - "SELECT profile with user info JOIN"
+        - "INSERT ON CONFLICT DO UPDATE for upsert"
+        - "公開/非公開フィルタリング"
+        - "適切なインデックス活用"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "プライバシー制御"
+  - "データ整合性の保証"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "プロフィールが取得できること"
+    - "プロフィール更新ができること"
+    - "公開設定が正しく反映されること"
+
+definition_of_done:
+  - "profile_repo.pyが作成されている"
+  - "全メソッドが実装されている"
+  - "テストファイルが作成されている"

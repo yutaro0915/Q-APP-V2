@@ -1,0 +1,60 @@
+id: P2-API-Schemas-Reactions
+phase: 2
+layer: API
+area: Schemas
+action: Reactions
+target_file: backend/app/schemas/reactions.py
+test_file: null
+depends_on: ["P2-API-Schemas-Comments"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # バックエンド設計
+  - "01"   # ドメイン不変条件
+estimated_loc: 50
+
+specification:
+  purpose: "リアクション関連のPydanticスキーマ定義"
+  
+  content_requirements:
+    - section: "基本DTO"
+      items:
+        - "ReactionType: Enum（'up','save'）"
+        - "ReactionRequestThread: { kind: 'up'|'save' }"
+        - "ReactionRequestComment: { kind: 'up' }"
+    
+    - section: "レスポンスDTO"
+      items:
+        - "なし（リアクションAPIは常に 204 No Content を返す）"
+    
+    - section: "内部DTO"
+      items:
+        - "ReactionInDB: id, target_id, target_type, user_id, reaction_type"
+        - "target_type: Enum（thread, comment）"
+    
+    - section: "バリデーション"
+      items:
+        - "target_id 形式検証（thr_* / cmt_*）"
+        - "kind の検証"
+        - "UNIQUE(user_id,target_type,target_id,kind) による重複リアクション制御（409 Conflict）"
+
+  output_format: "Python Pydanticモデル"
+
+constraints:
+  - "04a_api_schemas_dto_v1.mdに準拠"
+  - "Enumの適切な使用"
+  - "型安全性の保証"
+
+test_specification:
+  validation:
+    - "各DTOが正しくバリデーションされること"
+    - "Enumが正しく動作すること"
+    - "ID形式が検証されること"
+
+definition_of_done:
+  - "reactions.pyが作成されている"
+  - "全てのDTOが定義されている"
+  - "バリデーションが実装されている"

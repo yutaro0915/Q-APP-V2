@@ -1,0 +1,55 @@
+id: P2-FRONT-Routes-Profile
+phase: 2
+layer: FRONT
+area: Routes
+action: Profile
+target_file: frontend/app/me/profile/page.tsx
+test_file: null
+depends_on: ["P0-FRONT-NextApp-Init"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 70
+
+specification:
+  purpose: "プロフィール設定ページの実装"
+  
+  content_requirements:
+    - section: "ページ構造"
+      items:
+        - "ページタイトル「プロフィール設定」"
+        - "プロフィール表示エリア"
+        - "編集フォームエリア"
+        - "保存/キャンセルボタン"
+    
+    - section: "フォーム項目"
+      items:
+        - "表示名（必須・1-50文字）"
+        - "学部選択（プルダウン）"
+        - "学年選択（プルダウン）"
+        - "自己紹介（任意・500文字まで）"
+        - "プロフィール公開設定（チェックボックス）"
+    
+    - section: "機能要件"
+      items:
+        - "現在の設定値の表示"
+        - "リアルタイムバリデーション"
+        - "保存処理とフィードバック"
+        - "変更検知による保存ボタン制御"
+
+  output_format: "TypeScript React Page Component"
+
+constraints:
+  - "Next.js App Routerパターン"
+  - "フォームバリデーション"
+  - "ユーザビリティ"
+
+test_specification:
+  validation:
+    - "プロフィール情報が表示されること"
+    - "フォーム入力・保存ができること"
+    - "バリデーションが動作すること"
+
+definition_of_done:
+  - "profile/page.tsxが作成されている"
+  - "フォーム機能が実装されている"
+  - "バリデーション機能が実装されている"

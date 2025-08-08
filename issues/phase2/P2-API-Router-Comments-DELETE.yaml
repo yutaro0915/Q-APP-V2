@@ -1,0 +1,56 @@
+id: P2-API-Router-Comments-DELETE
+phase: 2
+layer: API
+area: Router
+action: Comments-DELETE
+target_file: backend/app/routers/comments.py
+test_file: backend/tests/test_comments_router.py
+depends_on: ["P2-API-Service-Comments-Delete", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "DELETE /comments/{comment_id} エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "DELETE /comments/{comment_id}"
+        - "認証必須（Depends(get_current_user)）"
+        - "パスパラメータ: comment_id"
+        - "レスポンス: 204 No Content"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "comment_id形式検証"
+        - "サービス層呼び出し（権限チェック含む）"
+        - "204 No Contentで返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "401: 認証エラー"
+        - "403: 権限エラー（他人のコメント）"
+        - "404: コメントが存在しない/既に削除済み"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "権限チェックの厳密性"
+  - "適切なHTTPステータス"
+  - "監査ログ記録"
+
+test_specification:
+  validation:
+    - "投稿者本人が削除できること"
+    - "他人のコメントで403エラー"
+    - "存在しないコメントで404エラー"
+
+definition_of_done:
+  - "DELETEエンドポイントが実装されている"
+  - "権限チェックが実装されている"
+  - "テストが追加されている"

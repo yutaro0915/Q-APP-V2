@@ -1,0 +1,76 @@
+---
+id: P0-INFRA-S3-Init
+phase: 0
+layer: INFRA
+area: S3
+action: Init
+target_file: docs/setup/s3_setup.md
+test_file: null
+depends_on: []
+spec_refs:
+  - "07"  # 画像アップロード契約
+estimated_loc: 40
+
+specification:
+  purpose: "画像アップロード用S3バケットの設定手順書作成"
+  
+  content_requirements:
+    - section: "バケット作成"
+      items:
+        - "バケット名: kyudai-campus-sns-uploads"
+        - "リージョン: ap-northeast-1"
+        - "パブリックアクセス設定"
+    
+    - section: "CORS設定"
+      items:
+        - "PUT/GET/HEADメソッド許可"
+        - "AllowedHeaders: Content-Type, x-amz-meta-*"
+        - "本番フロントドメインのみ許可"
+    
+    - section: "バケットポリシー"
+      items:
+        - "uploads/* へのGetObject許可（public-read）"
+        - "PutObjectはpresigned URLのみ"
+    
+    - section: "暗号化設定"
+      items:
+        - "デフォルト暗号化: SSE-S3"
+
+  code_snippets:
+    cors_config: |
+      [
+        {
+          "AllowedMethods": ["PUT","GET","HEAD"],
+          "AllowedOrigins": ["https://your-frontend.example"],
+          "AllowedHeaders": ["Content-Type","x-amz-meta-width","x-amz-meta-height","x-amz-meta-sha256"],
+          "ExposeHeaders": []
+        }
+      ]
+    
+    bucket_policy: |
+      {
+        "Version": "2012-10-17",
+        "Statement": [{
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::YOUR_BUCKET/uploads/*"
+        }]
+      }
+
+constraints:
+  - "セキュリティベストプラクティスに従う"
+  - "07の仕様と完全一致"
+
+test_specification:
+  validation:
+    - "CORS設定でPUTが可能"
+    - "公開URLでGETアクセス可能"
+    - "presigned URLの生成確認"
+
+definition_of_done:
+  - "手順書が完成している"
+  - "CORS/ポリシーのJSONが含まれている"
+  - "環境変数S3_BUCKET等の説明がある"
+---

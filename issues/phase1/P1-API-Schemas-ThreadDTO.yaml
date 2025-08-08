@@ -1,0 +1,59 @@
+id: P1-API-Schemas-ThreadDTO
+phase: 1
+layer: API
+area: Schemas
+action: ThreadDTO
+target_file: backend/app/schemas/threads.py
+test_file: null
+depends_on: []
+spec_refs:
+  - "04a" # DTO定義
+  - "03"  # データモデル
+estimated_loc: 80
+
+specification:
+  purpose: "スレッド関連のPydanticスキーマ定義"
+  
+  content_requirements:
+    - section: "基本DTO"
+      items:
+        - "CreateThreadRequest（04a）: title(1..60), body(0..2000) default '' , tags(≤4), imageKey?"
+        - "Comment/CreateCommentRequest（将来P2）: body(1..1000), imageKey?"
+        - "ThreadDetail/ThreadCard/Comment（04a DTO）"
+        - "ThreadInDB（内部）: id, author_id, created_at, last_activity_at, deleted_at など"
+    
+    - section: "レスポンスDTO"
+      items:
+        - "ThreadDetail（04a）"
+        - "ThreadCard（04a, excerptは120字・改行→空白・超過時…）"
+        - "Comment（04a）"
+    
+    - section: "リストレスポンス"
+      items:
+        - "PaginatedThreadCards（04a）: { items: ThreadCard[], nextCursor? }"
+        - "PaginatedComments（04a）: { items: Comment[], nextCursor? }"
+    
+    - section: "バリデーション"
+      items:
+        - "title: trim() + 1..60"
+        - "body: trim() + 0..2000（未指定は空文字へ正規化）"
+        - "タグ: key重複不可、'種別'は question|notice|recruit|chat"
+        - "IDパターン: ^(usr|cre|ses|thr|cmt|att|rcn)_[0-9A-HJKMNP-TV-Z]{26}$"
+
+  output_format: "Python Pydanticモデル"
+
+constraints:
+  - "04a_api_schemas_dto_v1.mdに準拠"
+  - "ID形式の検証パターン"
+  - "日時はISO8601形式"
+
+test_specification:
+  validation:
+    - "各DTOが正しくバリデーションされること"
+    - "excerptが正しく生成されること"
+    - "制御文字が除去されること"
+
+definition_of_done:
+  - "threads.pyが作成されている"
+  - "全てのDTOが定義されている"
+  - "バリデーションが実装されている"

@@ -1,0 +1,37 @@
+id: P3-API-Integrate-Images-DTO-Comments
+phase: 3
+layer: API
+area: Service
+action: Integrate-Images-Comments
+target_file: backend/app/services/comments_service.py
+test_file: backend/tests/test_comments_images.py
+depends_on: ["P3-API-Repo-Attachments", "P3-API-Infra-S3Client"]
+spec_refs:
+  - "04a" # Comment の image* フィールド
+  - "05"  # バックエンド設計
+  - "07"  # S3公開URL方針
+estimated_loc: 30
+
+specification:
+  purpose: "コメントDTOへの画像URL/有無の付与（attachments→公開URL解決）"
+  
+  content_requirements:
+    - section: "Comment"
+      items:
+        - "hasImage: attachments 有無で判定"
+        - "imageUrl: S3_PUBLIC_BASE + key"
+        - "削除済みコメントは hasImage=false、imageUrl省略"
+
+  output_format: "サービス層のDTO整形コード"
+
+constraints:
+  - "P3では画像は各1枚"
+
+test_specification:
+  validation:
+    - "画像があるコメントに URL/hasImage が付与されること"
+    - "削除済みで hasImage=false になること"
+
+definition_of_done:
+  - "CommentDTO に image* が適切に付与される"
+  - "テストが追加されている"

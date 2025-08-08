@@ -1,0 +1,54 @@
+id: P1-API-Repo-Threads-SoftDelete
+phase: 1
+layer: API
+area: Repo
+action: Threads-SoftDelete
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-Init"]
+spec_refs:
+  - "03a" # DDL
+  - "01"  # ドメイン不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド論理削除メソッドの実装"
+  
+  content_requirements:
+    - section: "soft_delete_threadメソッド"
+      items:
+        - "引数: thread_id, author_id"
+        - "deleted_at = NOW()設定"
+        - "user_id確認（所有者のみ削除可）"
+        - "既に削除済みの場合はエラー"
+    
+    - section: "SQL実装"
+      items:
+        - "UPDATE threads SET deleted_at = NOW()"
+        - "WHERE id = $1 AND author_id = $2"
+        - "AND deleted_at IS NULL"
+        - "RETURNING id"
+    
+    - section: "戻り値"
+      items:
+        - "削除成功: True"
+        - "権限なし: False"
+        - "既に削除済み: False"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "物理削除はしない"
+  - "所有者チェック必須"
+  - "削除済みの再削除は不可"
+
+test_specification:
+  validation:
+    - "所有者が削除できること"
+    - "他人のスレッドは削除できないこと"
+    - "削除済みは再削除できないこと"
+
+definition_of_done:
+  - "soft_delete_threadメソッドが実装されている"
+  - "権限チェックが実装されている"
+  - "テストが追加されている"

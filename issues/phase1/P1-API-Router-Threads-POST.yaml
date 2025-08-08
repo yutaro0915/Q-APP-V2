@@ -1,0 +1,55 @@
+id: P1-API-Router-Threads-POST
+phase: 1
+layer: API
+area: Router
+action: Threads-POST
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_threads_router.py
+depends_on: ["P1-API-Service-Threads-Create", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04b" # API規約
+estimated_loc: 40
+
+specification:
+  purpose: "POST /threads エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /threads"
+        - "認証必須（Depends(get_current_user)）"
+        - "リクエストボディ: CreateThreadRequest（04a）"
+        - "レスポンス: CreatedResponse { id, createdAt } (201)"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "リクエストバリデーション"
+        - "サービス層呼び出し"
+        - "201 Createdで返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "400: バリデーションエラー"
+        - "401: 認証エラー"
+        - "500: サーバーエラー"
+        - "X-Request-Id付与"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "OpenAPI仕様に準拠"
+  - "適切なHTTPステータス"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "認証ありで投稿できること"
+    - "認証なしで401エラー"
+    - "不正なデータで400エラー"
+
+definition_of_done:
+  - "POSTエンドポイントが実装されている"
+  - "認証が必須になっている"
+  - "テストが追加されている"

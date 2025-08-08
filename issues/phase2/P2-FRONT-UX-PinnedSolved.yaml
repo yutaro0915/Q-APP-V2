@@ -1,0 +1,52 @@
+id: P2-FRONT-UX-PinnedSolved
+phase: 2
+layer: FRONT
+area: UX
+action: PinnedSolved
+target_file: frontend/components/PinnedSolvedComment.tsx
+test_file: null
+depends_on: ["P2-FRONT-Components-CommentItem"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "解決済みコメント固定表示UXコンポーネントの実装"
+  
+  content_requirements:
+    - section: "表示要素"
+      items:
+        - "解決済みコメントの特別表示"
+        - "「解決済み」バッジ"
+        - "固定位置での表示（コメント一覧上部）"
+        - "視覚的な強調（背景色・ボーダー）"
+    
+    - section: "インタラクション"
+      items:
+        - "解決解除ボタン（質問スレッド投稿者のみ）"
+        - "通常のコメント操作（いいね等）"
+        - "適切なホバー効果"
+    
+    - section: "条件表示"
+      items:
+        - "質問スレッドでのみ表示"
+        - "解決済みコメントが存在する場合のみ"
+        - "権限に応じたボタン表示制御"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "条件分岐の明確性"
+  - "視覚的な一貫性"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "解決済みコメントが固定表示されること"
+    - "権限に応じてボタンが表示されること"
+    - "視覚的強調が適用されること"
+
+definition_of_done:
+  - "PinnedSolvedComment.tsxが作成されている"
+  - "条件表示ロジックが実装されている"
+  - "視覚的デザインが実装されている"

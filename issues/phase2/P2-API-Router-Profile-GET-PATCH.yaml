@@ -1,0 +1,58 @@
+id: P2-API-Router-Profile-GET-PATCH
+phase: 2
+layer: API
+area: Router
+action: Profile-GET-PATCH
+target_file: backend/app/routers/profile.py
+test_file: backend/tests/test_profile_router.py
+depends_on: ["P2-API-Service-Profile", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 50
+
+specification:
+  purpose: "GET /auth/me/profile, PATCH /auth/me/profile エンドポイント実装（更新は204）"
+  
+  content_requirements:
+    - section: "GETエンドポイント"
+      items:
+        - "GET /auth/me/profile"
+        - "認証必須（Depends(get_current_user)）"
+        - "自分のプロフィール情報取得"
+        - "レスポンス: MyProfile (200)"
+    
+    - section: "PATCHエンドポイント"
+      items:
+        - "PATCH /auth/me/profile"
+        - "認証必須（Depends(get_current_user)）"
+        - "リクエストボディ: UpdateMyProfileRequest"
+        - "レスポンス: 204 No Content"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "適切なサービスメソッド呼び出し"
+        - "バリデーションエラー処理"
+        - "200 OKで返却"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "プライバシー保護"
+  - "適切なバリデーション"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "自分のプロフィールが取得できること"
+    - "プロフィール更新ができること"
+    - "バリデーションエラーが適切に処理されること"
+
+definition_of_done:
+  - "GET/PATCHエンドポイントが実装されている"
+  - "認証が必須になっている"
+  - "テストが追加されている"

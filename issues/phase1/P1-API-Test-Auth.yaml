@@ -1,0 +1,35 @@
+id: P1-API-Test-Auth
+phase: 1
+layer: API
+area: Test
+action: Auth
+target_file: backend/tests/test_auth.py
+test_file: null
+depends_on: ["P1-API-Auth-Bootstrap", "P1-API-Auth-Session"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04a" # Auth DTO
+estimated_loc: 50
+
+specification:
+  purpose: "認証APIのテスト"
+  
+  content_requirements:
+    - section: "Bootstrap テスト"
+      items:
+        - "新規ユーザー作成"
+        - "既存ユーザー取得"
+        - "トークン（不透明ランダム文字列）発行"
+        - "有効期限: 7日（TTL）"
+    
+    - section: "Session テスト"
+      items:
+        - "有効トークンでuserIdが返る"
+        - "無効トークンで401"
+        - "期限切れで401"
+
+  output_format: "Python pytest"
+
+definition_of_done:
+  - "テストが全てパスする"
+  - "JWT検証動作確認"

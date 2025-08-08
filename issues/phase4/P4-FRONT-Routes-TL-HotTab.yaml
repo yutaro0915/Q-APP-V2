@@ -1,0 +1,61 @@
+id: P4-FRONT-Routes-TL-HotTab
+phase: 4
+layer: FRONT
+area: Routes
+action: TL-HotTab
+target_file: frontend/app/page.tsx
+test_file: null
+depends_on: ["P1-FRONT-Routes-TL-New", "P4-FRONT-Card-LatestReplyPreview"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 50
+
+specification:
+  purpose: "トップページへのホット/新着タブ切り替え追加"
+  
+  content_requirements:
+    - section: "タブUI"
+      items:
+        - "「ホット」タブ"
+        - "「新着」タブ"
+        - "アクティブタブ表示"
+        - "タブ切り替えボタン"
+    
+    - section: "状態管理"
+      items:
+        - "URLパラメータ: ?tab=hot/new"
+        - "デフォルト: hot"
+        - "タブ状態の保持"
+        - "ページリロード対応"
+    
+    - section: "データ取得"
+      items:
+        - "tab=hot: GET /threads?sort=hot（X-Snapshot-At ヘッダ保持→CSRページング継続）"
+        - "tab=new: GET /threads?sort=new"
+        - "SSRでの初期データ取得（GETは公開）"
+        - "タブ切り替え時の再取得（カーソル破棄）"
+    
+    - section: "UI最適化"
+      items:
+        - "タブ切り替えアニメーション"
+        - "選択中タブのハイライト"
+        - "モバイルでのタブ表示"
+        - "スクロール位置リセット"
+
+  output_format: "TypeScript React Server Component更新"
+
+constraints:
+  - "URL駆動の状態管理"
+  - "SSR対応"
+  - "既存機能維持"
+
+test_specification:
+  validation:
+    - "タブ切り替えが動作すること"
+    - "URLパラメータが更新されること"
+    - "適切なデータが表示されること"
+
+definition_of_done:
+  - "page.tsxが更新されている"
+  - "タブ切り替えが実装されている"
+  - "ホット順/新着順が選択可能"

@@ -1,0 +1,47 @@
+id: P0-API-Health
+phase: 0
+layer: API
+area: Health
+action: Init
+target_file: backend/app/routers/health.py
+test_file: backend/tests/test_health.py
+depends_on: ["P0-API-Main-Scaffold", "P0-API-Router-Core"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04b" # API規約
+estimated_loc: 30
+
+specification:
+  purpose: "ヘルスチェックエンドポイント実装"
+  
+  content_requirements:
+    - section: "GETエンドポイント"
+      items:
+        - "パス: /api/v1/health"
+        - "レスポンス: {\"status\": \"healthy\"}"
+        - "HTTPステータス: 200"
+        - "タグ: [\"System\"]"
+    
+    - section: "ルーター設定"
+      items:
+        - "APIRouterインスタンス作成"
+        - "response_model定義"
+        - "OpenAPIドキュメント設定"
+
+  output_format: "Python FastAPIルーターコード"
+
+constraints:
+  - "シンプルな実装"
+  - "DB接続チェックなし（Phase 0では）"
+  - "同期関数として実装"
+
+test_specification:
+  validation:
+    - "/api/v1/health が200を返すこと"
+    - "レスポンスが{\"status\": \"healthy\"}であること"
+    - "Content-Typeがapplication/jsonであること"
+
+definition_of_done:
+  - "health.pyが作成されている"
+  - "テストファイルが作成されている"
+  - "/health エンドポイントが動作する"

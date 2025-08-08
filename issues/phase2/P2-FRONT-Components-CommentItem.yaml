@@ -1,0 +1,55 @@
+id: P2-FRONT-Components-CommentItem
+phase: 2
+layer: FRONT
+area: Components
+action: CommentItem
+target_file: frontend/components/CommentItem.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "個別コメント表示コンポーネントの実装"
+  
+  content_requirements:
+    - section: "表示項目"
+      items:
+        - "コメント本文（最大1000文字）"
+        - "投稿者ID（usr_*）"
+        - "投稿日時（相対時間）"
+        - "いいね数とボタン"
+        - "削除ボタン（投稿者のみ）"
+    
+    - section: "スタイリング"
+      items:
+        - "カード型デザイン"
+        - "解決済みコメントのハイライト"
+        - "自分のコメントの視覚的区別"
+        - "モバイル対応"
+    
+    - section: "インタラクション"
+      items:
+        - "いいねボタンクリック"
+        - "削除ボタンクリック（確認ダイアログ）"
+        - "解決マークボタン（質問スレッド・投稿者のみ）"
+        - "適切なアクセシビリティ"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "再利用可能なコンポーネント"
+  - "型安全性"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "各項目が表示されること"
+    - "権限に応じてボタンが表示されること"
+    - "インタラクションが動作すること"
+
+definition_of_done:
+  - "CommentItem.tsxが作成されている"
+  - "プロップスの型定義"
+  - "レスポンシブデザイン"

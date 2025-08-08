@@ -1,0 +1,60 @@
+id: P2-API-Service-Comments-Create
+phase: 2
+layer: API
+area: Service
+action: Comments-Create
+target_file: backend/app/services/comments_service.py
+test_file: backend/tests/test_comments_service.py
+depends_on: ["P2-API-Repo-Comments-Insert", "P2-API-Schemas-Comments"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04"  # APIコントラクト
+  - "04a" # DTO定義
+  - "04b" # API規約
+  - "03a" # DDL
+  - "01"  # ドメイン不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "コメント作成サービスロジックの実装"
+  
+  content_requirements:
+    - section: "CommentServiceクラス"
+      items:
+        - "create_comment メソッド"
+        - "引数: user_id, thread_id, dto: CreateCommentRequest"
+        - "ビジネスロジックの実装"
+        - "リポジトリ呼び出し"
+    
+    - section: "バリデーション"
+      items:
+        - "body の trim() と長さチェック（1..1000）"
+        - "imageKey 形式（任意）の検証"
+        - "thread_id の存在チェック"
+        - "制御文字の除去"
+        - "空文字列の拒否"
+    
+    - section: "処理フロー"
+      items:
+        - "入力バリデーション"
+        - "リポジトリでDB保存（同Txで threads.last_activity_at 更新）"
+        - "作成結果を CreatedResponse に変換して返却"
+        - "エラー時は 04b の ErrorResponse へ変換"
+
+  output_format: "Python サービスクラス"
+
+constraints:
+  - "DTOを使用した型安全性"
+  - "適切なエラーメッセージ"
+  - "トランザクション管理"
+
+test_specification:
+  validation:
+    - "正常にコメントが作成されること"
+    - "バリデーションエラーが発生すること"
+    - "DTOが正しく返されること"
+
+definition_of_done:
+  - "comments_service.pyが作成されている"
+  - "create_commentメソッドが実装されている"
+  - "テストが追加されている"

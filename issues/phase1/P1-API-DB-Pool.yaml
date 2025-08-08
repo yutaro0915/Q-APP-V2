@@ -1,0 +1,61 @@
+id: P1-API-DB-Pool
+phase: 1
+layer: API
+area: DB
+action: Pool
+target_file: backend/app/core/db.py
+test_file: null
+depends_on: []
+spec_refs:
+  - "05"  # FastAPI設計
+  - "03a" # DDL
+estimated_loc: 60
+
+specification:
+  purpose: "PostgreSQL接続プールの設定"
+  
+  content_requirements:
+    - section: "asyncpgプール設定"
+      items:
+        - "DATABASE_URL環境変数から接続文字列取得"
+        - "min_size: 5"
+        - "max_size: 20"
+        - "command_timeout: 60"
+        - "max_queries: 50000"
+    
+    - section: "接続管理"
+      items:
+        - "get_db_pool()関数"
+        - "startup時のプール作成"
+        - "shutdown時のプール破棄"
+        - "コンテキストマネージャー実装"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "接続エラーの処理"
+        - "タイムアウトの処理"
+        - "リトライロジック（3回まで）"
+    
+    - section: "ヘルスチェック用"
+      items:
+        - "check_db_connection()関数"
+        - "SELECT 1の実行"
+        - "接続状態の確認"
+
+  output_format: "Python asyncpgコード"
+
+constraints:
+  - "非同期処理（async/await）"
+  - "環境変数の検証"
+  - "適切なログ出力"
+
+test_specification:
+  validation:
+    - "プールが正しく作成されること"
+    - "接続が確立できること"
+    - "エラー時にリトライされること"
+
+definition_of_done:
+  - "db.pyが作成されている"
+  - "接続プールが設定されている"
+  - "エラーハンドリングが実装されている"

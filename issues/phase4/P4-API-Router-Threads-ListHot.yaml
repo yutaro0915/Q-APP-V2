@@ -1,0 +1,59 @@
+id: P4-API-Router-Threads-ListHot
+phase: 4
+layer: API
+area: Router
+action: Threads-ListHot
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_threads_router.py
+depends_on: ["P4-API-Service-Threads-HotScore", "P1-API-Router-Threads-GET-List"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO/ページング
+  - "04b"  # 規約（X-Snapshot-At / カーソル）
+  - "05"   # バックエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "GET /threads?sort=hot エンドポイント拡張"
+  
+  content_requirements:
+    - section: "エンドポイント拡張"
+      items:
+        - "既存のGET /threadsを拡張"
+        - "sort=hotパラメータ対応"
+        - "ホットスコア（時間減衰式）による並び替え"
+        - "スナップショット固定（X-Snapshot-At を付与）"
+    
+    - section: "ソート処理"
+      items:
+        - "sort=hot時: (score DESC, created_at DESC, id DESC)"
+        - "sort=new時: (created_at DESC, id DESC)（既存）"
+    
+    - section: "スナップショット"
+      items:
+        - "初回リクエスト時点で固定"
+        - "24時間有効"
+        - "ページング時の一貫性保証（cursor に snapshotAt/anchor を保持）"
+        - "レスポンスヘッダに X-Snapshot-At を付与"
+    
+    - section: "レスポンス"
+      items:
+        - "PaginatedThreadCards を返却（既存仕様のまま）"
+
+  output_format: "Python FastAPIルーター更新"
+
+constraints:
+  - "既存機能を壊さない"
+  - "後方互換性維持"
+  - "適切なデフォルト値"
+
+test_specification:
+  validation:
+    - "sort=hotでホット順になること"
+    - "sort=newで新着順のまま"
+    - "スナップショットが固定されること"
+
+definition_of_done:
+  - "threads.pyが更新されている"
+  - "sort=hotが動作する"
+  - "既存のsort=newも動作する"

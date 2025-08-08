@@ -1,0 +1,60 @@
+id: P1-FRONT-Routes-ThreadDetail
+phase: 1
+layer: FRONT
+area: Routes
+action: ThreadDetail
+target_file: frontend/app/thread/[id]/page.tsx
+test_file: null
+depends_on: ["P1-FRONT-Routes-TL-New", "P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 70
+
+specification:
+  purpose: "スレッド詳細ページの実装"
+  
+  content_requirements:
+    - section: "ページ構造"
+      items:
+        - "動的ルート [id]"
+        - "Server Component"
+        - "GET /threads/{thread_id}"
+        - "メタデータ生成（title）"
+    
+    - section: "表示内容"
+      items:
+        - "スレッドタイトル"
+        - "本文（全文表示）"
+        - "投稿者情報"
+        - "投稿日時"
+        - "削除ボタン（所有者のみ）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "404: スレッドが存在しない"
+        - "不正なID形式"
+        - "削除済みスレッド"
+    
+    - section: "アクション領域"
+      items:
+        - "削除ボタン（is_mine時）"
+        - "戻るリンク"
+        - "コメント領域（Phase 2準備）"
+
+  output_format: "TypeScript React Server Component"
+
+constraints:
+  - "動的ルーティング"
+  - "SEO対応（メタデータ）"
+  - "適切な404処理"
+
+test_specification:
+  validation:
+    - "スレッド詳細が表示されること"
+    - "存在しないIDで404"
+    - "削除ボタンの表示制御"
+
+definition_of_done:
+  - "thread/[id]/page.tsxが作成されている"
+  - "動的ルーティングが機能"
+  - "エラー処理が実装されている"

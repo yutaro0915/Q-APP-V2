@@ -1,0 +1,81 @@
+---
+id: P0-INFRA-AppRunner-Front
+phase: 0
+layer: INFRA
+area: AppRunner
+action: Front
+target_file: docs/setup/apprunner_front.md
+test_file: null
+depends_on: []
+spec_refs:
+  - "09"  # デプロイ構成
+estimated_loc: 30
+
+specification:
+  purpose: "Next.js用App Runnerサービスの作成手順書"
+  
+  content_requirements:
+    - section: "ECRリポジトリ作成"
+      items:
+        - "リポジトリ名: kyudai-front"
+        - "スキャンオンプッシュ: 有効"
+    
+    - section: "App Runnerサービス設定"
+      items:
+        - "サービス名: kyudai-front"
+        - "ソース: ECR"
+        - "ポート: 3000"
+        - "CPU: 0.5 vCPU"
+        - "メモリ: 1 GB"
+        - "最小インスタンス: 1"
+    
+    - section: "環境変数"
+      items:
+        - "NEXT_PUBLIC_API_BASE=/api/v1"
+        - "その他必要な変数"
+    
+    - section: "ヘルスチェック"
+      items:
+        - "パス: /"
+        - "間隔: 10秒"
+        - "タイムアウト: 5秒"
+    
+    - section: "カスタムドメイン設定"
+      items:
+        - "ACM証明書の関連付け"
+        - "DNSレコード設定"
+
+  dockerfile_reference: |
+    FROM node:20-alpine AS deps
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm ci
+    
+    FROM node:20-alpine AS build
+    WORKDIR /app
+    COPY --from=deps /app/node_modules ./node_modules
+    COPY . .
+    RUN npm run build
+    
+    FROM node:20-alpine
+    WORKDIR /app
+    ENV NODE_ENV=production PORT=3000
+    COPY --from=build /app ./
+    EXPOSE 3000
+    CMD ["npm","start"]
+
+constraints:
+  - "09のDockerfile設定と一致"
+  - "コスト最適化を考慮"
+
+test_specification:
+  validation:
+    - "サービスが正常に起動"
+    - "ヘルスチェックがPASS"
+    - "https://でアクセス可能"
+
+definition_of_done:
+  - "手順書が完成している"
+  - "Dockerfile参照が含まれている"
+  - "トラブルシューティング付き"
+---

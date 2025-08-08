@@ -1,0 +1,67 @@
+id: P2-API-Schemas-Comments
+phase: 2
+layer: API
+area: Schemas
+action: Comments
+target_file: backend/app/schemas/comments.py
+test_file: null
+depends_on: ["P1-API-Schemas-ThreadDTO"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # バックエンド設計
+  - "01"   # ドメイン不変条件
+estimated_loc: 60
+
+specification:
+  purpose: "コメント関連のPydanticスキーマ定義"
+  
+  content_requirements:
+    - section: "基本DTO"
+      items:
+        - "CreateCommentRequest: body(1..1000), imageKey?: string|null"
+        - "内部用: CommentInDB（id, thread_id, author_id, body, up_count, created_at, deleted_at）"
+    
+    - section: "レスポンスDTO"
+      items:
+        - "Comment: 公開用DTO（04aに準拠）"
+        - "id: cmt_* 形式"
+        - "body: string"
+        - "createdAt: string(ISO8601)"
+        - "upCount: number"
+        - "hasImage: boolean"
+        - "imageUrl?: string | null"
+        - "authorAffiliation?: { faculty?: string; year?: number } | null"
+    
+    - section: "ページングレスポンス"
+      items:
+        - "PaginatedComments"
+        - "items: List[Comment]"
+        - "nextCursor?: string | null"
+    
+    - section: "バリデーション"
+      items:
+        - "body の trim() と長さ検証（1..1000）"
+        - "imageKey の形式検証は 04a の presign仕様に準拠（任意）"
+        - "制御文字/NULLの拒否"
+
+  output_format: "Python Pydanticモデル"
+
+constraints:
+  - "04a_api_schemas_dto_v1.mdに準拠"
+  - "ID形式の検証パターン"
+  - "日時はISO8601形式"
+
+test_specification:
+  validation:
+    - "各DTOが正しくバリデーションされること"
+    - "ID形式が検証されること"
+    - "制御文字が除去されること"
+
+definition_of_done:
+  - "comments.pyが作成されている"
+  - "全てのDTOが定義されている"
+  - "バリデーションが実装されている"

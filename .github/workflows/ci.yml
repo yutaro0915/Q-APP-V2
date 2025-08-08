@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      
+      - name: Set up Python
+        run: uv python install 3.11
+      
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          uv sync
+      
+      - name: Apply DDL
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+        run: |
+          PGPASSWORD=test psql -h localhost -U test -d test -f docs/03a_ddl_postgresql_v1.sql
+      
+      - name: Run tests
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+        run: |
+          uv run pytest -v
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      
+      - name: Run tests
+        working-directory: frontend
+        run: npm test
+
+  check-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check changed files count
+        run: |
+          # PR内の変更ファイル数を確認（docs/とissues/を除く）
+          changed_files=$(git diff --name-only origin/main...HEAD | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' || true)
+          count=$(echo "$changed_files" | grep -c . || echo 0)
+          
+          echo "Changed files: $count"
+          echo "$changed_files"
+          
+          if [ $count -gt 2 ]; then
+            echo "Error: More than 2 files changed (excluding docs/issues)"
+            exit 1
+          fi
+
+  validate-spec:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'api-change')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate OpenAPI spec
+        run: |
+          npx @apidevtools/swagger-cli validate docs/04_api_contract_v1.yaml

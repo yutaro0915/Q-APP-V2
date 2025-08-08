@@ -1,0 +1,58 @@
+id: P0-API-Main-Scaffold
+phase: 0
+layer: API
+area: Main
+action: Scaffold
+target_file: backend/app/main.py
+test_file: null
+depends_on: []
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04b" # API規約
+estimated_loc: 50
+
+specification:
+  purpose: "FastAPIメインアプリケーションのスキャフォールド作成"
+  
+  content_requirements:
+    - section: "FastAPIインスタンス"
+      items:
+        - "アプリケーション初期化"
+        - "タイトル: Kyudai Campus SNS API"
+        - "バージョン: 1.0.0"
+        - "APIプレフィックス: /api/v1"
+    
+    - section: "CORS設定"
+      items:
+        - "環境変数CORS_ORIGINSから読み込み"
+        - "開発環境: http://localhost:3000"
+        - "本番環境: App RunnerのフロントエンドURL"
+    
+    - section: "ミドルウェア"
+      items:
+        - "X-Request-Id生成ミドルウェア"
+        - "リクエストログミドルウェア"
+        - "エラーハンドリングミドルウェア"
+    
+    - section: "ルーター登録"
+      items:
+        - "healthルーター登録（準備のみ）"
+        - "将来のルーター登録箇所にコメント"
+
+  output_format: "Python FastAPIコード"
+
+constraints:
+  - "04b_api_conventions_v1.mdの規約に準拠"
+  - "X-Request-Idヘッダー必須"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "FastAPIアプリケーションが起動すること"
+    - "CORS設定が正しく適用されること"
+    - "X-Request-Idが生成されること"
+
+definition_of_done:
+  - "main.pyが作成されている"
+  - "uvicornで起動可能"
+  - "OpenAPIドキュメントが生成される"

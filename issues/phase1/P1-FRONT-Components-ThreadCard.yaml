@@ -1,0 +1,54 @@
+id: P1-FRONT-Components-ThreadCard
+phase: 1
+layer: FRONT
+area: Components
+action: ThreadCard
+target_file: frontend/components/ThreadCard.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 50
+
+specification:
+  purpose: "スレッドカードコンポーネントの実装"
+  
+  content_requirements:
+    - section: "表示項目"
+      items:
+        - "タイトル（最大60）"
+        - "excerpt（120字、改行→空白、超過時…）"
+        - "タグ（最大4、'種別'など）"
+        - "作成日時（相対時間）/ 最終返信（任意）"
+        - "保存数/返信数/熱量（将来）"
+    
+    - section: "スタイリング"
+      items:
+        - "カード型デザイン"
+        - "ホバー効果"
+        - "種別で色分け（質問/告知/募集/雑談）"
+        - "モバイル対応"
+    
+    - section: "インタラクション"
+      items:
+        - "クリックで詳細ページへ"
+        - "Link使用（Next.js）"
+        - "適切なaria-label"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "再利用可能なコンポーネント"
+  - "型安全性"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "各項目が表示されること"
+    - "長いテキストが省略されること"
+    - "クリック可能であること"
+
+definition_of_done:
+  - "ThreadCard.tsxが作成されている"
+  - "プロップスの型定義"
+  - "レスポンシブデザイン"

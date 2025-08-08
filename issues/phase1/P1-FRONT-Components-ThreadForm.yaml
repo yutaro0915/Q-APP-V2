@@ -1,0 +1,64 @@
+id: P1-FRONT-Components-ThreadForm
+phase: 1
+layer: FRONT
+area: Components
+action: ThreadForm
+target_file: frontend/components/ThreadForm.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+  - "04a" # DTO定義
+estimated_loc: 80
+
+specification:
+  purpose: "スレッド投稿フォームコンポーネントの実装"
+  
+  content_requirements:
+    - section: "フォーム要素"
+      items:
+        - "タイトル入力（1–60）"
+        - "本文入力（0–2000、空なら空文字扱い）"
+        - "タグ入力（固定4キー：種別/場所/締切/授業コード、≤4、重複不可）"
+        - "投稿ボタン"
+        - "キャンセルボタン"
+    
+    - section: "バリデーション"
+      items:
+        - "クライアント側検証"
+        - "文字数カウンター表示"
+        - "必須項目チェック"
+        - "trim()処理"
+        - "エラーメッセージ表示"
+    
+    - section: "状態管理"
+      items:
+        - "useStateでフォーム状態"
+        - "送信中の状態"
+        - "エラー状態"
+        - "成功後のリセット"
+    
+    - section: "UX考慮"
+      items:
+        - "送信中はボタン無効化"
+        - "ローディング表示"
+        - "成功メッセージ"
+        - "エラー時の再試行"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "Client Component"
+  - "制御コンポーネント"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "フォームが表示されること"
+    - "バリデーションが動作すること（title 1..60, body 0..2000）"
+    - "文字数カウンターが動作すること（任意）"
+
+definition_of_done:
+  - "ThreadForm.tsxが作成されている"
+  - "バリデーション実装"
+  - "エラーハンドリング実装"

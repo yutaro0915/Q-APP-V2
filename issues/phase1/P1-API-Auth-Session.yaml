@@ -1,0 +1,53 @@
+id: P1-API-Auth-Session
+phase: 1
+layer: API
+area: Auth
+action: Session
+target_file: backend/app/routers/auth.py
+test_file: backend/tests/test_auth.py
+depends_on: ["P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04a" # Auth DTO
+estimated_loc: 40
+
+specification:
+  purpose: "GET /auth/session エンドポイント実装（セッション確認）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "GET /auth/session"
+        - "認証必須（Bearer token）"
+        - "レスポンス: { userId }"
+        - "sessions.token_hash からセッション有効性を確認（TTL≈7日）"
+    
+    - section: "認証処理"
+      items:
+        - "get_current_user依存関数（Authorization: Bearer）"
+        - "トークンはDBにハッシュで保存（sessions.token_hash）を照合"
+        - "有効期限チェック（expires_at）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "401: トークンなし/無効"
+        - "401: セッション期限切れ"
+        - "401: セッションが存在しない"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "Bearer認証スキーム"
+  - "JWT検証の厳密性"
+  - "セッション状態の確認"
+
+test_specification:
+  validation:
+    - "有効なトークンでuserIdが返ること"
+    - "無効なトークンで401エラー"
+    - "期限切れトークンで401エラー"
+
+definition_of_done:
+  - "sessionエンドポイントが実装されている"
+  - "認証ミドルウェアが実装されている"
+  - "テストが追加されている"

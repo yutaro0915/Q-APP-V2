@@ -1,0 +1,54 @@
+id: P2-FRONT-UX-AuthorChip
+phase: 2
+layer: FRONT
+area: UX
+action: AuthorChip
+target_file: frontend/components/AuthorChip.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 35
+
+specification:
+  purpose: "学部/学年バッジ表示コンポーネントの実装"
+  
+  content_requirements:
+    - section: "表示要素"
+      items:
+        - "学部名の略称表示"
+        - "学年表示（1-4年、M1-M2、D1-D3等）"
+        - "コンパクトなチップデザイン"
+        - "学部別の色分け"
+    
+    - section: "データ処理"
+      items:
+        - "学部フルネーム → 略称変換"
+        - "学年数値 → 表示形式変換"
+        - "公開設定による表示制御"
+        - "デフォルト値の処理"
+    
+    - section: "スタイリング"
+      items:
+        - "小サイズのバッジデザイン"
+        - "学部別カラーパレット"
+        - "読みやすいコントラスト"
+        - "モバイル対応"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "再利用可能なコンポーネント"
+  - "アクセシビリティ対応"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "学部・学年情報が表示されること"
+    - "公開設定が反映されること"
+    - "色分けが適用されること"
+
+definition_of_done:
+  - "AuthorChip.tsxが作成されている"
+  - "学部・学年表示ロジックが実装されている"
+  - "色分けスタイルが実装されている"

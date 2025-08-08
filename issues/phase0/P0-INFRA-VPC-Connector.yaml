@@ -1,0 +1,51 @@
+id: P0-INFRA-VPC-Connector
+phase: 0
+layer: INFRA
+area: VPC
+action: Connector
+target_file: docs/setup/vpc_connector_setup.md
+test_file: null
+depends_on: ["P0-INFRA-RDS-Init"]
+spec_refs:
+  - "02"  # システム構成
+  - "08"  # セキュリティ
+estimated_loc: 40
+
+specification:
+  purpose: "App Runner VPC Connector設定手順書作成"
+  
+  content_requirements:
+    - section: "VPC Connector作成"
+      items:
+        - "名前: campus-sns-vpc-connector"
+        - "VPC選択"
+        - "サブネット選択（プライベートサブネット）"
+        - "セキュリティグループ設定"
+    
+    - section: "セキュリティグループ設定"
+      items:
+        - "sg-apprunner作成"
+        - "アウトバウンド: 5432/tcp to sg-rds"
+    
+    - section: "App Runnerサービスへの適用"
+      items:
+        - "APIサービスへのVPC Connector割り当て"
+        - "接続確認手順"
+
+  output_format: "Markdown手順書"
+
+constraints:
+  - "AWSコンソールの手順を明確に記載"
+  - "セキュリティグループの設定を詳細に説明"
+  - "トラブルシューティング手順を含める"
+
+test_specification:
+  validation:
+    - "VPC Connectorが作成されること"
+    - "App RunnerからRDSへ接続できること"
+    - "セキュリティグループが正しく設定されること"
+
+definition_of_done:
+  - "手順書が完成している"
+  - "ネットワーク構成図（テキスト）が含まれている"
+  - "接続テスト手順が明記されている"

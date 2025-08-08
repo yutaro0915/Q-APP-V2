@@ -1,0 +1,64 @@
+id: P3-API-Service-Attachments-LinkComment
+phase: 3
+layer: API
+area: Service
+action: Attachments-LinkComment
+target_file: backend/app/services/attachments_service.py
+test_file: backend/tests/test_attachments_service.py
+depends_on: ["P3-API-Service-Attachments-LinkThread"]
+spec_refs:
+  - "04a" # DTO/画像仕様（imageKey）
+  - "07"  # S3アップロード仕様
+  - "03a" # DDL（attachments, MIME CHECK, XOR）
+  - "05"  # バックエンド設計
+  - "01"  # ドメイン不変条件
+estimated_loc: 40
+
+specification:
+  purpose: "コメントへの画像添付サービスロジック"
+  
+  content_requirements:
+    - section: "メソッド追加"
+      items:
+        - "link_image_to_comment() メソッド（v1は1枚）"
+        - "引数: comment_id, file_key, user_id"
+        - "S3オブジェクト存在確認（HEAD）"
+        - "attachments作成→commentに紐付け"
+    
+    - section: "バリデーション"
+      items:
+        - "最大1画像制限（P3 v1）"
+        - "file_key 形式（04a正規表現）"
+        - "S3にオブジェクトが存在するか確認（HEAD）"
+        - "MIME: image/webp|jpeg|png"
+    
+    - section: "処理フロー"
+      items:
+        - "HEAD で size/mime/ETag(sha256) 取得"
+        - "attachments レコード作成（id, key, mime, width?, height?, size, sha256）"
+        - "comment_id へ紐付け（XOR制約を満たす）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "オブジェクトが存在しない→404"
+        - "MIME/サイズ不正→400"
+        - "既に画像が紐付いている→409"
+        - "トランザクションロールバック"
+
+  output_format: "Python サービスメソッド"
+
+constraints:
+  - "コメントは最大2画像"
+  - "アトミックな処理"
+  - "適切なエラーメッセージ"
+
+test_specification:
+  validation:
+    - "画像がコメントに紐付けられること"
+    - "存在しないfile_keyでエラー"
+    - "3枚目でエラー"
+
+definition_of_done:
+  - "link_images_to_commentメソッドが追加されている"
+  - "S3確認処理が実装されている"
+  - "テストが追加されている"

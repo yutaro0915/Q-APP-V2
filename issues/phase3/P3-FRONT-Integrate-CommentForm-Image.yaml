@@ -1,0 +1,61 @@
+id: P3-FRONT-Integrate-CommentForm-Image
+phase: 3
+layer: FRONT
+area: Integrate
+action: CommentForm-Image
+target_file: frontend/components/CommentForm.tsx
+test_file: null
+depends_on: ["P2-FRONT-Components-CommentForm", "P3-FRONT-Actions-PresignPut"]
+spec_refs:
+  - "06"  # フロントエンド設計
+  - "07"  # S3アップロード仕様
+estimated_loc: 50
+
+specification:
+  purpose: "CommentFormコンポーネントへの画像アップロード機能統合"
+  
+  content_requirements:
+    - section: "UI追加"
+      items:
+        - "画像追加ボタン（コンパクト）"
+        - "ファイル選択input（multiple）"
+        - "プレビューサムネイル表示"
+        - "削除ボタン（各画像）"
+    
+    - section: "画像管理"
+      items:
+        - "最大1画像制限（v1仕様）"
+        - "選択画像の状態管理"
+        - "アップロード状態管理"
+        - "file_key の保持（CreateCommentRequest.imageKey に渡す）"
+    
+    - section: "アップロード処理"
+      items:
+        - "画像選択時に前処理"
+        - "プレビュー生成"
+        - "コメント投稿時にアップロード→ key を受け取り imageKey として送信"
+    
+    - section: "UIコンパクト化"
+      items:
+        - "小さめのプレビュー"
+        - "インライン表示"
+        - "モバイル最適化"
+        - "最小限のスペース使用"
+
+  output_format: "TypeScript React Component更新"
+
+constraints:
+  - "既存機能を壊さない"
+  - "コメント欄の簡潔性維持"
+  - "2画像制限の厳守"
+
+test_specification:
+  validation:
+    - "画像が選択できること"
+    - "最大2枚まで選択可能"
+    - "投稿時にアップロードされること"
+
+definition_of_done:
+  - "CommentForm.tsxが更新されている"
+  - "画像アップロード機能が統合されている"
+  - "2画像制限が実装されている"

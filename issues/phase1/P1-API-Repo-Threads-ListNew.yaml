@@ -1,0 +1,56 @@
+id: P1-API-Repo-Threads-ListNew
+phase: 1
+layer: API
+area: Repo
+action: Threads-ListNew
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-Init"]
+spec_refs:
+  - "03a" # DDL
+  - "04a" # ページング
+estimated_loc: 40
+
+specification:
+  purpose: "新着順スレッド一覧取得メソッドの実装"
+  
+  content_requirements:
+    - section: "list_threads_newメソッド"
+      items:
+        - "引数: cursor(Optional), limit=20"
+        - "ORDER BY created_at DESC, id DESC（安定順序）"
+        - "deleted_at IS NULL条件"
+        - "カーソルベースページング（anchor={ createdAt, id }）"
+    
+    - section: "カーソル処理"
+      items:
+        - "cursorデコード（base64url）"
+        - "(created_at, id) < (:anchorCreatedAt, :anchorId) の条件"
+        - "次ページカーソル生成"
+        - "has_more判定（limit+1取得）"
+    
+    - section: "SQL実装"
+      items:
+        - "SELECT * FROM threads"
+        - "WHERE deleted_at IS NULL"
+        - "AND created_at < $1（カーソル時）"
+        - "ORDER BY created_at DESC, id DESC"
+        - "LIMIT $2"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "最大200件まで取得可能"
+  - "デフォルト20件"
+  - "カーソルの検証"
+
+test_specification:
+  validation:
+    - "新着順で取得されること"
+    - "ページングが正しく動作すること"
+    - "has_moreが正しく判定されること"
+
+definition_of_done:
+  - "list_threads_newメソッドが実装されている"
+  - "カーソルページングが動作する"
+  - "テストが追加されている"

@@ -1,0 +1,55 @@
+id: P2-FRONT-Actions-ReactionComment
+phase: 2
+layer: FRONT
+area: Actions
+action: ReactionComment
+target_file: frontend/lib/actions/reactionComment.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 30
+
+specification:
+  purpose: "コメントリアクションアクションの実装"
+  
+  content_requirements:
+    - section: "アクション関数"
+      items:
+        - "commentUpReaction async関数"
+        - "引数: comment_id"
+        - "API呼び出し（POST /comments/{id}/reactions）"
+        - "レスポンス処理"
+    
+    - section: "リアクション種別"
+      items:
+        - "up: いいねリアクションのみ"
+        - "コメントは保存リアクション非対応"
+        - "適切なrequest body設定"
+        - "べき等性の考慮"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "認証エラー（401）"
+        - "コメント存在エラー（404）"
+        - "バリデーションエラー（400）"
+        - "ネットワークエラー"
+        - "適切なエラーメッセージ"
+
+  output_format: "TypeScript Action Function"
+
+constraints:
+  - "型安全性"
+  - "べき等性の考慮"
+  - "エラーハンドリング"
+
+test_specification:
+  validation:
+    - "コメントいいねリアクションが動作すること"
+    - "エラーが適切に処理されること"
+    - "型チェックが通ること"
+
+definition_of_done:
+  - "reactionComment.tsが作成されている"
+  - "いいねリアクション関数が実装されている"
+  - "エラーハンドリングが実装されている"

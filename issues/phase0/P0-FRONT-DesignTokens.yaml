@@ -1,0 +1,66 @@
+id: P0-FRONT-DesignTokens
+phase: 0
+layer: FRONT
+area: DesignTokens
+action: Init
+target_file: frontend/app/globals.css
+test_file: null
+depends_on: ["P0-FRONT-NextApp-Init"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 80
+
+specification:
+  purpose: "デザイントークンとグローバルスタイル定義"
+  
+  content_requirements:
+    - section: "CSS変数定義"
+      items:
+        - "カラーパレット（九大カラー考慮）"
+        - "--primary: #8B2C8B（九大パープル系）"
+        - "--secondary: #00529B（九大ブルー系）"
+        - "--success, --warning, --error定義"
+        - "グレースケール定義"
+    
+    - section: "タイポグラフィ"
+      items:
+        - "フォントサイズスケール"
+        - "--text-xs: 0.75rem"
+        - "--text-sm: 0.875rem"
+        - "--text-base: 1rem"
+        - "--text-lg: 1.125rem"
+        - "--text-xl: 1.25rem"
+        - "行間設定"
+    
+    - section: "スペーシング"
+      items:
+        - "8px基準のスペーシングシステム"
+        - "--space-1: 0.25rem (4px)"
+        - "--space-2: 0.5rem (8px)"
+        - "--space-4: 1rem (16px)"
+        - "--space-8: 2rem (32px)"
+    
+    - section: "リセットCSS"
+      items:
+        - "box-sizing: border-box"
+        - "マージン/パディングリセット"
+        - "リストスタイルリセット"
+        - "ボタン/インプットの基本スタイル"
+
+  output_format: "CSS"
+
+constraints:
+  - "CSS変数を使用"
+  - "レスポンシブ対応"
+  - "ダークモード変数準備"
+
+test_specification:
+  validation:
+    - "CSS変数が正しく定義されること"
+    - "基本的なリセットが適用されること"
+    - "フォントサイズが適切に設定されること"
+
+definition_of_done:
+  - "globals.cssが作成されている"
+  - "デザイントークンが定義されている"
+  - "基本的なリセットCSSが含まれている"

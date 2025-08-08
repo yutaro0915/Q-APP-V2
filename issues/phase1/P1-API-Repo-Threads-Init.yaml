@@ -1,0 +1,53 @@
+id: P1-API-Repo-Threads-Init
+phase: 1
+layer: API
+area: Repo
+action: Threads-Init
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-DB-Pool", "P1-API-Schemas-ThreadDTO"]
+spec_refs:
+  - "03"  # データモデル
+  - "05"  # FastAPI設計
+estimated_loc: 40
+
+specification:
+  purpose: "スレッドリポジトリの基本構造とインターフェース定義"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "ThreadRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "基本的なCRUDメソッドのシグネチャ定義"
+    
+    - section: "共通処理"
+      items:
+        - "ID生成ヘルパー（thr_* 形式）"
+        - "現在時刻取得ヘルパー"
+        - "SQLクエリの基本構造"
+    
+    - section: "インターフェース"
+      items:
+        - "async def create_thread()"
+        - "async def get_thread_by_id()"
+        - "async def list_threads_new()"
+        - "async def soft_delete_thread()"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "asyncpg使用"
+  - "生SQLを使用（ORMなし）"
+  - "適切な型ヒント"
+
+test_specification:
+  validation:
+    - "クラスがインスタンス化できること"
+    - "メソッドシグネチャが正しいこと"
+    - "ID生成が正しい形式であること"
+
+definition_of_done:
+  - "threads_repo.pyが作成されている"
+  - "基本構造が定義されている"
+  - "テストファイルが作成されている"

@@ -1,0 +1,51 @@
+id: P1-FRONT-Actions-DeleteThread
+phase: 1
+layer: FRONT
+area: Actions
+action: DeleteThread
+target_file: frontend/lib/actions/deleteThread.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient", "P1-FRONT-Routes-ThreadDetail"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 35
+
+specification:
+  purpose: "スレッド削除（CSR fetch）アクションの実装"
+  
+  content_requirements:
+    - section: "関数定義"
+      items:
+        - "deleteThread関数（クライアントから呼び出されるヘルパ）"
+        - "引数: thread_id"
+        - "DELETE /threads/{id} API呼び出し"
+    
+    - section: "処理フロー"
+      items:
+        - "localStorage からトークン取得して Authorization: Bearer を付与"
+        - "削除API呼び出し"
+        - "成功時: 画面側で遷移や再取得（必要に応じて）"
+        - "エラー時: エラー返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "401: 認証エラー"
+        - "403: 権限エラー"
+        - "404: スレッドが存在しない"
+        - "適切なエラーメッセージ"
+
+  output_format: "TypeScript（クライアントからのfetchヘルパ）"
+
+  constraints:
+  - "権限チェック"
+
+test_specification:
+  validation:
+    - "所有者が削除できること"
+    - "削除後リダイレクトされること"
+    - "権限エラーが処理されること"
+
+definition_of_done:
+  - "deleteThread.tsが作成されている"
+  - "Server Actionとして動作"
+  - "適切なリダイレクト処理"

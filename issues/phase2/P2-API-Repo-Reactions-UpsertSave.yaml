@@ -1,0 +1,56 @@
+id: P2-API-Repo-Reactions-UpsertSave
+phase: 2
+layer: API
+area: Repo
+action: Reactions-UpsertSave
+target_file: backend/app/repositories/reactions_repo.py
+test_file: backend/tests/test_reactions_repo.py
+depends_on: ["P2-API-Repo-Reactions-Init"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド・コメントの「保存」リアクションUpsert実装"
+  
+  content_requirements:
+    - section: "UpsertSaveメソッド"
+      items:
+        - "async def insert_save_if_absent(target_id: str, user_id: str) -> bool  # target_type は thread 固定"
+        - "INSERT ... ON CONFLICT DO NOTHING（UNIQUE 制約）"
+        - "挿入成功時のみ threads.save_count を +1"
+        - "既存の場合は変更なし（呼び出し側で409を返す判断材料として bool を返す）"
+    
+    - section: "SQLクエリ"
+      items:
+        - "INSERT INTO reactions (id, user_id, target_type, target_id, kind, created_at)"
+        - "VALUES ($1, $2, 'thread', $3, 'save', NOW())"
+        - "ON CONFLICT (user_id, target_type, target_id, kind) DO NOTHING"
+        - "挿入成功時のみ save_count を +1（threads）"
+        - "同一Tx内で実行"
+    
+    - section: "ビジネスロジック"
+      items:
+        - "重複リアクションはDBのUNIQUEで防止（409 Conflictをサービス層で返却）"
+
+  output_format: "Python async メソッド"
+
+constraints:
+  - "データ整合性の保証"
+  - "競合状態の適切な処理"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "新規保存リアクションが追加されること"
+    - "同じ保存リアクション再実行で削除されること"
+    - "異なるリアクションで更新されること"
+
+definition_of_done:
+  - "upsert_save_reactionメソッドが実装されている"
+  - "重複制御が実装されている"
+  - "テストケースが追加されている"

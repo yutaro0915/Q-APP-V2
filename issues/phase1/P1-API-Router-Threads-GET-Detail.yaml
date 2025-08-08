@@ -1,0 +1,53 @@
+id: P1-API-Router-Threads-GET-Detail
+phase: 1
+layer: API
+area: Router
+action: Threads-GET-Detail
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_threads_router.py
+depends_on: ["P1-API-Service-Threads-Get", "P1-API-Router-Threads-GET-List"]
+spec_refs:
+  - "04"  # APIコントラクト
+estimated_loc: 30
+
+specification:
+  purpose: "GET /threads/{thread_id} エンドポイント実装"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "GET /threads/{thread_id}"
+        - "認証オプショナル"
+        - "パスパラメータ: thread_id"
+        - "レスポンス: Thread"
+    
+    - section: "処理フロー"
+      items:
+        - "thread_id形式検証（thr_*）"
+        - "認証トークン確認（あれば）"
+        - "サービス層呼び出し"
+        - "存在しない場合404"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "404: スレッドが存在しない"
+        - "400: ID形式が不正"
+        - "削除済みも404扱い"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "ID形式の検証"
+  - "適切なHTTPステータス"
+  - "削除済みは取得不可"
+
+test_specification:
+  validation:
+    - "存在するスレッドが取得できること"
+    - "存在しない場合404エラー"
+    - "不正なID形式で400エラー"
+
+definition_of_done:
+  - "GET詳細エンドポイントが実装されている"
+  - "エラーハンドリングが適切"
+  - "テストが追加されている"

@@ -1,0 +1,60 @@
+id: P2-API-Router-Comments-POST
+phase: 2
+layer: API
+area: Router
+action: Comments-POST
+target_file: backend/app/routers/comments.py
+test_file: backend/tests/test_comments_router.py
+depends_on: ["P2-API-Service-Comments-Create", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 40
+
+specification:
+  purpose: "POST /threads/{id}/comments エンドポイント実装（作成はBearer必須、201でCreatedResponse）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "POST /threads/{id}/comments"
+        - "認証必須（Depends(get_current_user)）"
+        - "パスパラメータ: id（thr_*）"
+        - "リクエストボディ: CreateCommentRequest"
+        - "レスポンス: CreatedResponse (201)"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン検証"
+        - "パス/ボディのバリデーション（body 1..1000, imageKey 任意）"
+        - "サービス層呼び出し"
+        - "201 Createdで返却"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "400: バリデーションエラー"
+        - "401: 認証エラー"
+        - "404: スレッドが存在しない/削除済み"
+        - "429: レート超過（ヘッダ: Retry-After / X-RateLimit-*）"
+        - "全応答に X-Request-Id を付与"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "OpenAPI仕様に準拠"
+  - "適切なHTTPステータス"
+  - "構造化ログ出力"
+
+test_specification:
+  validation:
+    - "認証ありでコメントできること"
+    - "認証なしで401エラー"
+    - "不正なデータで400エラー"
+
+definition_of_done:
+  - "POSTエンドポイントが実装されている"
+  - "認証が必須になっている"
+  - "テストが追加されている"

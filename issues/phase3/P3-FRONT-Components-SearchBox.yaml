@@ -1,0 +1,61 @@
+id: P3-FRONT-Components-SearchBox
+phase: 3
+layer: FRONT
+area: Components
+action: SearchBox
+target_file: frontend/components/SearchBox.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 50
+
+specification:
+  purpose: "検索ボックスコンポーネントの実装"
+  
+  content_requirements:
+    - section: "コンポーネント構造"
+      items:
+        - "検索入力フィールド"
+        - "検索アイコン"
+        - "クリアボタン（×）"
+        - "検索ボタン"
+    
+    - section: "機能"
+      items:
+        - "リアルタイム入力"
+        - "Enterキーで検索実行"
+        - "最小2文字制限"
+        - "最大100文字制限"
+    
+    - section: "状態管理"
+      items:
+        - "入力値の制御"
+        - "バリデーション状態"
+        - "URLパラメータ同期"
+        - "useRouter使用"
+    
+    - section: "UX考慮"
+      items:
+        - "プレースホルダーテキスト"
+        - "フォーカス時のスタイル"
+        - "エラー時の表示"
+        - "オートコンプリート無効化"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "Client Component"
+  - "URLパラメータ連携"
+  - "アクセシビリティ対応"
+
+test_specification:
+  validation:
+    - "文字入力ができること"
+    - "Enterキーで検索実行"
+    - "クリアボタンが機能すること"
+
+definition_of_done:
+  - "SearchBox.tsxが作成されている"
+  - "検索実行が動作する"
+  - "バリデーションが実装されている"

@@ -1,0 +1,55 @@
+id: P2-FRONT-Actions-CreateComment
+phase: 2
+layer: FRONT
+area: Actions
+action: CreateComment
+target_file: frontend/lib/actions/createComment.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 35
+
+specification:
+  purpose: "コメント作成アクションの実装"
+  
+  content_requirements:
+    - section: "アクション関数"
+      items:
+        - "createComment async関数"
+        - "引数: thread_id, body"
+        - "API呼び出し（POST /comments）"
+        - "レスポンス処理"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "バリデーションエラー（400）"
+        - "認証エラー（401）"
+        - "スレッド存在エラー（404）"
+        - "ネットワークエラー"
+        - "適切なエラーメッセージ"
+    
+    - section: "型定義"
+      items:
+        - "CreateCommentRequest型"
+        - "CommentResponse型"
+        - "APIエラー型"
+        - "適切な型安全性"
+
+  output_format: "TypeScript Action Function"
+
+constraints:
+  - "型安全性"
+  - "エラーハンドリング"
+  - "再利用可能性"
+
+test_specification:
+  validation:
+    - "正常にコメントが作成されること"
+    - "エラーが適切に処理されること"
+    - "型チェックが通ること"
+
+definition_of_done:
+  - "createComment.tsが作成されている"
+  - "型定義が完備されている"
+  - "エラーハンドリングが実装されている"

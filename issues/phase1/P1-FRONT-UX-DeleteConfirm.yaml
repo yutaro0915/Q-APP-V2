@@ -1,0 +1,62 @@
+id: P1-FRONT-UX-DeleteConfirm
+phase: 1
+layer: FRONT
+area: UX
+action: DeleteConfirm
+target_file: frontend/components/DeleteConfirmDialog.tsx
+test_file: null
+depends_on: ["P1-FRONT-Actions-DeleteThread"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "削除確認ダイアログコンポーネントの実装"
+  
+  content_requirements:
+    - section: "ダイアログ構造"
+      items:
+        - "モーダルオーバーレイ"
+        - "確認メッセージ"
+        - "削除ボタン（危険色）"
+        - "キャンセルボタン"
+        - "×閉じるボタン"
+    
+    - section: "状態管理"
+      items:
+        - "開閉状態"
+        - "削除処理中状態"
+        - "エラー状態"
+        - "propsでonConfirm/onCancel"
+    
+    - section: "アクセシビリティ"
+      items:
+        - "フォーカストラップ"
+        - "ESCキーで閉じる"
+        - "適切なaria属性"
+        - "role=\"dialog\""
+    
+    - section: "UX考慮"
+      items:
+        - "削除中はボタン無効化"
+        - "ローディング表示"
+        - "背景クリックで閉じる"
+        - "アニメーション効果"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "Client Component"
+  - "再利用可能"
+  - "モバイル対応"
+
+test_specification:
+  validation:
+    - "ダイアログが開閉すること"
+    - "ESCキーで閉じること"
+    - "削除処理が実行されること"
+
+definition_of_done:
+  - "DeleteConfirmDialog.tsxが作成されている"
+  - "アクセシビリティ対応"
+  - "適切なスタイリング"

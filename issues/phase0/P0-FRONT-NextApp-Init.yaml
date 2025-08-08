@@ -1,0 +1,57 @@
+id: P0-FRONT-NextApp-Init
+phase: 0
+layer: FRONT
+area: NextApp
+action: Init
+target_file: frontend/app/layout.tsx
+test_file: null
+depends_on: []
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 40
+
+specification:
+  purpose: "Next.js 14 App Routerのルートレイアウト作成"
+  
+  content_requirements:
+    - section: "HTMLとbody設定"
+      items:
+        - "lang=\"ja\"属性"
+        - "メタデータ設定"
+        - "title: 九大学内SNS"
+        - "description: 九州大学の学生・教職員向けSNS"
+    
+    - section: "フォント設定"
+      items:
+        - "Noto Sans JP導入"
+        - "next/fontによる最適化"
+        - "フォールバックフォント設定"
+    
+    - section: "グローバルスタイル"
+      items:
+        - "globals.cssインポート"
+        - "基本的なリセットCSS"
+        - "ダークモード対応準備"
+    
+    - section: "レイアウト構造"
+      items:
+        - "childrenプロップス"
+        - "将来のヘッダー/フッター配置箇所"
+
+  output_format: "TypeScript React Server Component"
+
+constraints:
+  - "Next.js 14 App Router形式"
+  - "Server Component"
+  - "TypeScript strict mode"
+
+test_specification:
+  validation:
+    - "レイアウトが正しくレンダリングされること"
+    - "メタデータが設定されること"
+    - "フォントが適用されること"
+
+definition_of_done:
+  - "layout.tsxが作成されている"
+  - "メタデータが設定されている"
+  - "npm run devで起動可能"

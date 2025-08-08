@@ -1,0 +1,60 @@
+id: P0-FRONT-APIClient
+phase: 0
+layer: FRONT
+area: APIClient
+action: Init
+target_file: frontend/lib/api.ts
+test_file: null
+depends_on: []
+spec_refs:
+  - "04"  # APIコントラクト
+  - "06"  # フロントエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "APIクライアント基礎実装"
+  
+  content_requirements:
+    - section: "ベースURL設定"
+      items:
+        - "環境変数NEXT_PUBLIC_API_BASE"
+        - "デフォルト: http://localhost:8000/api/v1"
+        - "本番環境: App Runner APIのURL"
+    
+    - section: "fetchラッパー"
+      items:
+        - "共通ヘッダー設定"
+        - "Content-Type: application/json"
+        - "認証トークン付与（将来）"
+        - "エラーハンドリング"
+    
+    - section: "基本メソッド"
+      items:
+        - "get(path, options)"
+        - "post(path, body, options)"
+        - "patch(path, body, options)"
+        - "delete(path, options)"
+    
+    - section: "エラー処理"
+      items:
+        - "HTTPエラーの処理"
+        - "ネットワークエラーの処理"
+        - "エラーレスポンスのパース"
+
+  output_format: "TypeScript"
+
+constraints:
+  - "TypeScript strict mode"
+  - "型安全性を重視"
+  - "Next.js環境変数の使用"
+
+test_specification:
+  validation:
+    - "各HTTPメソッドが動作すること"
+    - "エラーが適切に処理されること"
+    - "環境変数が読み込まれること"
+
+definition_of_done:
+  - "api.tsが作成されている"
+  - "基本的なHTTPメソッドが実装されている"
+  - "エラーハンドリングが実装されている"

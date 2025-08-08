@@ -1,0 +1,34 @@
+id: P1-API-Test-Threads-ListNew
+phase: 1
+layer: API
+area: Test
+action: Threads-ListNew
+target_file: backend/tests/test_threads_list.py
+test_file: null
+depends_on: ["P1-API-Router-Threads-GET-List", "P1-API-Test-Threads-Create"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04a" # ページング
+estimated_loc: 40
+
+specification:
+  purpose: "スレッド一覧取得APIのテスト"
+  
+  content_requirements:
+    - section: "正常系テスト"
+      items:
+        - "GET /threads?sort=new"
+        - "新着順で取得されること"
+        - "ページングが動作すること（cursor base64url, 20件固定, 200件上限）"
+    
+    - section: "カーソルページング"
+      items:
+        - "次ページ取得"
+        - "nextCursorの有無判定"
+        - "重複なし確認（タプル比較基準）"
+
+  output_format: "Python pytest"
+
+definition_of_done:
+  - "テストが全てパスする"
+  - "ページング動作確認"

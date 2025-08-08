@@ -1,0 +1,55 @@
+id: P1-API-Service-Threads-Create
+phase: 1
+layer: API
+area: Service
+action: Threads-Create
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-Insert", "P1-API-Schemas-ThreadDTO"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "01"  # ドメイン不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "スレッド作成サービスロジックの実装"
+  
+  content_requirements:
+    - section: "ThreadServiceクラス"
+      items:
+        - "create_threadメソッド"
+        - "引数: user_id, thread_create(DTO)"
+        - "ビジネスロジックの実装"
+        - "リポジトリ呼び出し"
+    
+    - section: "バリデーション"
+      items:
+        - "title/bodyのtrim()と長さチェック"
+        - "thread_typeの検証"
+        - "制御文字の除去"
+        - "空文字列の拒否"
+    
+    - section: "処理フロー"
+      items:
+        - "入力バリデーション"
+        - "リポジトリでDB保存"
+        - "ThreadDTOに変換して返却"
+        - "エラー時の適切な例外"
+
+  output_format: "Python サービスクラス"
+
+constraints:
+  - "DTOを使用した型安全性"
+  - "適切なエラーメッセージ"
+  - "トランザクション管理"
+
+test_specification:
+  validation:
+    - "正常にスレッドが作成されること"
+    - "バリデーションエラーが発生すること"
+    - "DTOが正しく返されること"
+
+definition_of_done:
+  - "threads_service.pyが作成されている"
+  - "create_threadメソッドが実装されている"
+  - "テストが追加されている"

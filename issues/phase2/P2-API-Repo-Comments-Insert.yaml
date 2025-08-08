@@ -1,0 +1,58 @@
+id: P2-API-Repo-Comments-Insert
+phase: 2
+layer: API
+area: Repo
+action: Comments-Insert
+target_file: backend/app/repositories/comments_repo.py
+test_file: backend/tests/test_comments_repo.py
+depends_on: ["P2-API-Repo-Comments-Init"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "コメント作成のリポジトリ実装"
+  
+  content_requirements:
+    - section: "INSERTメソッド"
+      items:
+        - "async def create_comment(author_id, thread_id, body, image_key: str | None = None)"
+        - "新しいコメントIDを生成（cmt_*）"
+        - "commentsテーブルへのINSERT（author_id 列名に注意）"
+        - "同一Txで threads.last_activity_at = now() を更新"
+        - "作成された id / created_at を返却（サービスで CreatedResponse へ変換）"
+    
+    - section: "SQLクエリ"
+      items:
+        - "INSERT INTO comments (id, thread_id, author_id, body, created_at)"
+        - "RETURNING で id, created_at を取得"
+        - "UPDATE threads SET last_activity_at = NOW() WHERE id = $1"
+        - "適切なパラメータバインディング"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "外部キー制約違反の処理"
+        - "重複挿入の処理"
+        - "DB接続エラーの処理"
+
+  output_format: "Python async メソッド"
+
+constraints:
+  - "トランザクション安全性"
+  - "SQLインジェクション対策"
+  - "適切な例外処理"
+
+test_specification:
+  validation:
+    - "正常にコメントが作成されること"
+    - "存在しないthread_idで失敗すること"
+    - "作成されたコメント情報が正しく返されること"
+
+definition_of_done:
+  - "create_commentメソッドが実装されている"
+  - "テストケースが追加されている"
+  - "エラーハンドリングが適切に実装されている"

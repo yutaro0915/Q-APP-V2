@@ -1,0 +1,54 @@
+id: P1-FRONT-Routes-TL-New
+phase: 1
+layer: FRONT
+area: Routes
+action: TL-New
+target_file: frontend/app/page.tsx
+test_file: null
+depends_on: ["P0-FRONT-NextApp-Init", "P0-FRONT-APIClient"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "トップページ（タイムライン新着）の実装"
+  
+  content_requirements:
+    - section: "ページコンポーネント"
+      items:
+        - "Server Component実装"
+        - "APIから新着スレッド取得"
+        - "SSRでの初期データ取得"
+        - "ThreadCardコンポーネント配置"
+    
+    - section: "データ取得"
+      items:
+        - "GET /threads?sort=new"
+        - "初期20件取得"
+        - "エラーハンドリング"
+        - "空の場合の表示"
+    
+    - section: "レイアウト"
+      items:
+        - "ヘッダー領域（将来）"
+        - "スレッド一覧表示"
+        - "もっと見るボタン/リンク"
+        - "新規投稿ボタン配置"
+
+  output_format: "TypeScript React Server Component"
+
+constraints:
+  - "Next.js 14 App Router"
+  - "Server Component優先"
+  - "適切なローディング状態"
+
+test_specification:
+  validation:
+    - "スレッド一覧が表示されること"
+    - "空の場合のメッセージ表示"
+    - "エラー時の適切な表示"
+
+definition_of_done:
+  - "page.tsxが実装されている"
+  - "SSRでデータ取得される"
+  - "レスポンシブ対応"

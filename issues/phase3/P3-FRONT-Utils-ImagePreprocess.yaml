@@ -1,0 +1,62 @@
+id: P3-FRONT-Utils-ImagePreprocess
+phase: 3
+layer: FRONT
+area: Utils
+action: ImagePreprocess
+target_file: frontend/lib/image/preprocess.ts
+test_file: null
+depends_on: []
+spec_refs:
+  - "07"  # S3アップロード仕様
+  - "06"  # フロントエンド設計
+estimated_loc: 80
+
+specification:
+  purpose: "画像前処理ユーティリティ（リサイズ/EXIF除去/WebP変換）"
+  
+  content_requirements:
+    - section: "preprocessImage関数"
+      items:
+        - "引数: File object"
+        - "戻り値: 処理済みBlob"
+        - "Canvas APIを使用"
+        - "Web Worker対応（将来）"
+    
+    - section: "リサイズ処理"
+      items:
+        - "最大幅: 2048px"
+        - "最大高さ: 2048px"
+        - "アスペクト比維持"
+        - "品質: 0.85"
+    
+    - section: "EXIF情報処理"
+      items:
+        - "EXIF orientation読み取り"
+        - "正しい向きに回転"
+        - "個人情報（GPS等）除去"
+        - "メタデータクリーン化"
+    
+    - section: "フォーマット変換"
+      items:
+        - "WebP形式に変換"
+        - "ブラウザ対応確認"
+        - "フォールバック: JPEG"
+        - "ファイルサイズ確認"
+
+  output_format: "TypeScript ユーティリティ関数"
+
+constraints:
+  - "ブラウザ互換性"
+  - "メモリ効率的な処理"
+  - "エラーハンドリング"
+
+test_specification:
+  validation:
+    - "画像がリサイズされること"
+    - "EXIF情報が除去されること"
+    - "WebPに変換されること"
+
+definition_of_done:
+  - "preprocess.tsが作成されている"
+  - "全ての前処理が実装されている"
+  - "エラーハンドリングが実装されている"

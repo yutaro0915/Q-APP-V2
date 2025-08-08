@@ -1,0 +1,54 @@
+id: P1-API-Router-Threads-GET-List
+phase: 1
+layer: API
+area: Router
+action: Threads-GET-List
+target_file: backend/app/routers/threads.py
+test_file: backend/tests/test_threads_router.py
+depends_on: ["P1-API-Service-Threads-ListNew", "P1-API-Auth-Session"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "04a" # ページング
+estimated_loc: 35
+
+specification:
+  purpose: "GET /threads エンドポイント実装（一覧取得）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "GET /threads"
+        - "認証オプショナル"
+        - "クエリパラメータ: sort(hot|new), type(optional), cursor(optional)"
+        - "レスポンス: PaginatedThreadCards（04aに準拠）"
+    
+    - section: "クエリパラメータ"
+      items:
+        - "sort: 'hot'|'new'（初期は'new'でも可）"
+        - "type: 'question'|'notice'|'recruit'|'chat'（任意）"
+        - "cursor: base64url(JSON), 20件固定, 最大200件"
+    
+    - section: "処理フロー"
+      items:
+        - "認証トークン確認（あれば）"
+        - "サービス層呼び出し"
+        - "current_user_id渡し（is_mine判定用）"
+        - "ページングレスポンス返却"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "認証は必須ではない"
+  - "limitの上限チェック"
+  - "カーソルの検証"
+
+test_specification:
+  validation:
+    - "認証なしでも一覧取得できること"
+    - "ページングが動作すること"
+    - "limit上限が適用されること"
+
+definition_of_done:
+  - "GETエンドポイントが実装されている"
+  - "ページングが動作する"
+  - "テストが追加されている"

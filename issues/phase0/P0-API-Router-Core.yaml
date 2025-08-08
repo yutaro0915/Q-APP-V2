@@ -1,0 +1,42 @@
+id: P0-API-Router-Core
+phase: 0
+layer: API
+area: Router
+action: Core
+target_file: backend/app/routers/__init__.py
+test_file: null
+depends_on: ["P0-API-Main-Scaffold"]
+spec_refs:
+  - "05"  # FastAPI設計
+estimated_loc: 20
+
+specification:
+  purpose: "ルーターパッケージの初期化ファイル作成"
+  
+  content_requirements:
+    - section: "パッケージ初期化"
+      items:
+        - "__init__.pyファイル作成"
+        - "ルーターモジュールのインポート準備"
+        - "__all__リスト定義"
+    
+    - section: "ドキュメント"
+      items:
+        - "パッケージdocstring"
+        - "ルーター登録方法のコメント"
+
+  output_format: "Python初期化ファイル"
+
+constraints:
+  - "最小限の初期化コード"
+  - "将来の拡張性を考慮"
+
+test_specification:
+  validation:
+    - "パッケージとしてインポート可能"
+    - "ルーターディレクトリが正しく初期化される"
+
+definition_of_done:
+  - "__init__.pyが作成されている"
+  - "パッケージとして認識される"
+  - "インポートエラーが発生しない"

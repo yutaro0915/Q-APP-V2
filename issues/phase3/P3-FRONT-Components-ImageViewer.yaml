@@ -1,0 +1,62 @@
+id: P3-FRONT-Components-ImageViewer
+phase: 3
+layer: FRONT
+area: Components
+action: ImageViewer
+target_file: frontend/components/ImageViewer.tsx
+test_file: null
+depends_on: ["P0-FRONT-DesignTokens"]
+spec_refs:
+  - "06"  # フロントエンド設計
+estimated_loc: 70
+
+specification:
+  purpose: "フルスクリーン画像ビューアコンポーネント"
+  
+  content_requirements:
+    - section: "コンポーネント構造"
+      items:
+        - "モーダルオーバーレイ"
+        - "画像表示エリア"
+        - "閉じるボタン"
+        - "前/次ナビゲーション（複数画像時）"
+        - "画像インデックス表示"
+    
+    - section: "表示機能"
+      items:
+        - "画像の中央配置"
+        - "アスペクト比維持"
+        - "ピンチズーム対応（モバイル）"
+        - "ダブルタップズーム"
+    
+    - section: "インタラクション"
+      items:
+        - "ESCキーで閉じる"
+        - "背景クリックで閉じる"
+        - "左右スワイプで画像切り替え"
+        - "キーボード矢印キーでナビゲーション"
+    
+    - section: "アクセシビリティ"
+      items:
+        - "フォーカストラップ"
+        - "適切なaria-label"
+        - "role=\"dialog\""
+        - "画像alt属性"
+
+  output_format: "TypeScript React Component"
+
+constraints:
+  - "Client Component"
+  - "モバイル対応"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "画像が表示されること"
+    - "ナビゲーションが動作すること"
+    - "ESCキーで閉じること"
+
+definition_of_done:
+  - "ImageViewer.tsxが作成されている"
+  - "フルスクリーン表示が実装されている"
+  - "タッチ操作対応"

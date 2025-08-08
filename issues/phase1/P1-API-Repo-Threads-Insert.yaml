@@ -1,0 +1,51 @@
+id: P1-API-Repo-Threads-Insert
+phase: 1
+layer: API
+area: Repo
+action: Threads-Insert
+target_file: backend/app/repositories/threads_repo.py
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-Init"]
+spec_refs:
+  - "03a" # DDL
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド作成メソッドの実装"
+  
+  content_requirements:
+    - section: "create_threadメソッド"
+      items:
+        - "引数: author_id, title, body"
+        - "ID生成（thr_* 形式、ULID 26文字）"
+        - "created_at, last_activity_at 設定"
+        - "INSERT文の実行"
+    
+    - section: "SQL実装"
+      items:
+        - "INSERT INTO threads"
+        - "RETURNING *で作成したレコードを取得"
+        - "パラメータバインディング使用"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "一意制約違反（IDの重複）時はリトライ"
+        - "その他のDBエラーは上位に伝播"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "トランザクション内で実行"
+  - "適切なログ出力"
+  - "型安全性の確保"
+
+test_specification:
+  validation:
+    - "スレッドが正しく作成されること"
+    - "IDが正しい形式であること"
+    - "作成日時が設定されること"
+
+definition_of_done:
+  - "create_threadメソッドが実装されている"
+  - "テストが追加されている"
+  - "エラーハンドリングが実装されている"

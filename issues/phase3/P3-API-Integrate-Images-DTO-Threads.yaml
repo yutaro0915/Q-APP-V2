@@ -1,0 +1,42 @@
+id: P3-API-Integrate-Images-DTO-Threads
+phase: 3
+layer: API
+area: Service
+action: Integrate-Images-Threads
+target_file: backend/app/services/thread_service.py
+test_file: backend/tests/test_threads_images.py
+depends_on: ["P3-API-Repo-Attachments", "P3-API-Infra-S3Client"]
+spec_refs:
+  - "04a" # ThreadCard/ThreadDetail の image* フィールド
+  - "05"  # バックエンド設計
+  - "07"  # S3公開URL方針
+estimated_loc: 35
+
+specification:
+  purpose: "スレッドDTOへの画像URL/有無の付与（attachments→公開URL解決）"
+  
+  content_requirements:
+    - section: "ThreadCard"
+      items:
+        - "hasImage: attachments 有無で判定"
+        - "imageThumbUrl: S3_PUBLIC_BASE + key（v1は原寸URLをそのまま返す）"
+    
+    - section: "ThreadDetail"
+      items:
+        - "hasImage: attachments 有無で判定"
+        - "imageUrl: S3_PUBLIC_BASE + key"
+
+  output_format: "サービス層のDTO整形コード"
+
+constraints:
+  - "P3では画像は各1枚（サムネはCSSでトリミング）"
+  - "削除スレは hasImage=false / URL省略"
+
+test_specification:
+  validation:
+    - "画像があるスレに URL/hasImage が付与されること"
+    - "画像がない場合 hasImage=false, URLが null/省略"
+
+definition_of_done:
+  - "ThreadCard/ThreadDetail に image* が適切に付与される"
+  - "テストが追加されている"

@@ -1,0 +1,56 @@
+id: P2-API-Repo-Reactions-UpsertUp
+phase: 2
+layer: API
+area: Repo
+action: Reactions-UpsertUp
+target_file: backend/app/repositories/reactions_repo.py
+test_file: backend/tests/test_reactions_repo.py
+depends_on: ["P2-API-Repo-Reactions-Init"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 30
+
+specification:
+  purpose: "スレッド・コメントの「いいね」リアクションUpsert実装"
+  
+  content_requirements:
+    - section: "UpsertUpメソッド"
+      items:
+        - "async def insert_up_if_absent(target_type: Literal['thread','comment'], target_id: str, user_id: str) -> bool"
+        - "INSERT ... ON CONFLICT DO NOTHING（UNIQUE (user_id,target_type,target_id,kind)）"
+        - "挿入成功時（影響1行）に限り、対象の up_count をインクリメント（threads または comments）"
+        - "既存の場合は変更なし（呼び出し側で409を返す判断材料として bool を返す）"
+    
+    - section: "SQLクエリ"
+      items:
+        - "INSERT INTO reactions (id, user_id, target_type, target_id, kind, created_at)"
+        - "VALUES ($1, $2, $3, $4, 'up', NOW())"
+        - "ON CONFLICT (user_id, target_type, target_id, kind) DO NOTHING"
+        - "挿入成功時のみ up_count を +1（対象種別で分岐）"
+        - "同一Tx内で実行"
+    
+    - section: "ビジネスロジック"
+      items:
+        - "重複リアクションはDBのUNIQUEで防止（409 Conflictをサービス層で返却）"
+
+  output_format: "Python async メソッド"
+
+constraints:
+  - "データ整合性の保証"
+  - "競合状態の適切な処理"
+  - "パフォーマンス最適化"
+
+test_specification:
+  validation:
+    - "新規リアクションが追加されること"
+    - "同じリアクション再実行で削除されること"
+    - "異なるリアクションで更新されること"
+
+definition_of_done:
+  - "upsert_up_reactionメソッドが実装されている"
+  - "重複制御が実装されている"
+  - "テストケースが追加されている"

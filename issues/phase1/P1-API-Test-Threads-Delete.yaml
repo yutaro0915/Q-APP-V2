@@ -1,0 +1,34 @@
+id: P1-API-Test-Threads-Delete
+phase: 1
+layer: API
+area: Test
+action: Threads-Delete
+target_file: backend/tests/test_threads_delete.py
+test_file: null
+depends_on: ["P1-API-Router-Threads-DELETE", "P1-API-Test-Threads-Create"]
+spec_refs:
+  - "04"  # APIコントラクト
+  - "01"  # ドメイン不変条件
+estimated_loc: 40
+
+specification:
+  purpose: "スレッド削除APIのテスト"
+  
+  content_requirements:
+    - section: "正常系テスト"
+      items:
+        - "所有者による削除"
+        - "204 No Content"
+        - "削除後取得不可"
+    
+    - section: "異常系テスト"
+      items:
+        - "他人のスレッドで403"
+        - "存在しないIDで404"
+        - "認証なしで401"
+
+  output_format: "Python pytest"
+
+definition_of_done:
+  - "テストが全てパスする"
+  - "権限チェック動作確認"

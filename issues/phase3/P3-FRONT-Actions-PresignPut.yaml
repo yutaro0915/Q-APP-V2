@@ -1,0 +1,68 @@
+id: P3-FRONT-Actions-PresignPut
+phase: 3
+layer: FRONT
+area: Actions
+action: PresignPut
+target_file: frontend/lib/actions/uploadImage.ts
+test_file: null
+depends_on: ["P0-FRONT-APIClient", "P3-FRONT-Utils-ImagePreprocess"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義（PresignRequest/Response）
+  - "04b"  # API規約
+  - "07"   # S3アップロード仕様
+  - "06"   # フロントエンド設計
+estimated_loc: 60
+
+specification:
+  purpose: "Presigned URLを使用したS3画像アップロード"
+  
+  content_requirements:
+    - section: "uploadImage関数"
+      items:
+        - "'use client'（CSRで fetch。Bearer 付与）"
+        - "引数: File/Blob"
+        - "前処理呼び出し（preprocess）"
+        - "POST /uploads/presign（mime,size）でURL取得"
+        - "PUT 実行（headers: Content-Type）"
+        - "戻り値: key（imageKey）"
+    
+    - section: "処理フロー"
+      items:
+        - "画像前処理（preprocess呼び出し）"
+        - "/uploads/presign で PresignRequest を送信（Authorization: Bearer）"
+        - "S3へPUT（fetch(url,{method:'PUT', headers, body:blob})）"
+        - "成功時: key を返却（CreateThread/Comment に imageKey として渡す）"
+        - "エラー時: エラー情報返却"
+    
+    - section: "S3 PUTリクエスト"
+      items:
+        - "Content-Type設定"
+        - "Content-Length設定"
+        - "進捗トラッキング（将来）"
+        - "タイムアウト設定（30秒）"
+    
+    - section: "エラーハンドリング"
+      items:
+        - "前処理エラー"
+        - "Presigned URL取得エラー"
+        - "アップロードエラー"
+        - "ネットワークエラー"
+
+  output_format: "TypeScript（CSRユーティリティ）"
+
+constraints:
+  - "5分以内にアップロード完了（URL期限 300秒）"
+  - "リトライ処理（1回）"
+  - "適切なエラーメッセージ"
+
+test_specification:
+  validation:
+    - "画像がアップロードされること"
+    - "file_keyが返されること"
+    - "エラーが適切に処理されること"
+
+definition_of_done:
+  - "uploadImage.tsが作成されている"
+  - "S3アップロードが実装されている"
+  - "エラーハンドリングが実装されている"

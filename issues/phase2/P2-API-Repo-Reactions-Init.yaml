@@ -1,0 +1,56 @@
+id: P2-API-Repo-Reactions-Init
+phase: 2
+layer: API
+area: Repo
+action: Reactions-Init
+target_file: backend/app/repositories/reactions_repo.py
+test_file: backend/tests/test_reactions_repo.py
+depends_on: ["P1-API-DB-Pool", "P2-API-Schemas-Reactions"]
+spec_refs:
+  - "03"   # データモデル
+  - "03a"  # DDL
+  - "05"   # FastAPI設計
+  - "04b"  # API規約
+  - "01"   # 不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "リアクションリポジトリの基本構造とインターフェース定義"
+  
+  content_requirements:
+    - section: "クラス定義"
+      items:
+        - "ReactionRepository クラス"
+        - "コンストラクタでDB接続を受け取る"
+        - "基本的なUpsertメソッドのシグネチャ定義"
+    
+    - section: "共通処理"
+      items:
+        - "ID生成ヘルパー（rcn_* 形式）"
+        - "現在時刻取得ヘルパー"
+        - "重複チェックのSQLクエリ"
+    
+    - section: "インターフェース"
+      items:
+        - "async def upsert_thread_reaction()"
+        - "async def upsert_comment_reaction()"
+        - "async def get_reaction_counts()"
+        - "async def get_user_reactions()"
+
+  output_format: "Python リポジトリクラス"
+
+constraints:
+  - "asyncpg使用"
+  - "UPSERT操作の実装"
+  - "適切な型ヒント"
+
+test_specification:
+  validation:
+    - "クラスがインスタンス化できること"
+    - "メソッドシグネチャが正しいこと"
+    - "ID生成が正しい形式であること"
+
+definition_of_done:
+  - "reactions_repo.pyが作成されている"
+  - "基本構造が定義されている"
+  - "テストファイルが作成されている"

@@ -1,0 +1,56 @@
+id: P2-API-Router-Comments-GET-List
+phase: 2
+layer: API
+area: Router
+action: Comments-GET-List
+target_file: backend/app/routers/comments.py
+test_file: backend/tests/test_comments_router.py
+depends_on: ["P2-API-Service-Comments-ListAsc", "P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04"   # APIコントラクト
+  - "04a"  # DTO定義
+  - "04b"  # API規約
+  - "03a"  # DDL
+  - "01"   # 不変条件
+estimated_loc: 35
+
+specification:
+  purpose: "GET /threads/{id}/comments エンドポイント実装（閲覧は認証不要、ASC固定・cursorページング）"
+  
+  content_requirements:
+    - section: "エンドポイント定義"
+      items:
+        - "GET /threads/{id}/comments"
+        - "認証不要（公開エンドポイント）"
+        - "パスパラメータ: id（thr_*）"
+        - "クエリ: cursor（base64url(JSON)）"
+        - "レスポンス: PaginatedComments (200)"
+    
+    - section: "処理フロー"
+      items:
+        - "thread id 形式検証"
+        - "サービス層呼び出し"
+        - "200 OKで返却"
+    
+    - section: "レスポンス構造"
+      items:
+        - "items: コメント一覧（時系列ASC）"
+        - "nextCursor: 2ページ目以降のカーソル（最大200件で終端）"
+
+  output_format: "Python FastAPIルーター"
+
+constraints:
+  - "パフォーマンス最適化"
+  - "適切なキャッシュヘッダー"
+  - "ページネーション対応準備"
+
+test_specification:
+  validation:
+    - "認証ありでコメント一覧を取得できること"
+    - "解決済みコメントが分離されること"
+    - "存在しないスレッドで404エラー"
+
+definition_of_done:
+  - "GETエンドポイントが実装されている"
+  - "適切なレスポンス構造"
+  - "テストが追加されている"

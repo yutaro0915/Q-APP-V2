@@ -1,0 +1,55 @@
+id: P1-API-Service-Threads-ListNew
+phase: 1
+layer: API
+area: Service
+action: Threads-ListNew
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-ListNew", "P1-API-Service-Threads-Create"]
+spec_refs:
+  - "05"  # FastAPI設計
+  - "04a" # ページング
+estimated_loc: 35
+
+specification:
+  purpose: "スレッド一覧取得サービスロジックの実装"
+  
+  content_requirements:
+    - section: "list_threads_newメソッド"
+      items:
+        - "引数: cursor, limit, current_user_id"
+        - "リポジトリから一覧取得"
+        - "各スレッドにis_mine追加"
+        - "ThreadListResponseDTOへ変換"
+    
+    - section: "処理フロー"
+      items:
+        - "カーソルのデコード/検証"
+        - "リポジトリ呼び出し"
+        - "DTO変換（excerptも生成）"
+        - "次ページカーソル生成"
+    
+    - section: "レスポンス構築"
+      items:
+        - "threads配列"
+        - "has_more判定"
+        - "next_cursorの設定"
+        - "最大200件制限"
+
+  output_format: "Python asyncメソッド"
+
+constraints:
+  - "ページングの正確性"
+  - "カーソルの安全な処理"
+  - "パフォーマンス考慮"
+
+test_specification:
+  validation:
+    - "新着順で取得されること"
+    - "ページングが正しく動作すること"
+    - "is_mineが各スレッドで判定されること"
+
+definition_of_done:
+  - "list_threads_newメソッドが実装されている"
+  - "ページングが正しく動作する"
+  - "テストが追加されている"
