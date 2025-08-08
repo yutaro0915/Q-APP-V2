@@ -144,5 +144,5 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check agent prompts exist
         run: |
-          test -f .claude/prompts/agent-impl.md
-          test -f .claude/prompts/agent-review.md
+          test -f prompts/agent-impl.md
+          test -f prompts/agent-review.md
