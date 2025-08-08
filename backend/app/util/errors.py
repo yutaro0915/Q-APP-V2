@@ -143,10 +143,10 @@ class InternalException(BaseAPIException):
 
 
 def _get_or_generate_request_id(request: Request) -> str:
-    """Get request ID from headers or generate a new one."""
-    request_id = request.headers.get("x-request-id")
+    """Get request ID from request state or generate a new one."""
+    request_id = getattr(request.state, "request_id", None)
     if not request_id:
-        request_id = f"req_{uuid.uuid4().hex[:16]}"
+        request_id = str(uuid.uuid4())
     return request_id
 
 

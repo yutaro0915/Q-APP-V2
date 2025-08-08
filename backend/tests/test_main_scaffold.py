@@ -82,7 +82,7 @@ def test_error_handling_404():
     
     data = response.json()
     assert data["error"]["code"] == "NOT_FOUND"
-    assert data["error"]["message"] == "Resource not found"
+    assert data["error"]["message"] == "Not Found"
 
 
 def test_error_handling_500():

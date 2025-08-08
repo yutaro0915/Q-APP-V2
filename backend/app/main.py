@@ -5,11 +5,18 @@ import logging
 from typing import Callable
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.routers import health
+from app.util.errors import (
+    BaseAPIException,
+    api_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,75 +61,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc: StarletteHTTPException):
-    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error": {
-                "code": "NOT_FOUND",
-                "message": "Resource not found"
-            }
-        },
-        headers={"X-Request-Id": request_id}
-    )
-
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
-    
-    if exc.status_code == 404:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "error": {
-                    "code": "NOT_FOUND",
-                    "message": "Resource not found"
-                }
-            },
-            headers={"X-Request-Id": request_id}
-        )
-    elif exc.status_code == 500:
-        logger.error(f"Internal server error: request_id={request_id}, error={str(exc.detail)}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": {
-                    "code": "INTERNAL_SERVER_ERROR",
-                    "message": "An unexpected error occurred"
-                }
-            },
-            headers={"X-Request-Id": request_id}
-        )
-    else:
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={
-                "error": {
-                    "code": "HTTP_ERROR",
-                    "message": exc.detail or "An error occurred"
-                }
-            },
-            headers={"X-Request-Id": request_id}
-        )
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
-    logger.error(f"Unhandled exception: request_id={request_id}, error={str(exc)}")
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": {
-                "code": "INTERNAL_SERVER_ERROR",
-                "message": "An unexpected error occurred"
-            }
-        },
-        headers={"X-Request-Id": request_id}
-    )
+# Register exception handlers from util/errors
+app.add_exception_handler(BaseAPIException, api_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
 # ミドルウェアの登録順序は重要（逆順で実行される）

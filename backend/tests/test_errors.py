@@ -150,6 +150,7 @@ def test_api_exception_handler():
     class MockRequest:
         def __init__(self):
             self.headers = Headers({"x-request-id": "req_abc123"})
+            self.state = type('obj', (object,), {'request_id': 'req_abc123'})()
     
     request = MockRequest()
     exc = NotFoundException("Thread not found")
@@ -174,6 +175,7 @@ def test_api_exception_handler_without_request_id():
     class MockRequest:
         def __init__(self):
             self.headers = Headers({})
+            self.state = type('obj', (object,), {})()
     
     request = MockRequest()
     exc = BadRequestException("Invalid input")
@@ -185,6 +187,8 @@ def test_api_exception_handler_without_request_id():
     body = json.loads(response.body)
     assert body["error"]["code"] == "VALIDATION_ERROR"
     assert body["error"]["message"] == "Invalid input"
-    # Should have generated a request ID
+    # Should have generated a request ID (UUID format)
     assert "requestId" in body["error"]
-    assert body["error"]["requestId"].startswith("req_")
+    import uuid
+    # Verify it's a valid UUID
+    uuid.UUID(body["error"]["requestId"])
