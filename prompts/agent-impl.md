@@ -33,7 +33,17 @@
 目的: docs/issues_progress_index.csv と issues/**/*.yaml を単一のソースオブトゥルースにして、1件ずつ TDD で実装を完了し、PR を作成する。
 
 フロー（毎タスク）:
-1) YAML選定: issues/**/*.yaml から1件を選ぶ。docs/issues_progress_index.csv を参照し、未着手のものを優先。
+1) YAML選定（占有スタンプ）: issues/**/*.yaml から1件を選ぶ。選定と同時に当該 YAML の先頭に占有スタンプブロックを追加しコミット/Pushする（競合防止の最小手段）。
+   - 形式（YAML先頭コメントとして追加）:
+     ```
+     # claim:
+     #   id: <YAML_FILE_BASENAME>
+     #   assignee: <agent_name>
+     #   start_at: <ISO8601>
+     #   note: ""
+     ```
+   - 既に claim ブロックが存在する場合は中断して別の YAML を選ぶ。
+   - 補足: 後続で claim 専用PR（issues/_claims/*.claim）を作成して重複をさらに防止。
 2) GitHub Issue発行: YAMLの内容を転記して新規Issueを作成（Title=YAML id、Body=specification/constraints/test_specification/definition_of_done を要約）。issues_progress_index.csv に行を追加し、status=ISSUED、pr_number空。
 3) ブランチ作成: `feat/<yaml-id>` でブランチを切る。CSVのbranch欄を更新、status=IN_PROGRESS。
 4) TDD 実行:

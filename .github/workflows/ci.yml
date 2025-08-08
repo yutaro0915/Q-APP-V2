@@ -99,6 +99,21 @@ jobs:
             echo "Warning: docs/issues_progress_index.csv not updated in this PR"
           fi
 
+      - name: Guard: YAML claim stamp must be consistent (if present)
+        if: github.event_name == 'pull_request'
+        run: |
+          # YAMLファイルの先頭に claim ブロック（コメント）が存在する場合、PR作者に紐づくかを軽く検査
+          author=${{ github.actor }}
+          yaml_changed=$(git diff --name-only origin/main...HEAD | grep '^issues/.*\.yaml$' || true)
+          if [ -n "$yaml_changed" ]; then
+            for f in $yaml_changed; do
+              head -n 10 "$f" | grep -q '^# claim:' && {
+                echo "Found claim in $f";
+                head -n 10 "$f" | sed -n '1,10p';
+              } || true
+            done
+          fi
+
       - name: Guard: implementation PR must reference an existing claim (and delete it)
         if: github.event_name == 'pull_request'
         run: |
