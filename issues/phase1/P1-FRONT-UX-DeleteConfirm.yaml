@@ -65,3 +65,9 @@ definition_of_done:
   - "DeleteConfirmDialog.tsxが作成されている"
   - "アクセシビリティ対応"
   - "適切なスタイリング"
+
+# done:
+#   id: P1-FRONT-UX-DeleteConfirm
+#   assignee: claude_agent
+#   end_at: 2025-08-09T04:07:00Z
+#   note: "削除確認ダイアログ実装完了。フォーカストラップ、ESCキー対応、アクセシビリティ対応済み。"
