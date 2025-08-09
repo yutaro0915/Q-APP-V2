@@ -44,8 +44,64 @@ class CommentRepository:
         Returns:
             The new comment ID (cmt_*)
         """
-        # Implementation will be added in P2-API-Repo-Comments-Insert
-        raise NotImplementedError("create_comment will be implemented in P2-API-Repo-Comments-Insert")
+        max_retries = 3
+        
+        for attempt in range(max_retries):
+            # Generate new comment ID and timestamp
+            comment_id = self._generate_comment_id()
+            now_utc = self._now_utc()
+            
+            try:
+                # Insert comment into database with RETURNING
+                insert_query = """
+                    INSERT INTO comments (
+                        id, thread_id, author_id, body, created_at
+                    )
+                    VALUES ($1, $2, $3, $4, $5::timestamptz)
+                    RETURNING id, created_at
+                """
+                
+                result = await self._db.fetchrow(
+                    insert_query,
+                    comment_id,     # $1
+                    thread_id,      # $2
+                    author_id,      # $3
+                    body,          # $4
+                    now_utc        # $5
+                )
+                
+                # Update thread's last_activity_at
+                update_query = """
+                    UPDATE threads 
+                    SET last_activity_at = $2::timestamptz
+                    WHERE id = $1
+                """
+                
+                await self._db.execute(
+                    update_query,
+                    thread_id,     # $1
+                    now_utc        # $2
+                )
+                
+                # Return the created comment ID
+                return result["id"]
+                
+            except Exception as e:
+                # Check if it's a unique constraint violation (ID collision)
+                import asyncpg
+                if isinstance(e, asyncpg.UniqueViolationError):
+                    # Retry with a new ID
+                    if attempt < max_retries - 1:
+                        continue
+                    else:
+                        # Max retries reached, propagate the error
+                        raise
+                else:
+                    # For other errors (like foreign key violations), propagate immediately
+                    raise
+        
+        # Should not reach here, but just in case
+        raise Exception("Failed to create comment after max retries")
 
     async def list_comments_by_thread(
         self,

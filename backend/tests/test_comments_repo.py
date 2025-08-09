@@ -95,20 +95,8 @@ def test_soft_delete_comment_signature():
 
 
 def test_methods_raise_not_implemented():
-    """Test that methods raise NotImplementedError as expected during init phase."""
+    """Test that non-implemented methods raise NotImplementedError as expected during init phase."""
     repo = CommentRepository(db=MagicMock())
-
-    # Test create_comment raises NotImplementedError
-    async def test_create():
-        try:
-            await repo.create_comment(
-                author_id="usr_test",
-                thread_id="thr_test", 
-                body="test body"
-            )
-            assert False, "Should have raised NotImplementedError"
-        except NotImplementedError:
-            pass
 
     # Test list_comments_by_thread raises NotImplementedError
     async def test_list():
@@ -133,8 +121,110 @@ def test_methods_raise_not_implemented():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(test_create())
         loop.run_until_complete(test_list())
         loop.run_until_complete(test_delete())
+    finally:
+        loop.close()
+
+
+def test_create_comment_success():
+    """Test successful comment creation."""
+    # Mock DB responses
+    mock_db = AsyncMock()
+    mock_db.fetchrow = AsyncMock(return_value={
+        "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+        "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc)
+    })
+    mock_db.execute = AsyncMock()
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.create_comment(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            body="Test comment body"
+        )
+        
+        # Should return the comment ID
+        assert result == "cmt_01HX123456789ABCDEFGHJKMNP"
+        
+        # Should call fetchrow for INSERT with RETURNING
+        mock_db.fetchrow.assert_called_once()
+        insert_query = mock_db.fetchrow.call_args[0][0]
+        assert "INSERT INTO comments" in insert_query
+        assert "RETURNING" in insert_query
+        
+        # Should call execute for UPDATE threads
+        mock_db.execute.assert_called_once()
+        update_query = mock_db.execute.call_args[0][0]
+        assert "UPDATE threads" in update_query
+        assert "last_activity_at" in update_query
+    
+    # Run async test
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_create_comment_with_image():
+    """Test comment creation with image key."""
+    mock_db = AsyncMock()
+    mock_db.fetchrow = AsyncMock(return_value={
+        "id": "cmt_01HX123456789ABCDEFGHJKMNP", 
+        "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc)
+    })
+    mock_db.execute = AsyncMock()
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.create_comment(
+            author_id="usr_01HX123456789ABCDEFGHJKMNP",
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP", 
+            body="Comment with image",
+            image_key="uploads/2025/08/test.jpg"
+        )
+        
+        assert result == "cmt_01HX123456789ABCDEFGHJKMNP"
+        mock_db.fetchrow.assert_called_once()
+        mock_db.execute.assert_called_once()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_create_comment_foreign_key_error():
+    """Test comment creation with non-existent thread_id."""
+    import asyncpg
+    
+    # Mock foreign key constraint violation
+    mock_db = AsyncMock()
+    mock_db.fetchrow = AsyncMock(side_effect=asyncpg.ForeignKeyViolationError("foreign key violation"))
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        try:
+            await repo.create_comment(
+                author_id="usr_01HX123456789ABCDEFGHJKMNP",
+                thread_id="thr_nonexistent",
+                body="Test comment"
+            )
+            assert False, "Should have raised ForeignKeyViolationError"
+        except asyncpg.ForeignKeyViolationError:
+            pass  # Expected
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
     finally:
         loop.close()
