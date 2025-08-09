@@ -38,6 +38,7 @@
 - 開始は必ず Phase 0 から。各フェーズには `issues/phaseX/PHASE_DoD.md` があり、DoDを満たして次フェーズへ進む（ゲート制）。
 - フェーズ横断の実装は分割して順序化（Repo→Service→Router→Front）。不足があれば新規YAML（DRAFT）を追加。
 - タスク開始時は「YAMLをまず確認」。先頭の `# claim:` が他者で埋まっていないか確認し、自分のスタンプを追記してから着手。
+- 複数エージェントでの同時作業前提: 自分がYAMLを開いた時点で `# claim:` が存在するIssueには着手しない。必ず別のIssueを選択すること（競合回避）。スタンプ直前とコミット直前にも `# claim:` の再確認を行う。
 - 実装が完了したら、YAML末尾へ `# done:` を追記。問題発生時は `# issue:` を追記し、完了にはしない。
 
 [環境準備（必須）]
@@ -89,6 +90,8 @@ AGENT="your_agent_name"                                     # 任意の識別子
 
 # 既に占有されていないか確認（先頭10行）
 head -n 10 "$ISSUE_YAML" | grep -q '^# claim:' && { echo "Already claimed: $ISSUE_YAML"; exit 1; }
+
+# 注意: 上記で既に他者が claim 済みの場合は、同一Issueに触れずに必ず別のYAMLを選び直して再実行すること（同時作業の競合回避）。
 
 # 占有スタンプをYAML先頭に付与
 ISSUE_ID=$(basename "$ISSUE_YAML" .yaml)
