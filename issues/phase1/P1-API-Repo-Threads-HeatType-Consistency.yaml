@@ -1,0 +1,27 @@
+# claim:
+#   id: P1-API-Repo-Threads-HeatType-Consistency
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:50:00Z
+#   note: ""
+id: P1-API-Repo-Threads-HeatType-Consistency
+phase: 1
+layer: API
+area: Repo
+action: Threads-HeatType-Consistency
+target_file: docs/03a_ddl_postgresql_v1.sql
+test_file: backend/tests/test_threads_repo.py
+depends_on: ["P1-API-Repo-Threads-Init"]
+spec_refs:
+  - "03a"  # DDL 定義
+  - "05"   # Hot/heatの定義
+estimated_loc: 5
+
+specification:
+  purpose: "DDLの threads.heat 型（INTEGER）と実装の初期値 0.0（float）の表現差異を明文化"
+  content_requirements:
+    - "現状はINSERT時 0.0 を渡してもPg側でINTEGERに丸められる想定。将来的に小数の熱量を扱う際は NUMERIC(6,3) 等に拡張する方針を備考に追記"
+
+output_format: "ドキュメントのみ（DDLはフリーズのため変更なし）"
+
+definition_of_done:
+  - "方針がYAMLとして追記されている"
