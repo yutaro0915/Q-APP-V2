@@ -43,3 +43,8 @@ test_specification:
 definition_of_done:
   - "list_threads_new が {items,nextCursor} で動作"
   - "関連テストがGREEN"
+# done:
+#   id: P1-API-Service-Threads-ListNew-ContractFix
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:00:00Z
+#   note: "Service updated to use items/nextCursor from repository"
