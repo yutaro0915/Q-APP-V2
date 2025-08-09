@@ -3,6 +3,11 @@
 #   assignee: claude_agent
 #   start_at: 2025-08-09T01:17:15Z
 #   note: ""
+# done:
+#   id: P1-API-Router-Threads-GET-List
+#   assignee: claude_agent
+#   end_at: 2025-08-09T01:21:45Z
+#   note: "All tests passing. Pagination with cursor implemented."
 id: P1-API-Router-Threads-GET-List
 phase: 1
 layer: API
