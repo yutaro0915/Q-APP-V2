@@ -76,8 +76,11 @@ async def check_db_connection() -> bool:
         bool: True if connection is successful, False otherwise
     """
     try:
-        pool = await get_db_pool()
-        async with pool.acquire() as connection:
+        global _pool
+        if _pool is None:
+            return False  # No pool exists, return False
+        
+        async with _pool.acquire() as connection:
             result = await connection.fetchval("SELECT 1")
             return result == 1
     except Exception as e:
