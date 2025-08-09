@@ -59,3 +59,8 @@ definition_of_done:
   - "GETエンドポイントが実装されている"
   - "適切なレスポンス構造"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T08:27:00Z
+#   result: GREEN
+#   note: "GET /threads/{id}/comments endpoint implemented in threads router. Public access with optional authentication, cursor pagination support, integrates with CommentService.list_comments. Returns PaginatedComments schema. Comprehensive tests covering success cases, cursor pagination, error handling. All core GET functionality verified working."
