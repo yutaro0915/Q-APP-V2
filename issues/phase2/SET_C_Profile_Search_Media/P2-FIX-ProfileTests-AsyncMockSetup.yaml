@@ -1,0 +1,40 @@
+id: P2-FIX-ProfileTests-AsyncMockSetup
+phase: 2
+layer: API
+area: Test
+action: ProfileTests-AsyncMockSetup
+target_file: backend/tests/test_profile_repo.py
+test_file: backend/tests/test_profile_repo.py
+depends_on: ["P2-API-Repo-Profile"]
+spec_refs:
+  - "05"   # Backend design
+
+estimated_loc: 25
+
+specification:
+  purpose: "Fix profile repository and router tests that fail due to incorrect async mock setup"
+  content_requirements:
+    - "Fix test_profile_repo.py to mock 'fetchrow' instead of 'fetch_one'"
+    - "Fix test_profile_router.py to properly handle async database connections"
+    - "Ensure mock setup matches actual implementation method calls"
+    - "Fix AsyncMock setup for database execute operations"
+
+output_format: "Python test fixes (profile test files only)"
+
+constraints:
+  - "Do not change repository or router implementation - tests should match actual code"
+  - "Tests should properly mock async database operations"
+  - "Maintain existing test coverage and assertions"
+
+test_specification:
+  validation:
+    - "All profile repository tests pass"
+    - "All profile router tests pass"
+    - "Mock setup correctly matches actual database method calls"
+    - "No async mock warnings in test output"
+
+definition_of_done:
+  - "Profile repository tests pass without async mock errors"
+  - "Profile router tests pass without async mock errors"
+  - "Test mock setup matches implementation method calls (fetchrow, execute)"
+  - "Overall backend test suite improves from 269/278 to higher pass rate"
