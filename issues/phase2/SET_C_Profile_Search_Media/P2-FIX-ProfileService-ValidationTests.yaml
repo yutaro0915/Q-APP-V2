@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-FIX-ProfileService-ValidationTests
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:30:02Z
+#   note: ""
 id: P2-FIX-ProfileService-ValidationTests
 phase: 2
 layer: API
