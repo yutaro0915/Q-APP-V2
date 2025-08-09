@@ -58,3 +58,7 @@ definition_of_done:
   - "updateProfile.tsが作成されている"
   - "型定義が完備されている"
   - "エラーハンドリングが実装されている"
+# done:
+#   finished_at: 2025-08-09T06:34:21Z
+#   result: GREEN
+#   note: "UpdateProfile actions implemented with getMyProfile/updateProfile functions, TypeScript types matching backend DTOs, comprehensive validation, error handling, and display helpers. 232 lines of clean, well-documented code."
