@@ -144,3 +144,19 @@ class PaginatedComments(BaseModel):
     """Paginated comments response."""
     items: List[Comment]
     nextCursor: Optional[str] = None
+
+
+class SolveRequest(BaseModel):
+    """Request to set or clear solved comment on a thread."""
+    commentId: Optional[str] = None
+    
+    @field_validator('commentId')
+    def validate_comment_id(cls, v: Optional[str]) -> Optional[str]:
+        """Validate comment ID format if provided."""
+        if v is None:
+            return None
+        if not v.startswith('cmt_'):
+            raise ValueError(f"Comment ID must start with 'cmt_': {v}")
+        if not validate_id_format(v):
+            raise ValueError(f"Invalid comment ID format: {v}")
+        return v
