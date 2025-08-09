@@ -33,3 +33,8 @@ test_specification:
 
 definition_of_done:
   - "Param名の不整合が解消し、実運用でTypeErrorが発生しない"
+# done:
+#   id: P1-API-Service-Threads-Delete-ParamName-Fix
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:08:00Z
+#   note: "Already fixed - both implementation and test use author_id"
