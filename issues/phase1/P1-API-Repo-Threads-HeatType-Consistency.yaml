@@ -25,3 +25,24 @@ output_format: "ドキュメントのみ（DDLはフリーズのため変更な�
 
 definition_of_done:
   - "方針がYAMLとして追記されている"
+
+# === Heat Type Consistency Documentation ===
+# 
+# Current State:
+# - DDL: threads.heat is defined as INTEGER
+# - Implementation: Initial value is 0.0 (float) in repositories
+# 
+# Current Behavior:
+# - PostgreSQL automatically rounds 0.0 to 0 when inserting into INTEGER column
+# - No issues in Phase 1 as heat is not actively used
+# 
+# Future Enhancement Plan:
+# - When implementing Hot feature (Phase 4), consider migrating to NUMERIC(6,3)
+# - This would allow decimal heat values for more granular scoring
+# - Example: heat = 12.345 would be stored as decimal
+# - Migration would be: ALTER TABLE threads ALTER COLUMN heat TYPE NUMERIC(6,3)
+# 
+# Recommendation:
+# - Keep as INTEGER for Phase 1-3 (no active use)
+# - Reassess in Phase 4 when implementing Hot algorithm
+# - If decimal precision needed, migrate to NUMERIC(6,3) or FLOAT
