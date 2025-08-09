@@ -38,3 +38,7 @@ definition_of_done:
   - "All profile service tests pass"
   - "Test strategy reflects correct validation layer (Pydantic models, not service layer)"
   - "Overall test suite remains GREEN"
+# done:
+#   finished_at: 2025-08-09T06:31:33Z
+#   result: GREEN
+#   note: "Validation tests were already correctly implemented. Tests verify Pydantic model validation (not service-level), use pytest.raises(ValidationError), and all 9 ProfileService tests pass."
