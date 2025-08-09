@@ -5,7 +5,7 @@ import pytest
 
 from app.services.comments_service import CommentService
 from app.schemas.comments import CreateCommentRequest
-from app.util.errors import ValidationException
+from app.util.errors import ValidationException, ForbiddenException, NotFoundException
 
 
 def test_comment_service_class_exists():
@@ -297,6 +297,109 @@ def test_list_comments_with_cursor():
         call_args = service._repo.list_comments_by_thread.call_args
         assert call_args.kwargs["anchor_created_at"] is not None
         assert call_args.kwargs["anchor_id"] == "cmt_01HX123456789ABCDEFGHJKMNP"
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_comment_service_has_delete_method():
+    """Test that CommentService has delete_comment method."""
+    service = CommentService(db=None)
+    assert hasattr(service, "delete_comment")
+    
+    import inspect
+    sig = inspect.signature(service.delete_comment)
+    params = list(sig.parameters.keys())
+    
+    # Should be async method
+    assert inspect.iscoroutinefunction(service.delete_comment)
+    
+    # Check required parameters exist
+    assert "user_id" in params
+    assert "comment_id" in params
+
+
+def test_delete_comment_success():
+    """Test successful comment deletion by owner."""
+    mock_db = AsyncMock()
+    service = CommentService(db=mock_db)
+    
+    # Mock repository's soft_delete_comment to return True (success)
+    service._repo = AsyncMock()
+    service._repo.soft_delete_comment = AsyncMock(return_value=True)
+    
+    async def run_test():
+        # Should succeed without raising exceptions
+        await service.delete_comment(
+            user_id="usr_01HX123456789ABCDEFGHJKMNP",
+            comment_id="cmt_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        # Should call repository soft_delete_comment
+        service._repo.soft_delete_comment.assert_called_once_with(
+            comment_id="cmt_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_delete_comment_not_found():
+    """Test deletion of non-existent or already deleted comment returns 404."""
+    mock_db = AsyncMock()
+    service = CommentService(db=mock_db)
+    
+    # Mock repository's soft_delete_comment to return False (not found/unauthorized)
+    service._repo = AsyncMock()
+    service._repo.soft_delete_comment = AsyncMock(return_value=False)
+    
+    async def run_test():
+        # Should raise NotFoundException
+        try:
+            await service.delete_comment(
+                user_id="usr_01HX123456789ABCDEFGHJKMNP",
+                comment_id="cmt_nonexistent"
+            )
+            assert False, "Should have raised NotFoundException"
+        except NotFoundException as e:
+            assert "Comment not found" in str(e) or "not found" in str(e).lower()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_delete_comment_unauthorized():
+    """Test deletion by non-owner returns 404 (same as not found for security)."""
+    mock_db = AsyncMock()
+    service = CommentService(db=mock_db)
+    
+    # Mock repository's soft_delete_comment to return False (unauthorized)
+    service._repo = AsyncMock()
+    service._repo.soft_delete_comment = AsyncMock(return_value=False)
+    
+    async def run_test():
+        # Should raise NotFoundException (not ForbiddenException for security)
+        try:
+            await service.delete_comment(
+                user_id="usr_different_user",
+                comment_id="cmt_01HX123456789ABCDEFGHJKMNP"
+            )
+            assert False, "Should have raised NotFoundException"
+        except NotFoundException as e:
+            assert "Comment not found" in str(e) or "not found" in str(e).lower()
     
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

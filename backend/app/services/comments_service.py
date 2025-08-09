@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from app.repositories.comments_repo import CommentRepository
 from app.schemas.comments import CreateCommentRequest, CreatedResponse, Comment, AuthorAffiliation, PaginatedComments
-from app.util.errors import ValidationException
+from app.util.errors import ValidationException, NotFoundException
 
 
 class CommentService:
@@ -153,6 +153,36 @@ class CommentService:
             items=comment_dtos,
             nextCursor=next_cursor
         )
+    
+    async def delete_comment(
+        self,
+        *,
+        user_id: str,
+        comment_id: str
+    ) -> None:
+        """Delete a comment by soft deletion.
+        
+        Args:
+            user_id: ID of the user requesting deletion
+            comment_id: ID of the comment to delete
+            
+        Raises:
+            NotFoundException: If comment not found or user is not the author
+        """
+        # Call repository to perform soft deletion
+        # Repository handles ownership validation
+        deleted = await self._repo.soft_delete_comment(
+            comment_id=comment_id,
+            author_id=user_id
+        )
+        
+        # If deletion failed (not found or not authorized), raise 404
+        # This treats both scenarios the same for security (don't leak existence)
+        if not deleted:
+            raise NotFoundException("Comment not found")
+        
+        # TODO: Add logic to clear thread solved state if this was the solved comment
+        # This will be implemented when threads repository methods are available
     
     def _to_comment_dto(self, comment_data: dict) -> Comment:
         """Convert comment data to Comment DTO.
