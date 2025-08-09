@@ -58,3 +58,8 @@ definition_of_done:
   - "list_threads_newメソッドが実装されている"
   - "ページングが正しく動作する"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T00:07:48Z
+#   result: GREEN
+#   note: "list_threads_new method implemented with pagination and cursor support"
