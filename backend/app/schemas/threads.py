@@ -207,6 +207,7 @@ class ThreadDetail(BaseModel):
     hasImage: bool
     imageUrl: Optional[str] = None
     authorAffiliation: Optional[AuthorAffiliation] = None
+    isMine: Optional[bool] = None
 
 
 class Comment(BaseModel):

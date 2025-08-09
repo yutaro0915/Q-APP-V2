@@ -388,3 +388,143 @@ def test_list_threads_with_sort_hot(mock_get_db_pool):
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     data = response.json()
     assert data["error"]["code"] == "VALIDATION_ERROR"
+
+
+@patch('app.core.db.get_db_pool')
+def test_get_thread_detail(mock_get_db_pool):
+    """Test getting thread detail."""
+    from app.main import app
+    from app.schemas.threads import ThreadDetail
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to return thread detail
+    mock_thread = ThreadDetail(
+        id="thr_01HX123456789ABCDEFGHJKMNP",
+        title="Test Thread",
+        body="Test body content",
+        tags=[],
+        upCount=5,
+        saveCount=2,
+        createdAt="2024-01-01T00:00:00Z",
+        lastActivityAt="2024-01-01T00:00:00Z",
+        solvedCommentId=None,
+        hasImage=False,
+        imageUrl=None,
+        authorAffiliation=None
+    )
+    
+    mock_service = MagicMock()
+    mock_service.get_thread = AsyncMock(return_value=mock_thread)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get("/api/v1/threads/thr_01HX123456789ABCDEFGHJKMNP")
+        
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["id"] == "thr_01HX123456789ABCDEFGHJKMNP"
+        assert data["title"] == "Test Thread"
+        assert data["body"] == "Test body content"
+
+
+@patch('app.core.db.get_db_pool')
+@patch('app.routers.threads.get_current_user')
+def test_get_thread_detail_with_auth(mock_get_current_user, mock_get_db_pool):
+    """Test getting thread detail with authentication."""
+    from app.main import app
+    from app.schemas.threads import ThreadDetail
+    client = TestClient(app)
+    
+    # Mock get_current_user
+    mock_get_current_user.return_value = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to return thread detail with isMine
+    mock_thread = ThreadDetail(
+        id="thr_01HX123456789ABCDEFGHJKMNP",
+        title="My Thread",
+        body="My content",
+        tags=[],
+        upCount=0,
+        saveCount=0,
+        createdAt="2024-01-01T00:00:00Z",
+        lastActivityAt="2024-01-01T00:00:00Z",
+        solvedCommentId=None,
+        hasImage=False,
+        imageUrl=None,
+        authorAffiliation=None,
+        isMine=True
+    )
+    
+    mock_service = MagicMock()
+    mock_service.get_thread = AsyncMock(return_value=mock_thread)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get(
+            "/api/v1/threads/thr_01HX123456789ABCDEFGHJKMNP",
+            headers={"Authorization": "Bearer test_token"}
+        )
+        
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["isMine"] is True
+
+
+@patch('app.core.db.get_db_pool')
+def test_get_thread_not_found(mock_get_db_pool):
+    """Test getting non-existent thread returns 404."""
+    from app.main import app
+    from app.util.errors import NotFoundException
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to raise NotFoundException
+    mock_service = MagicMock()
+    mock_service.get_thread = AsyncMock(side_effect=NotFoundException("Thread not found"))
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get("/api/v1/threads/thr_99HX123456789ABCDEFGHJKMNP")
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        data = response.json()
+        assert data["error"]["code"] == "NOT_FOUND"
+
+
+@patch('app.core.db.get_db_pool')
+def test_get_thread_invalid_id(mock_get_db_pool):
+    """Test getting thread with invalid ID format returns 400."""
+    from app.main import app
+    from app.util.errors import ValidationException
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to raise ValidationException
+    mock_service = MagicMock()
+    mock_service.get_thread = AsyncMock(side_effect=ValidationException("Invalid thread ID"))
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get("/api/v1/threads/invalid-id")
+        
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        data = response.json()
+        assert data["error"]["code"] == "VALIDATION_ERROR"

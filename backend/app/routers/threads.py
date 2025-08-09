@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.routers.auth import get_current_user
 from app.core.db import get_db_connection
-from app.schemas.threads import CreateThreadRequest, PaginatedThreadCards
+from app.schemas.threads import CreateThreadRequest, PaginatedThreadCards, ThreadDetail
 from app.services.threads_service import ThreadService
 from app.util.errors import ValidationException
 
@@ -89,4 +89,42 @@ async def list_threads(
         return await service.list_threads_new(
             current_user_id=current_user_id,
             cursor=cursor
+        )
+
+
+@router.get("/{thread_id}", response_model=ThreadDetail)
+async def get_thread_detail(
+    thread_id: str,
+    request: Request,
+    db = Depends(get_db_connection)
+) -> ThreadDetail:
+    """Get thread detail by ID.
+    
+    Args:
+        thread_id: Thread ID
+        request: FastAPI request object
+        db: Database connection
+        
+    Returns:
+        Thread detail
+        
+    Raises:
+        NotFoundException: If thread doesn't exist or is deleted
+        ValidationException: If thread ID format is invalid
+    """
+    # Try to get current user from authorization header
+    current_user_id = None
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            current_user_id = await get_current_user(auth_header)
+        except Exception:
+            # Authentication is optional for getting thread detail
+            pass
+    
+    async with db as conn:
+        service = ThreadService(db=conn)
+        return await service.get_thread(
+            thread_id=thread_id,
+            current_user_id=current_user_id
         )
