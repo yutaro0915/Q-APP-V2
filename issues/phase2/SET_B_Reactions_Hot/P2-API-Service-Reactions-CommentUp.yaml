@@ -62,3 +62,7 @@ definition_of_done:
   - "comment_up_reactionメソッドが実装されている"
   - "バリデーションが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T06:28:51Z
+#   result: GREEN
+#   note: "Implemented react_comment_up service method with validation, conflict handling, and TDD tests"
