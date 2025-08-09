@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-FRONT-UX-AuthorChip
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:42:06Z
+#   note: ""
 id: P2-FRONT-UX-AuthorChip
 phase: 2
 layer: FRONT
