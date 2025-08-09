@@ -56,3 +56,8 @@ definition_of_done:
   - "get_comments_by_thread_idメソッドが実装されている"
   - "DTO変換が実装されている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T07:52:00Z
+#   result: GREEN
+#   note: "list_comments method added to CommentService with ASC ordering, cursor pagination, AuthorAffiliation handling, and comprehensive DTO conversion. All tests passing."
