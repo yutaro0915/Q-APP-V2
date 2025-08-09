@@ -95,6 +95,58 @@ class ReactionRepository:
                 # Reaction already exists (conflict occurred)
                 return False
 
+    # ---- P2-API-Repo-Reactions-UpsertSave implementation ----
+    async def insert_save_if_absent(
+        self,
+        target_id: str,
+        user_id: str,
+    ) -> bool:
+        """Insert 'save' reaction on thread if not already present.
+        
+        Args:
+            target_id: Thread ID being saved (only threads support save reactions)
+            user_id: ID of user performing the save reaction
+            
+        Returns:
+            True if new reaction was inserted, False if duplicate
+        """
+        # Generate new reaction ID
+        reaction_id = self._generate_reaction_id()
+        
+        # Use a transaction to ensure atomicity between reaction insert and count update
+        async with self._db.transaction():
+            # Insert save reaction (thread only) with ON CONFLICT DO NOTHING
+            insert_query = """
+                INSERT INTO reactions (id, user_id, target_type, target_id, kind, created_at)
+                VALUES ($1, $2, 'thread', $3, 'save', NOW())
+                ON CONFLICT (user_id, target_type, target_id, kind) DO NOTHING
+            """
+            
+            result = await self._db.execute(
+                insert_query,
+                reaction_id,
+                user_id,
+                target_id
+            )
+            
+            # Check if row was actually inserted by examining result
+            # PostgreSQL returns "INSERT 0 1" for successful insert, "INSERT 0 0" for conflict
+            rows_affected = int(result.split()[-1]) if result else 0
+            
+            if rows_affected > 0:
+                # Increment save_count in threads table
+                update_query = """
+                    UPDATE threads 
+                    SET save_count = save_count + 1 
+                    WHERE id = $1
+                """
+                
+                await self._db.execute(update_query, target_id)
+                return True
+            else:
+                # Reaction already exists (conflict occurred)
+                return False
+
     # ---- interface signatures ----
     async def upsert_thread_reaction(
         self,
