@@ -10,6 +10,7 @@ from app.core.db import get_db_connection
 from app.schemas.threads import CreateThreadRequest, PaginatedThreadCards, ThreadDetail
 from app.services.threads_service import ThreadService
 from app.util.errors import ValidationException
+from app.util.rate_limit import rate_limiter, create_rate_limit_response
 
 router = APIRouter(
     prefix="/threads",
@@ -35,6 +36,13 @@ async def create_thread(
     """
     # Get current user ID
     user_id = await get_current_user(authorization)
+    
+    # Check rate limit (1 thread per minute per user)
+    is_allowed, retry_after = rate_limiter.check_rate_limit(user_id)
+    if not is_allowed:
+        remaining = rate_limiter.get_remaining(user_id)
+        reset_time = rate_limiter.get_reset_time(user_id)
+        return create_rate_limit_response(retry_after, 1, remaining, reset_time)
     
     async with db as conn:
         service = ThreadService(db=conn)

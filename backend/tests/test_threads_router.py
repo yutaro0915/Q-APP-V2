@@ -33,6 +33,11 @@ def test_create_thread_authenticated(mock_get_current_user, mock_get_db_pool):
     """Test creating thread with authentication."""
     # Import here to avoid circular imports
     from app.main import app
+    from app.util.rate_limit import rate_limiter
+    
+    # Clear any existing rate limit state
+    rate_limiter.reset()
+    
     client = TestClient(app)
     
     # Mock service to return ThreadCard object
@@ -188,6 +193,11 @@ def test_create_thread_title_too_long(mock_get_current_user):
 def test_create_thread_with_tags(mock_get_current_user, mock_get_db_pool):
     """Test creating thread with tags."""
     from app.main import app
+    from app.util.rate_limit import rate_limiter
+    
+    # Clear any existing rate limit state
+    rate_limiter.reset()
+    
     client = TestClient(app)
     
     # Mock get_current_user to return user_id
