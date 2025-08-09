@@ -27,3 +27,8 @@ output_format: "Python 実装変更（関数内の生成ロジック最小修正
 definition_of_done:
   - "ThreadCard の authorAffiliation が 04a 構造に準拠"
   - "関連テストGREEN（必要なら軽微な期待値更新）"
+# done:
+#   id: P1-API-Service-Threads-AuthorAffiliation-ShapeFix
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:07:00Z
+#   note: "Set authorAffiliation to None for Phase 1"
