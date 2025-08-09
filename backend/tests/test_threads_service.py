@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from app.util.errors import ValidationException
-from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag, PaginatedThreadCards
+from app.schemas.threads import CreateThreadRequest, ThreadCard, ThreadDetail, Tag, PaginatedThreadCards
 from app.services.threads_service import ThreadService
 
 
@@ -381,13 +381,14 @@ def test_get_thread_exists():
             )
             
             # Verify result
-            assert isinstance(result, ThreadCard)
+            assert isinstance(result, ThreadDetail)
             assert result.id == thread_id
             assert result.title == "Test Thread"
-            assert result.excerpt == "This is a test thread body"
-            assert result.heat == 1
-            assert result.saves == 2
-            assert result.solved is False
+            assert result.body == "This is a test thread body"
+            assert result.upCount == 5
+            assert result.saveCount == 2
+            assert result.solvedCommentId is None
+            assert result.isMine is True  # Author viewing their own thread
             
             # Verify repository was called
             mock_repo.get_thread_by_id.assert_called_once_with(thread_id=thread_id)
@@ -522,7 +523,7 @@ def test_get_thread_with_solved():
             )
             
             # Check that solved status is correctly set
-            assert result.solved is True
+            assert result.solvedCommentId == "cmt_01HX123456789ABCDEFGHJKMNP"
             assert result.title == "Solved Question"
     
     asyncio.run(run_test())

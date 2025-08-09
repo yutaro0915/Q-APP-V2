@@ -4,7 +4,7 @@ from typing import Any, Optional
 import re
 
 from app.repositories.threads_repo import ThreadRepository
-from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag, AuthorAffiliation, PaginatedThreadCards
+from app.schemas.threads import CreateThreadRequest, ThreadCard, ThreadDetail, Tag, AuthorAffiliation, PaginatedThreadCards
 from app.util.errors import ValidationException
 
 
@@ -88,7 +88,7 @@ class ThreadService:
         *,
         thread_id: str,
         current_user_id: str
-    ) -> Optional[ThreadCard]:
+    ) -> Optional[ThreadDetail]:
         """Get a thread by ID.
         
         Args:
@@ -96,7 +96,7 @@ class ThreadService:
             current_user_id: ID of the current user
             
         Returns:
-            ThreadCard DTO if thread exists and not deleted, None otherwise
+            ThreadDetail DTO if thread exists and not deleted, None otherwise
             
         Raises:
             ValidationException: If thread ID format is invalid
@@ -119,8 +119,8 @@ class ThreadService:
         # For now, use empty list
         tags = []
         
-        # Convert to ThreadCard DTO
-        return self._to_thread_card(thread_data, current_user_id, tags)
+        # Convert to ThreadDetail DTO
+        return self._to_thread_detail(thread_data, current_user_id, tags)
     
     async def list_threads_new(
         self,
@@ -161,30 +161,14 @@ class ThreadService:
         
         # Convert threads to ThreadCards
         thread_cards = []
-        for thread_data in result["threads"]:
+        for thread_data in result["items"]:
             # TODO: Get tags from database in later phase
             tags = []
             thread_card = self._to_thread_card(thread_data, current_user_id, tags)
             thread_cards.append(thread_card)
         
-        # Generate next cursor if there are more results
-        next_cursor = None
-        if result["has_more"] and thread_cards:
-            last_thread = result["threads"][-1]
-            from app.util.cursor import encode_cursor
-            
-            # Format timestamp for cursor
-            created_at = last_thread["created_at"]
-            if hasattr(created_at, "isoformat"):
-                created_at_str = created_at.isoformat().replace("+00:00", "Z")
-            else:
-                created_at_str = str(created_at)
-            
-            next_cursor = encode_cursor({
-                "v": 1,
-                "createdAt": created_at_str,
-                "id": last_thread["id"]
-            })
+        # Use nextCursor directly from repository
+        next_cursor = result.get("nextCursor", None)
         
         return PaginatedThreadCards(
             items=thread_cards,
@@ -303,12 +287,55 @@ class ThreadService:
             imageThumbUrl=None,
             solved=is_solved,
             authorAffiliation=AuthorAffiliation(
-                id=thread_data["author_id"],
-                displayName="User",  # TODO: Get from users table
-                isPublic=True,  # TODO: Get from profile
-                faculty=None,
-                year=None
+                faculty=None,  # TODO: Get from profile
+                year=None  # TODO: Get from profile
             )
+        )
+    
+    def _to_thread_detail(self, thread_data: dict, current_user_id: str, tags: list[Tag]) -> ThreadDetail:
+        """Convert thread data to ThreadDetail DTO.
+        
+        Args:
+            thread_data: Thread data from repository
+            current_user_id: ID of the current user
+            tags: List of tags for the thread
+            
+        Returns:
+            ThreadDetail DTO
+        """
+        # Determine if thread belongs to current user
+        is_mine = thread_data.get("author_id") == current_user_id
+        
+        # Format timestamps
+        created_at = thread_data.get("created_at")
+        if hasattr(created_at, "isoformat"):
+            created_at_str = created_at.isoformat().replace("+00:00", "Z")
+        else:
+            created_at_str = str(created_at)
+        
+        last_activity_at = thread_data.get("last_activity_at", created_at)
+        if hasattr(last_activity_at, "isoformat"):
+            last_activity_at_str = last_activity_at.isoformat().replace("+00:00", "Z")
+        else:
+            last_activity_at_str = str(last_activity_at)
+        
+        return ThreadDetail(
+            id=thread_data["id"],
+            title=thread_data["title"],
+            body=thread_data.get("body", ""),
+            tags=tags,
+            upCount=thread_data.get("up_count", 0),
+            saveCount=thread_data.get("save_count", 0),
+            createdAt=created_at_str,
+            lastActivityAt=last_activity_at_str,
+            solvedCommentId=thread_data.get("solved_comment_id"),
+            hasImage=False,  # TODO: Check attachments table in P3
+            imageUrl=None,  # TODO: Get from attachments in P3
+            authorAffiliation=AuthorAffiliation(
+                faculty=None,  # TODO: Get from profile
+                year=None  # TODO: Get from profile
+            ),
+            isMine=is_mine
         )
     
     def _create_excerpt(self, body: str, max_length: int = 100) -> str:
