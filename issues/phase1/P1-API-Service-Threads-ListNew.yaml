@@ -1,3 +1,8 @@
+# claim:
+#   id: P1-API-Service-Threads-ListNew
+#   assignee: claude_agent
+#   start_at: 2025-08-09T00:02:05Z
+#   note: ""
 id: P1-API-Service-Threads-ListNew
 phase: 1
 layer: API
