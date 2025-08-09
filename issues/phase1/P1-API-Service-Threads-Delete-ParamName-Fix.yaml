@@ -1,0 +1,35 @@
+# claim:
+#   id: P1-API-Service-Threads-Delete-ParamName-Fix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:15:00Z
+#   note: ""
+id: P1-API-Service-Threads-Delete-ParamName-Fix
+phase: 1
+layer: API
+area: Service
+action: Threads-Delete-ParamName-Fix
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-SoftDelete"]
+spec_refs:
+  - "05"  # レイヤ責務
+estimated_loc: 10
+
+specification:
+  purpose: "ThreadService.delete_thread から Repo.soft_delete_thread への引数名を 'user_id' → 'author_id' に修正"
+  content_requirements:
+    - "実装: await repo.soft_delete_thread(thread_id=thread_id, author_id=current_user_id)"
+    - "テスト: 呼び出し検証を author_id に更新"
+
+output_format: "Python 実装変更（サービスのみ）＋テスト更新（同コミット）"
+
+constraints:
+  - "One-File Rule（実装1ファイル＋テスト）"
+
+test_specification:
+  validation:
+    - "delete_thread_by_owner で soft_delete_thread が author_id で呼ばれること"
+    - "その他の削除系テストはGREEN維持"
+
+definition_of_done:
+  - "Param名の不整合が解消し、実運用でTypeErrorが発生しない"
