@@ -235,3 +235,156 @@ def test_create_thread_with_tags(mock_get_current_user, mock_get_db_pool):
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["id"] == "thr_01HX123456789ABCDEFGHJKMNP"
+
+
+@patch('app.core.db.get_db_pool')
+def test_list_threads_without_auth(mock_get_db_pool):
+    """Test listing threads without authentication."""
+    from app.main import app
+    from app.schemas.threads import PaginatedThreadCards, ThreadCard
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to return paginated threads
+    mock_threads = PaginatedThreadCards(
+        items=[
+            ThreadCard(
+                id="thr_01HX123456789ABCDEFGHJKMNP",
+                title="Test Thread 1",
+                excerpt="Test body 1",
+                tags=[],
+                heat=0,
+                replies=0,
+                saves=0,
+                createdAt="2024-01-01T00:00:00Z",
+                lastReplyAt=None,
+                hasImage=False,
+                imageThumbUrl=None,
+                solved=False,
+                authorAffiliation=None
+            )
+        ],
+        nextCursor=None
+    )
+    
+    mock_service = MagicMock()
+    mock_service.list_threads_new = AsyncMock(return_value=mock_threads)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get("/api/v1/threads")
+        
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "items" in data
+        assert len(data["items"]) == 1
+        assert data["items"][0]["id"] == "thr_01HX123456789ABCDEFGHJKMNP"
+
+
+@patch('app.core.db.get_db_pool')
+@patch('app.routers.threads.get_current_user')
+def test_list_threads_with_auth(mock_get_current_user, mock_get_db_pool):
+    """Test listing threads with authentication."""
+    from app.main import app
+    from app.schemas.threads import PaginatedThreadCards, ThreadCard
+    client = TestClient(app)
+    
+    # Mock get_current_user
+    mock_get_current_user.return_value = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to return paginated threads with is_mine
+    mock_threads = PaginatedThreadCards(
+        items=[
+            ThreadCard(
+                id="thr_01HX123456789ABCDEFGHJKMNP",
+                title="My Thread",
+                excerpt="My content",
+                tags=[],
+                heat=0,
+                replies=0,
+                saves=0,
+                createdAt="2024-01-01T00:00:00Z",
+                lastReplyAt=None,
+                hasImage=False,
+                imageThumbUrl=None,
+                solved=False,
+                authorAffiliation=None,
+                isMine=True
+            )
+        ],
+        nextCursor="eyJ2IjoxLCJkIjoiMjAyNC0wMS0wMVQwMDowMDowMFoiLCJpZCI6InRocl8wMUhYMTIzNDU2Nzg5MEFCQ0RFRkdISktNTlAifQ"
+    )
+    
+    mock_service = MagicMock()
+    mock_service.list_threads_new = AsyncMock(return_value=mock_threads)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.get(
+            "/api/v1/threads",
+            headers={"Authorization": "Bearer test_token"}
+        )
+        
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "items" in data
+        assert data["items"][0]["isMine"] is True
+        assert data["nextCursor"] is not None
+
+
+@patch('app.core.db.get_db_pool')
+def test_list_threads_with_cursor(mock_get_db_pool):
+    """Test listing threads with cursor pagination."""
+    from app.main import app
+    from app.schemas.threads import PaginatedThreadCards
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service
+    mock_threads = PaginatedThreadCards(items=[], nextCursor=None)
+    mock_service = MagicMock()
+    mock_service.list_threads_new = AsyncMock(return_value=mock_threads)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        cursor = "eyJ2IjoxLCJkIjoiMjAyNC0wMS0wMVQwMDowMDowMFoiLCJpZCI6InRocl8wMUhYMTIzNDU2Nzg5MEFCQ0RFRkdISktNTlAifQ"
+        response = client.get(f"/api/v1/threads?cursor={cursor}")
+        
+        assert response.status_code == status.HTTP_200_OK
+        # Verify service was called with cursor
+        mock_service.list_threads_new.assert_called_once()
+        call_args = mock_service.list_threads_new.call_args
+        assert call_args.kwargs["cursor"] == cursor
+
+
+@patch('app.core.db.get_db_pool')
+def test_list_threads_with_sort_hot(mock_get_db_pool):
+    """Test listing threads with sort=hot."""
+    from app.main import app
+    client = TestClient(app)
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # For Phase 1, hot sorting is not implemented, should return 400
+    response = client.get("/api/v1/threads?sort=hot")
+    
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    data = response.json()
+    assert data["error"]["code"] == "VALIDATION_ERROR"

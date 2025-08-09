@@ -190,6 +190,7 @@ class ThreadCard(BaseModel):
     imageThumbUrl: Optional[str] = None
     solved: bool
     authorAffiliation: Optional[AuthorAffiliation] = None
+    isMine: Optional[bool] = None
 
 
 class ThreadDetail(BaseModel):
