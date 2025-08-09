@@ -176,3 +176,131 @@ def test_create_comment_with_image_key():
         loop.run_until_complete(run_test())
     finally:
         loop.close()
+
+
+def test_comment_service_has_list_method():
+    """Test that CommentService has list_comments method."""
+    service = CommentService(db=None)
+    assert hasattr(service, "list_comments")
+    
+    import inspect
+    sig = inspect.signature(service.list_comments)
+    params = list(sig.parameters.keys())
+    
+    # Should be async method
+    assert inspect.iscoroutinefunction(service.list_comments)
+    
+    # Check required parameters exist
+    assert "thread_id" in params
+    assert "current_user_id" in params
+    assert "cursor" in params
+
+
+def test_list_comments_success():
+    """Test successful comment listing."""
+    from datetime import datetime, timezone
+    mock_db = AsyncMock()
+    service = CommentService(db=mock_db)
+    
+    # Mock repository response
+    service._repo = AsyncMock()
+    service._repo.list_comments_by_thread = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "First comment",
+            "up_count": 2,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": "理学部",
+            "author_year": 2
+        },
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNQ", 
+            "body": "Second comment",
+            "up_count": 1,
+            "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    async def run_test():
+        result = await service.list_comments(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            current_user_id="usr_01HX123456789ABCDEFGHJKMNP",
+            cursor=None
+        )
+        
+        # Should return PaginatedComments
+        assert hasattr(result, "items")
+        assert hasattr(result, "nextCursor")
+        assert len(result.items) == 2
+        
+        # Check first comment
+        comment1 = result.items[0]
+        assert comment1.id == "cmt_01HX123456789ABCDEFGHJKMNP"
+        assert comment1.body == "First comment"
+        assert comment1.upCount == 2
+        assert comment1.hasImage == False
+        assert comment1.authorAffiliation.faculty == "理学部"
+        assert comment1.authorAffiliation.year == 2
+        
+        # Check second comment
+        comment2 = result.items[1]
+        assert comment2.id == "cmt_01HX123456789ABCDEFGHJKMNQ"
+        assert comment2.body == "Second comment"
+        assert comment2.upCount == 1
+        assert comment2.authorAffiliation is None
+        
+        # Should call repository
+        service._repo.list_comments_by_thread.assert_called_once_with(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            anchor_created_at=None,
+            anchor_id=None,
+            limit=20
+        )
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_with_cursor():
+    """Test comment listing with cursor pagination."""
+    from app.util.cursor import encode_cursor
+    from datetime import datetime, timezone
+    mock_db = AsyncMock()
+    service = CommentService(db=mock_db)
+    
+    service._repo = AsyncMock()
+    service._repo.list_comments_by_thread = AsyncMock(return_value=[])
+    
+    async def run_test():
+        # Create cursor
+        cursor_obj = {
+            "v": 1,
+            "createdAt": "2025-08-09T07:00:00Z",
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP"
+        }
+        cursor = encode_cursor(cursor_obj)
+        
+        await service.list_comments(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            current_user_id="usr_01HX123456789ABCDEFGHJKMNP",
+            cursor=cursor
+        )
+        
+        # Should call repository with cursor data
+        service._repo.list_comments_by_thread.assert_called_once()
+        call_args = service._repo.list_comments_by_thread.call_args
+        assert call_args.kwargs["anchor_created_at"] is not None
+        assert call_args.kwargs["anchor_id"] == "cmt_01HX123456789ABCDEFGHJKMNP"
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()

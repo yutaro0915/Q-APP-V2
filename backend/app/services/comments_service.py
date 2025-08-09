@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timezone
 
 from app.repositories.comments_repo import CommentRepository
-from app.schemas.comments import CreateCommentRequest, CreatedResponse
+from app.schemas.comments import CreateCommentRequest, CreatedResponse, Comment, AuthorAffiliation, PaginatedComments
 from app.util.errors import ValidationException
 
 
@@ -78,4 +78,116 @@ class CommentService:
         return CreatedResponse(
             id=comment_id,
             createdAt=datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        )
+    
+    async def list_comments(
+        self,
+        *,
+        thread_id: str,
+        current_user_id: str,
+        cursor: str = None
+    ) -> PaginatedComments:
+        """List comments for a thread in ASC order.
+        
+        Args:
+            thread_id: ID of the parent thread
+            current_user_id: ID of the current user
+            cursor: Pagination cursor
+            
+        Returns:
+            PaginatedComments with list of comment DTOs
+            
+        Raises:
+            ValidationException: If cursor is invalid
+        """
+        anchor_created_at = None
+        anchor_id = None
+        
+        # Parse cursor if provided
+        if cursor:
+            try:
+                from app.util.cursor import decode_cursor
+                cursor_data = decode_cursor(cursor)
+                
+                # Extract anchor data from cursor
+                if "createdAt" in cursor_data and "id" in cursor_data:
+                    # Parse ISO8601 timestamp to datetime
+                    created_at_str = cursor_data["createdAt"]
+                    anchor_created_at = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                    anchor_id = cursor_data["id"]
+            except Exception:
+                raise ValidationException("Invalid cursor format")
+        
+        # Get comments from repository
+        comment_data_list = await self._repo.list_comments_by_thread(
+            thread_id=thread_id,
+            anchor_created_at=anchor_created_at,
+            anchor_id=anchor_id,
+            limit=20
+        )
+        
+        # Convert to Comment DTOs
+        comment_dtos = []
+        for comment_data in comment_data_list:
+            comment_dto = self._to_comment_dto(comment_data)
+            comment_dtos.append(comment_dto)
+        
+        # Generate next cursor if we have more results
+        next_cursor = None
+        if len(comment_dtos) == 20:  # Full page indicates more results may exist
+            last_comment = comment_data_list[-1]
+            # Create cursor for next page
+            try:
+                from app.util.cursor import encode_cursor
+                cursor_obj = {
+                    "v": 1,
+                    "createdAt": last_comment["created_at"].isoformat().replace("+00:00", "Z"),
+                    "id": last_comment["id"]
+                }
+                next_cursor = encode_cursor(cursor_obj)
+            except Exception:
+                # If cursor generation fails, set to None
+                next_cursor = None
+        
+        return PaginatedComments(
+            items=comment_dtos,
+            nextCursor=next_cursor
+        )
+    
+    def _to_comment_dto(self, comment_data: dict) -> Comment:
+        """Convert comment data to Comment DTO.
+        
+        Args:
+            comment_data: Comment data from repository
+            
+        Returns:
+            Comment DTO
+        """
+        # Format timestamp
+        created_at = comment_data.get("created_at")
+        if hasattr(created_at, "isoformat"):
+            created_at_str = created_at.isoformat().replace("+00:00", "Z")
+        else:
+            created_at_str = str(created_at)
+        
+        # Handle author affiliation
+        author_affiliation = None
+        if comment_data.get("author_faculty") or comment_data.get("author_year"):
+            author_affiliation = AuthorAffiliation(
+                faculty=comment_data.get("author_faculty"),
+                year=comment_data.get("author_year")
+            )
+        
+        # TODO: Handle images in P3 phase
+        has_image = False
+        image_url = None
+        
+        return Comment(
+            id=comment_data["id"],
+            body=comment_data["body"],
+            createdAt=created_at_str,
+            upCount=comment_data.get("up_count", 0),
+            hasImage=has_image,
+            imageUrl=image_url,
+            authorAffiliation=author_affiliation
         )
