@@ -38,3 +38,8 @@ definition_of_done:
   - "ErrorResponse.details が配列へ統一"
   - "関連テストがGREEN"
 
+
+# done:
+#   finished_at: 2025-08-09T11:06:10Z
+#   result: GREEN
+#   note: ""
