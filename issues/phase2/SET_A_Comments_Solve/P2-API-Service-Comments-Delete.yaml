@@ -59,3 +59,7 @@ definition_of_done:
   - "delete_commentメソッドが実装されている"
   - "ビジネスルールが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+#   result: GREEN
+#   note: "delete_comment method implemented in CommentService with TDD approach. Authorization via repository, 404 for not found/unauthorized, comprehensive tests added. All tests passing."
