@@ -62,3 +62,7 @@ definition_of_done:
   - "clear_solved_commentメソッドが実装されている"
   - "ビジネスルールが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T07:13:28Z
+#   result: GREEN
+#   note: "clear_solved_comment method implemented in SolveService. Thread ownership validation, question/non-question type validation, existing solved comment validation. Database operation to clear solved_comment_id. Comprehensive test coverage with 5 test cases covering success, validation errors, and edge cases. All tests passing (12/12 total SolveService tests)."
