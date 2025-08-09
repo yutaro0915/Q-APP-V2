@@ -63,3 +63,7 @@ definition_of_done:
   - "reactions.pyが作成されている"
   - "全てのDTOが定義されている"
   - "バリデーションが実装されている"
+# done:
+#   finished_at: 2025-08-09T07:06:00Z
+#   result: GREEN
+#   note: "Implemented reaction schemas: ReactionType enum, TargetType enum, ReactionRequestThread, ReactionRequestComment, and ReactionInDB with full validation"
