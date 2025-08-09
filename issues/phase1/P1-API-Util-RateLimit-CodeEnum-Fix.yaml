@@ -1,0 +1,27 @@
+# claim:
+#   id: P1-API-Util-RateLimit-CodeEnum-Fix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:47:30Z
+#   note: ""
+id: P1-API-Util-RateLimit-CodeEnum-Fix
+phase: 1
+layer: API
+area: Util
+action: RateLimit-CodeEnum-Fix
+target_file: backend/app/util/rate_limit.py
+test_file: backend/tests/test_rate_limit_threads.py
+depends_on: ["P1-API-RateLimit-Threads-Create"]
+spec_refs:
+  - "04b" # エラーコードは RATE_LIMITED を使用
+estimated_loc: 5
+
+specification:
+  purpose: "429応答の error.code を 'RATE_LIMIT_EXCEEDED' → 'RATE_LIMITED' に統一"
+  content_requirements:
+    - "create_rate_limit_response の JSON を修正（code: RATE_LIMITED）"
+    - "既存のテストに影響が無いことを確認（必要なら追加アサートを補う）"
+
+output_format: "Python 小変更（One-File Rule）"
+
+definition_of_done:
+  - "該当ファイルのみの実装変更＋テストGREEN"
