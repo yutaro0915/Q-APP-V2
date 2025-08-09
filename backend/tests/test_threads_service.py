@@ -619,6 +619,7 @@ def test_list_threads_new_with_cursor():
     # Create a test cursor
     from app.util.cursor import encode_cursor
     test_cursor = encode_cursor({
+        "v": 1,
         "createdAt": "2024-01-01T00:00:00Z",
         "id": "thr_01HX111111111111111111111"
     })

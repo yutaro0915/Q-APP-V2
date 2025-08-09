@@ -64,8 +64,10 @@ def validate_threads_cursor(obj: Dict[str, Any]) -> tuple:
     """
     errors = {}
     
-    # Check version if present (v is optional, defaults to 1)
-    if "v" in obj and obj.get("v") != 1:
+    # Check version - v is required and must be 1
+    if "v" not in obj:
+        errors["v"] = "Version is required"
+    elif obj["v"] != 1:
         errors["v"] = "Version must be 1"
     
     # Check required fields for thread cursor
@@ -73,6 +75,20 @@ def validate_threads_cursor(obj: Dict[str, Any]) -> tuple:
     for field in required_fields:
         if field not in obj:
             errors[field] = f"{field} is required"
+    
+    # Validate createdAt format if present
+    if "createdAt" in obj:
+        try:
+            # Try to parse as ISO format date
+            from datetime import datetime
+            datetime.fromisoformat(obj["createdAt"].replace("Z", "+00:00"))
+        except:
+            errors["createdAt"] = "Invalid date format"
+    
+    # Validate score type if present (for hot cursor)
+    if "score" in obj:
+        if not isinstance(obj["score"], (int, float)):
+            errors["score"] = "Score must be a number"
     
     # If there are errors, return None for anchor
     if errors:
@@ -103,8 +119,10 @@ def validate_comments_cursor(obj: Dict[str, Any]) -> tuple:
     """
     errors = {}
     
-    # Check version if present (v is optional, defaults to 1)
-    if "v" in obj and obj.get("v") != 1:
+    # Check version - v is required and must be 1
+    if "v" not in obj:
+        errors["v"] = "Version is required"
+    elif obj["v"] != 1:
         errors["v"] = "Version must be 1"
     
     # Check required fields for comment cursor
@@ -112,6 +130,15 @@ def validate_comments_cursor(obj: Dict[str, Any]) -> tuple:
     for field in required_fields:
         if field not in obj:
             errors[field] = f"{field} is required"
+    
+    # Validate createdAt format if present
+    if "createdAt" in obj:
+        try:
+            # Try to parse as ISO format date
+            from datetime import datetime
+            datetime.fromisoformat(obj["createdAt"].replace("Z", "+00:00"))
+        except:
+            errors["createdAt"] = "Invalid date format"
     
     # If there are errors, return None for anchor
     if errors:

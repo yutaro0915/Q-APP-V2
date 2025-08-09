@@ -181,6 +181,7 @@ class ThreadService:
                 created_at_str = str(created_at)
             
             next_cursor = encode_cursor({
+                "v": 1,
                 "createdAt": created_at_str,
                 "id": last_thread["id"]
             })
