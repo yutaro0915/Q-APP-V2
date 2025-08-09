@@ -140,6 +140,10 @@ class RateLimiter:
 # 1 thread per minute per user
 rate_limiter = RateLimiter(limit=1, window_seconds=60)
 
+# Global rate limiter instance for comment creation
+# 1 comment per 10 seconds per user
+comment_rate_limiter = RateLimiter(limit=1, window_seconds=10)
+
 
 def create_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int) -> JSONResponse:
     """Create standardized rate limit error response.
@@ -159,6 +163,43 @@ def create_rate_limit_response(retry_after: int, limit: int, remaining: int, res
             "error": {
                 "code": "RATE_LIMITED",
                 "message": "Too many requests. Please wait before creating another thread.",
+                "details": {
+                    "retryAfter": retry_after,
+                    "limit": limit,
+                    "remaining": remaining,
+                    "reset": reset_time
+                }
+            }
+        }
+    )
+    
+    # Add rate limit headers as per spec
+    response.headers["Retry-After"] = str(retry_after)
+    response.headers["X-RateLimit-Limit"] = str(limit)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    response.headers["X-RateLimit-Reset"] = str(reset_time)
+    
+    return response
+
+
+def create_comment_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int) -> JSONResponse:
+    """Create comment-specific rate limit error response.
+    
+    Args:
+        retry_after: Seconds until next request allowed
+        limit: Rate limit per window
+        remaining: Remaining requests in window
+        reset_time: Unix timestamp when limit resets
+        
+    Returns:
+        JSONResponse with error details and headers
+    """
+    response = JSONResponse(
+        status_code=429,
+        content={
+            "error": {
+                "code": "RATE_LIMITED",
+                "message": "Too many requests. Please wait before creating another comment.",
                 "details": {
                     "retryAfter": retry_after,
                     "limit": limit,

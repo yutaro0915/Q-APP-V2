@@ -12,7 +12,7 @@ from app.schemas.comments import CreateCommentRequest, CreatedResponse, Paginate
 from app.services.threads_service import ThreadService
 from app.services.comments_service import CommentService
 from app.util.errors import ValidationException
-from app.util.rate_limit import rate_limiter, create_rate_limit_response
+from app.util.rate_limit import rate_limiter, create_rate_limit_response, comment_rate_limiter, create_comment_rate_limit_response
 
 router = APIRouter(
     prefix="/threads",
@@ -199,6 +199,13 @@ async def create_comment(
     """
     # Get current user ID (authentication required)
     user_id = await get_current_user(authorization)
+    
+    # Check comment rate limit (1 comment per 10 seconds per user)
+    is_allowed, retry_after = comment_rate_limiter.check_rate_limit(user_id)
+    if not is_allowed:
+        remaining = comment_rate_limiter.get_remaining(user_id)
+        reset_time = comment_rate_limiter.get_reset_time(user_id)
+        return create_comment_rate_limit_response(retry_after, 1, remaining, reset_time)
     
     async with db as conn:
         service = CommentService(db=conn)
