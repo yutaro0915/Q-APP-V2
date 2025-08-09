@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-FRONT-Routes-Profile
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:43:57Z
+#   note: ""
 id: P2-FRONT-Routes-Profile
 phase: 2
 layer: FRONT
