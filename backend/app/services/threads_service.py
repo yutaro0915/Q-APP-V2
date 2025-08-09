@@ -218,7 +218,7 @@ class ThreadService:
             raise ForbiddenException("You can only delete your own threads")
         
         # Perform soft delete
-        await repo.soft_delete_thread(thread_id=thread_id, user_id=current_user_id)
+        await repo.soft_delete_thread(thread_id=thread_id, author_id=current_user_id)
     
     def _is_valid_thread_id(self, thread_id: str) -> bool:
         """Validate thread ID format.
@@ -286,10 +286,7 @@ class ThreadService:
             hasImage=False,  # TODO: Check attachments table in P3
             imageThumbUrl=None,
             solved=is_solved,
-            authorAffiliation=AuthorAffiliation(
-                faculty=None,  # TODO: Get from profile
-                year=None  # TODO: Get from profile
-            )
+            authorAffiliation=None  # Phase 1: No JOIN implementation yet
         )
     
     def _to_thread_detail(self, thread_data: dict, current_user_id: str, tags: list[Tag]) -> ThreadDetail:
@@ -331,10 +328,7 @@ class ThreadService:
             solvedCommentId=thread_data.get("solved_comment_id"),
             hasImage=False,  # TODO: Check attachments table in P3
             imageUrl=None,  # TODO: Get from attachments in P3
-            authorAffiliation=AuthorAffiliation(
-                faculty=None,  # TODO: Get from profile
-                year=None  # TODO: Get from profile
-            ),
+            authorAffiliation=None,  # Phase 1: No JOIN implementation yet
             isMine=is_mine
         )
     
