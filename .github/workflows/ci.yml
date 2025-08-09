@@ -106,7 +106,7 @@ jobs:
             echo "Warning: docs/issues_progress_index.csv not updated in this PR"
           fi
 
-      - name: Guard: YAML claim stamp must be consistent (if present)
+      - name: "Guard: YAML claim stamp must be consistent (if present)"
         if: github.event_name == 'pull_request'
         run: |
           # YAMLファイルの先頭に claim ブロック（コメント）が存在する場合、PR作者に紐づくかを軽く検査
@@ -122,7 +122,7 @@ jobs:
           fi
 
       # YAML占有スタンプ（コメント）を検出してログに出す（レビュー補助・非強制）
-      - name: Info: log YAML claim stamps (if present)
+      - name: "Info: log YAML claim stamps (if present)"
         if: github.event_name == 'pull_request'
         run: |
           yaml_changed=$(git diff --name-only origin/main...HEAD | grep '^issues/.*\.yaml$' || true)
