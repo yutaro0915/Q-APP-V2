@@ -140,3 +140,69 @@ class SolveService:
         """
         
         await self._db.execute(query, comment_id, thread_id)
+    
+    async def clear_solved_comment(
+        self,
+        *,
+        user_id: str,
+        thread_id: str
+    ) -> None:
+        """Clear the solved comment for a question thread.
+        
+        Args:
+            user_id: ID of the user requesting the clear (must be thread author)
+            thread_id: ID of the thread to clear solved status
+            
+        Returns:
+            None (204 No Content)
+            
+        Raises:
+            NotFoundException: If thread not found
+            ForbiddenException: If user is not the thread author
+            ValidationException: If thread is not a question type or no solved comment to clear
+        """
+        # 1. Get thread information and validate ownership
+        thread_data = await self._threads_repo.get_thread_by_id(thread_id=thread_id)
+        
+        if thread_data is None:
+            raise NotFoundException("Thread not found")
+        
+        # Check if user is the thread author
+        if thread_data["author_id"] != user_id:
+            raise ForbiddenException("Only thread author can clear solved comment")
+        
+        # 2. Validate thread type
+        if not self._is_question_thread(thread_data):
+            details = [{
+                "field": "thread.tags",
+                "reason": "NOT_APPLICABLE"
+            }]
+            raise ValidationException(
+                message="Clear solve operation is not applicable to non-question threads",
+                details=details
+            )
+        
+        # 3. Check if there's a solved comment to clear
+        if thread_data.get("solved_comment_id") is None:
+            raise ValidationException("No solved comment to clear")
+        
+        # 4. Clear thread's solved_comment_id
+        await self._clear_thread_solved_comment(thread_id=thread_id)
+    
+    async def _clear_thread_solved_comment(
+        self,
+        *,
+        thread_id: str
+    ) -> None:
+        """Clear thread's solved_comment_id field.
+        
+        Args:
+            thread_id: ID of the thread to clear solved status
+        """
+        query = """
+            UPDATE threads
+            SET solved_comment_id = NULL
+            WHERE id = $1
+        """
+        
+        await self._db.execute(query, thread_id)

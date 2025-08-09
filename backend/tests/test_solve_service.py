@@ -277,3 +277,133 @@ class TestSolveService:
         # Verify UPDATE query was called with new comment_id
         execute_call = self.mock_db.execute.call_args
         assert comment_id in execute_call[0]  # New comment_id should be in the query params
+    
+    @pytest.mark.asyncio
+    async def test_clear_solved_comment_success(self):
+        """Test successful solve clearing."""
+        user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+        thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+        solved_comment_id = "cmt_01HX123456789ABCDEFGHJKMNP"
+        
+        # Mock thread data - question type with solved comment
+        thread_data = {
+            "id": thread_id,
+            "author_id": user_id,
+            "title": "Test question",
+            "body": "Test question body",
+            "solved_comment_id": solved_comment_id,  # Has solved comment
+            "deleted_at": None
+        }
+        
+        # Set up mocks
+        self.mock_db.fetchrow = AsyncMock(return_value=thread_data)
+        self.mock_db.execute = AsyncMock()  # for UPDATE query
+        
+        # Execute method
+        result = await self.service.clear_solved_comment(
+            user_id=user_id,
+            thread_id=thread_id
+        )
+        
+        # Verify result is None (204 No Content)
+        assert result is None
+        
+        # Verify database calls
+        self.mock_db.fetchrow.assert_called_once()
+        self.mock_db.execute.assert_called_once()
+    
+    @pytest.mark.asyncio
+    async def test_clear_solved_comment_thread_not_found(self):
+        """Test solve clearing with non-existent thread."""
+        user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+        thread_id = "thr_NONEXISTENT"
+        
+        # Mock thread not found
+        self.mock_db.fetchrow = AsyncMock(return_value=None)
+        
+        # Should raise NotFoundException
+        with pytest.raises(NotFoundException, match="Thread not found"):
+            await self.service.clear_solved_comment(
+                user_id=user_id,
+                thread_id=thread_id
+            )
+    
+    @pytest.mark.asyncio
+    async def test_clear_solved_comment_thread_not_question_type(self):
+        """Test solve clearing on non-question thread."""
+        user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+        thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+        
+        # Mock thread data - not a question type
+        thread_data = {
+            "id": thread_id,
+            "author_id": user_id,
+            "title": "General discussion",
+            "body": "General discussion body",
+            "solved_comment_id": None,
+            "deleted_at": None
+        }
+        
+        self.mock_db.fetchrow = AsyncMock(return_value=thread_data)
+        
+        # Should raise ValidationException with NOT_APPLICABLE
+        with pytest.raises(ValidationException) as exc_info:
+            await self.service.clear_solved_comment(
+                user_id=user_id,
+                thread_id=thread_id
+            )
+        
+        # Check error details
+        assert exc_info.value.details is not None
+        assert exc_info.value.details[0]["reason"] == "NOT_APPLICABLE"
+        assert exc_info.value.details[0]["field"] == "thread.tags"
+    
+    @pytest.mark.asyncio
+    async def test_clear_solved_comment_not_thread_owner(self):
+        """Test solve clearing by non-owner of thread."""
+        user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+        thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+        
+        # Mock thread data - different author
+        thread_data = {
+            "id": thread_id,
+            "author_id": "usr_DIFFERENT_OWNER",  # Different owner
+            "title": "Test question",
+            "body": "Test question body", 
+            "solved_comment_id": "cmt_SOME_COMMENT",
+            "deleted_at": None
+        }
+        
+        self.mock_db.fetchrow = AsyncMock(return_value=thread_data)
+        
+        # Should raise ForbiddenException
+        with pytest.raises(ForbiddenException, match="Only thread author can clear solved comment"):
+            await self.service.clear_solved_comment(
+                user_id=user_id,
+                thread_id=thread_id
+            )
+    
+    @pytest.mark.asyncio
+    async def test_clear_solved_comment_no_solved_comment(self):
+        """Test solve clearing when no solved comment is set."""
+        user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+        thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+        
+        # Mock thread data - no solved comment
+        thread_data = {
+            "id": thread_id,
+            "author_id": user_id,
+            "title": "Test question",
+            "body": "Test question body",
+            "solved_comment_id": None,  # No solved comment
+            "deleted_at": None
+        }
+        
+        self.mock_db.fetchrow = AsyncMock(return_value=thread_data)
+        
+        # Should raise ValidationException for no solved comment to clear
+        with pytest.raises(ValidationException, match="No solved comment to clear"):
+            await self.service.clear_solved_comment(
+                user_id=user_id,
+                thread_id=thread_id
+            )
