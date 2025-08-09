@@ -9,6 +9,48 @@ from fastapi import HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
 
+def generate_rate_limit_key(user_id: str, ip: Optional[str] = None) -> str:
+    """Generate composite key for rate limiting.
+    
+    Args:
+        user_id: User ID
+        ip: Client IP address (optional)
+        
+    Returns:
+        Composite key in format "user_id:ip" or just "user_id" if no IP
+    """
+    if ip and ip.strip():
+        return f"{user_id}:{ip}"
+    return user_id
+
+
+def get_client_ip(request: Request) -> str:
+    """Extract client IP from request.
+    
+    Checks X-Forwarded-For header first (takes first IP if multiple),
+    falls back to request.client.host.
+    
+    Args:
+        request: FastAPI Request object
+        
+    Returns:
+        Client IP address
+    """
+    # Check X-Forwarded-For header
+    forwarded_for = request.headers.get("X-Forwarded-For", "").strip()
+    if forwarded_for:
+        # Take the first IP if there are multiple (client's real IP)
+        first_ip = forwarded_for.split(",")[0].strip()
+        if first_ip:
+            return first_ip
+    
+    # Fallback to direct client IP
+    if request.client:
+        return request.client.host
+    
+    return ""
+
+
 class RateLimiter:
     """Simple in-memory rate limiter."""
     
@@ -115,7 +157,7 @@ def create_rate_limit_response(retry_after: int, limit: int, remaining: int, res
         status_code=429,
         content={
             "error": {
-                "code": "RATE_LIMIT_EXCEEDED",
+                "code": "RATE_LIMITED",
                 "message": "Too many requests. Please wait before creating another thread.",
                 "details": {
                     "retryAfter": retry_after,
