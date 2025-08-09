@@ -63,3 +63,8 @@ definition_of_done:
   - "comments_service.pyが作成されている"
   - "create_commentメソッドが実装されている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T07:45:00Z
+#   result: GREEN
+#   note: "CommentService created with create_comment method, text validation/cleaning, repository integration, and CreatedResponse DTO. All tests passing with TDD approach."
