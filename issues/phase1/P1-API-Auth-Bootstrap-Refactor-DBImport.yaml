@@ -1,0 +1,43 @@
+# claim:
+#   id: P1-API-Auth-Bootstrap-Refactor-DBImport
+#   assignee: impl-bot
+#   start_at: 2025-08-08T00:00:00Z
+#   note: "Make get_db_pool patchable by tests"
+# done:
+#   id: P1-API-Auth-Bootstrap-Refactor-DBImport
+#   assignee: claude_agent
+#   end_at: 2025-08-09T02:10:00Z
+#   note: "Already implemented. auth.py uses module import and tests mock correctly."
+id: P1-API-Auth-Bootstrap-Refactor-DBImport
+phase: 1
+layer: API
+area: Auth
+action: Bootstrap-Refactor-DBImport
+target_file: backend/app/routers/auth.py
+test_file: backend/tests/test_auth_bootstrap.py
+depends_on: ["P1-API-Auth-Bootstrap"]
+spec_refs:
+  - "04b"
+  - "05"
+estimated_loc: 5
+
+specification:
+  purpose: "DBプール取得のimport形態をモックしやすい形に変更し、テストが外部DBに接続しないようにする。"
+  content_requirements:
+    - section: "import変更"
+      items:
+        - "from app.core import db に変更"
+        - "pool = await db.get_db_pool() を使用"
+
+output_format: "Python ルーターコードの最小編集"
+
+constraints:
+  - "動作は不変（API契約に影響しない）"
+
+test_specification:
+  validation:
+    - "test_auth_bootstrap が外部DB接続を試みずGREENになる"
+
+definition_of_done:
+  - "auth.py の import が module参照になっている"
+  - "テストがGREEN"
