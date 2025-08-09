@@ -36,3 +36,8 @@ test_specification:
 definition_of_done:
   - "Routerの response_model=ThreadDetail と実装が一致"
   - "関連テストGREEN"
+# done:
+#   id: P1-API-Service-Threads-Get-ReturnDetail
+#   assignee: claude_agent
+#   end_at: 2025-08-09T05:56:00Z
+#   note: "ThreadDetail return type implemented"
