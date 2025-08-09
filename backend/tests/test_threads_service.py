@@ -866,7 +866,7 @@ def test_delete_thread_by_owner():
             mock_repo.get_thread_by_id.assert_called_once_with(thread_id=thread_id)
             mock_repo.soft_delete_thread.assert_called_once_with(
                 thread_id=thread_id,
-                user_id=owner_id
+                author_id=owner_id
             )
     
     asyncio.run(run_test())
