@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.routers import auth, health
+from app.routers import auth, health, threads
 from app.util.errors import (
     BaseAPIException,
     api_exception_handler,
@@ -85,3 +85,4 @@ app.add_middleware(
 # Register routers
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(threads.router, prefix="/api/v1")

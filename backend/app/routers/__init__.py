@@ -15,8 +15,9 @@ Example:
     app.include_router(comments.router, prefix="/api/v1")
 """
 
-from . import health
+from . import health, threads
 
 __all__ = [
     "health",
+    "threads",
 ]
