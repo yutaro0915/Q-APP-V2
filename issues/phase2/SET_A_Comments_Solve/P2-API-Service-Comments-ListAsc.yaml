@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-API-Service-Comments-ListAsc
+#   assignee: claude_agent
+#   start_at: 2025-08-09T07:47:00Z
+#   note: ""
 id: P2-API-Service-Comments-ListAsc
 phase: 2
 layer: API
