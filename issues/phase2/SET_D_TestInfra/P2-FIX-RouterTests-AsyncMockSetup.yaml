@@ -38,3 +38,6 @@ test_specification:
 definition_of_done:
   - "Backend test suite shows improved pass rate"
   - "Comments and Reactions router tests are green"
+# issue:
+#   at: 2025-08-09T07:04:41Z
+#   note: "発見した問題: コメント・リアクションルータテストの失敗原因が、単純なasync mock設定の問題ではなく、ルーティング構造とサービスレイヤの基本的な不整合に起因する可能性が高い。15個のテストが失敗しており、影響範囲が広すぎるため、詳細な調査と設計レビューが必要。"
