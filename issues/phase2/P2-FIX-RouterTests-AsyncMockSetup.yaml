@@ -1,0 +1,35 @@
+id: P2-FIX-RouterTests-AsyncMockSetup
+phase: 2
+layer: API
+area: Test
+action: RouterTests-AsyncMockSetup
+target_file: backend/tests/test_comments_router.py
+test_file: backend/tests/test_comments_router.py
+depends_on: ["P2-API-Router-Comments-POST", "P2-API-Router-Comments-DELETE", "P2-API-Router-Reactions-Comment", "P2-API-Router-Reactions-Thread"]
+spec_refs:
+  - "05"    # Backend Design
+estimated_loc: 50
+
+specification:
+  purpose: "Fix Comments and Reactions router tests failing due to async mock setup issues"
+  content_requirements:
+    - "Fix Comments router tests (POST/DELETE endpoint failures)"
+    - "Fix Reactions router tests (UP/SAVE endpoint failures)"  
+    - "Ensure proper async mock setup for database connections"
+    - "Match implementation patterns with test mock expectations"
+
+output_format: "Python test implementation + async mock fixes"
+
+constraints:
+  - "Do not modify router implementation, only tests"
+  - "Follow existing test patterns and conventions"
+
+test_specification:
+  validation:
+    - "All Comments router tests pass (5 currently failing)"
+    - "All Reactions router tests pass (7 currently failing)"
+    - "No RuntimeWarning about unawaited coroutines"
+
+definition_of_done:
+  - "Backend test suite shows improved pass rate"
+  - "Comments and Reactions router tests are green"

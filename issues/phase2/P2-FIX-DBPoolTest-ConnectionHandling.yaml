@@ -1,0 +1,33 @@
+id: P2-FIX-DBPoolTest-ConnectionHandling
+phase: 2
+layer: API
+area: Test
+action: DBPoolTest-ConnectionHandling
+target_file: backend/tests/test_db_pool.py
+test_file: backend/tests/test_db_pool.py
+depends_on: ["P1-API-DB-Pool"]
+spec_refs:
+  - "05"    # Backend Design
+estimated_loc: 20
+
+specification:
+  purpose: "Fix database pool connection test failing with event loop closure issues"
+  content_requirements:
+    - "Fix test_check_db_connection_failure test that's failing"
+    - "Ensure proper async event loop handling in database tests"
+    - "Handle connection failure scenarios gracefully"
+
+output_format: "Python test implementation with proper async setup"
+
+constraints:
+  - "Do not modify database pool implementation"
+  - "Focus on test infrastructure and async handling"
+
+test_specification:
+  validation:
+    - "Database pool test passes without RuntimeError: Event loop is closed"
+    - "Connection failure scenarios properly handled"
+
+definition_of_done:
+  - "test_check_db_connection_failure test passes"
+  - "No event loop closure errors in database tests"

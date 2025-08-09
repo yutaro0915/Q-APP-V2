@@ -1,0 +1,37 @@
+id: P2-FIX-CommentsRouter-GETListEndpoint
+phase: 2
+layer: API
+area: Router
+action: CommentsRouter-GETListEndpoint
+target_file: backend/app/routers/comments.py
+test_file: backend/tests/integration/test_comments_integration.py
+depends_on: ["P2-API-Router-Comments-GET-List"]
+spec_refs:
+  - "04"    # API Contract
+  - "04a"   # DTO
+  - "05"    # Backend Design
+estimated_loc: 15
+
+specification:
+  purpose: "Fix Comments GET list endpoint returning 405 Method Not Allowed"
+  content_requirements:
+    - "Implement GET /api/v1/threads/{thread_id}/comments endpoint"
+    - "Return PaginatedComments with proper contract compliance"
+    - "Ensure X-Request-Id header is included in responses"
+    - "Handle thread not found (404) and authorization properly"
+
+output_format: "Python implementation (Router only) + integration test validation"
+
+constraints:
+  - "Must follow existing router patterns and conventions"
+  - "Service/Repo layers should already be implemented"
+
+test_specification:
+  validation:
+    - "Integration test passes without 405 error"
+    - "Response structure matches PaginatedComments schema"
+    - "X-Request-Id header present in all responses"
+
+definition_of_done:
+  - "Integration test test_comments_list_contract passes"
+  - "All existing comments router tests remain green"
