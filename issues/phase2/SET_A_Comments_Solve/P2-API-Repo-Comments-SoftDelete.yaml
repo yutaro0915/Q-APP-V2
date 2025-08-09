@@ -59,3 +59,8 @@ definition_of_done:
   - "soft_delete_commentメソッドが実装されている"
   - "権限チェックが実装されている"
   - "テストケースが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T07:35:00Z
+#   result: GREEN
+#   note: "soft_delete_comment implemented with ownership validation, existing comment filtering, and comprehensive test coverage. All tests passing."
