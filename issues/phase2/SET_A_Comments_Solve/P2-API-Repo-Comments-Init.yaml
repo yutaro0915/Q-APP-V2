@@ -58,3 +58,8 @@ definition_of_done:
   - "comments_repo.pyが作成されている"
   - "基本構造が定義されている"
   - "テストファイルが作成されている"
+
+# done:
+#   finished_at: 2025-08-09T07:08:00Z
+#   result: GREEN
+#   note: "CommentRepository class implemented with interface methods and comprehensive test coverage"
