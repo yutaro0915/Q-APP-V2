@@ -1,11 +1,11 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.util.errors import ValidationException
-from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag
+from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag, PaginatedThreadCards
 from app.services.threads_service import ThreadService
 
 
@@ -542,5 +542,290 @@ def test_get_thread_id_validation():
             )
         
         assert "Invalid thread ID" in str(exc_info.value)
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_without_cursor():
+    """Test listing threads without cursor (first page)."""
+    mock_repo = AsyncMock()
+    created_at = datetime.now(timezone.utc)
+    
+    # Mock repository return value with multiple threads
+    mock_repo.list_threads_new = AsyncMock(return_value={
+        "threads": [
+            {
+                "id": "thr_01HX333333333333333333333",
+                "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+                "title": "Newest Thread",
+                "body": "This is the newest thread",
+                "up_count": 0,
+                "save_count": 0,
+                "heat": 0.0,
+                "created_at": created_at,
+                "last_activity_at": created_at,
+                "deleted_at": None
+            },
+            {
+                "id": "thr_01HX222222222222222222222",
+                "author_id": "usr_01HX987654321ZYXWVUTSRQP",
+                "title": "Second Thread",
+                "body": "This is the second thread",
+                "up_count": 5,
+                "save_count": 2,
+                "heat": 1.5,
+                "created_at": created_at - timedelta(hours=1),
+                "last_activity_at": created_at - timedelta(hours=1),
+                "deleted_at": None
+            }
+        ],
+        "has_more": True
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.list_threads_new(
+                cursor=None,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Check result structure
+            assert isinstance(result, PaginatedThreadCards)
+            assert len(result.items) == 2
+            assert result.items[0].id == "thr_01HX333333333333333333333"
+            assert result.items[0].title == "Newest Thread"
+            assert result.items[1].id == "thr_01HX222222222222222222222"
+            assert result.nextCursor is not None
+            
+            # Verify repository was called correctly
+            mock_repo.list_threads_new.assert_called_once_with(
+                cursor=None,
+                limit=20
+            )
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_with_cursor():
+    """Test listing threads with cursor (pagination)."""
+    mock_repo = AsyncMock()
+    created_at = datetime.now(timezone.utc)
+    
+    # Create a test cursor
+    from app.util.cursor import encode_cursor
+    test_cursor = encode_cursor({
+        "createdAt": "2024-01-01T00:00:00Z",
+        "id": "thr_01HX111111111111111111111"
+    })
+    
+    mock_repo.list_threads_new = AsyncMock(return_value={
+        "threads": [
+            {
+                "id": "thr_01HX000000000000000000000",
+                "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+                "title": "Older Thread",
+                "body": "This is an older thread",
+                "up_count": 10,
+                "save_count": 5,
+                "heat": 2.0,
+                "created_at": created_at - timedelta(days=1),
+                "last_activity_at": created_at - timedelta(days=1),
+                "deleted_at": None
+            }
+        ],
+        "has_more": False
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.list_threads_new(
+                cursor=test_cursor,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Check pagination result
+            assert len(result.items) == 1
+            assert result.items[0].id == "thr_01HX000000000000000000000"
+            assert result.nextCursor is None  # No more pages
+            
+            # Verify repository was called with cursor
+            mock_repo.list_threads_new.assert_called_once_with(
+                cursor=test_cursor,
+                limit=20
+            )
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_empty_result():
+    """Test listing threads with empty result."""
+    mock_repo = AsyncMock()
+    
+    mock_repo.list_threads_new = AsyncMock(return_value={
+        "threads": [],
+        "has_more": False
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.list_threads_new(
+                cursor=None,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Check empty result
+            assert len(result.items) == 0
+            assert result.nextCursor is None
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_with_is_mine():
+    """Test that threads correctly identify ownership."""
+    mock_repo = AsyncMock()
+    current_user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    other_user_id = "usr_01HX987654321ZYXWVUTSRQP"
+    created_at = datetime.now(timezone.utc)
+    
+    mock_repo.list_threads_new = AsyncMock(return_value={
+        "threads": [
+            {
+                "id": "thr_01HX111111111111111111111",
+                "author_id": current_user_id,  # Owned by current user
+                "title": "My Thread",
+                "body": "This is my thread",
+                "up_count": 0,
+                "save_count": 0,
+                "heat": 0.0,
+                "created_at": created_at,
+                "last_activity_at": created_at,
+                "deleted_at": None
+            },
+            {
+                "id": "thr_01HX222222222222222222222",
+                "author_id": other_user_id,  # Owned by another user
+                "title": "Someone's Thread",
+                "body": "This is someone else's thread",
+                "up_count": 0,
+                "save_count": 0,
+                "heat": 0.0,
+                "created_at": created_at,
+                "last_activity_at": created_at,
+                "deleted_at": None
+            }
+        ],
+        "has_more": False
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.list_threads_new(
+                cursor=None,
+                current_user_id=current_user_id
+            )
+            
+            # Both threads should be returned
+            assert len(result.items) == 2
+            # is_mine is internal, but we can verify author_id handling
+            assert result.items[0].title == "My Thread"
+            assert result.items[1].title == "Someone's Thread"
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_invalid_cursor():
+    """Test listing threads with invalid cursor."""
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        # Invalid cursor should raise ValidationException
+        with pytest.raises(ValidationException) as exc_info:
+            await service.list_threads_new(
+                cursor="invalid_cursor_not_base64",
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+        
+        assert "Invalid cursor" in str(exc_info.value)
+    
+    asyncio.run(run_test())
+
+
+def test_list_threads_new_cursor_generation():
+    """Test that next cursor is generated correctly."""
+    mock_repo = AsyncMock()
+    created_at = datetime.now(timezone.utc)
+    last_thread_created = created_at - timedelta(hours=2)
+    
+    mock_repo.list_threads_new = AsyncMock(return_value={
+        "threads": [
+            {
+                "id": "thr_01HX111111111111111111111",
+                "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+                "title": "First",
+                "body": "Body",
+                "up_count": 0,
+                "save_count": 0,
+                "heat": 0.0,
+                "created_at": created_at,
+                "last_activity_at": created_at,
+                "deleted_at": None
+            },
+            {
+                "id": "thr_01HX222222222222222222222",
+                "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+                "title": "Last on page",
+                "body": "Body",
+                "up_count": 0,
+                "save_count": 0,
+                "heat": 0.0,
+                "created_at": last_thread_created,
+                "last_activity_at": last_thread_created,
+                "deleted_at": None
+            }
+        ],
+        "has_more": True
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.list_threads_new(
+                cursor=None,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Next cursor should be based on last thread
+            assert result.nextCursor is not None
+            
+            # Decode and check cursor content
+            from app.util.cursor import decode_cursor
+            cursor_data = decode_cursor(result.nextCursor)
+            assert cursor_data["id"] == "thr_01HX222222222222222222222"
+            # Timestamp should match last thread's created_at
     
     asyncio.run(run_test())

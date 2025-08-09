@@ -4,7 +4,7 @@ from typing import Any, Optional
 import re
 
 from app.repositories.threads_repo import ThreadRepository
-from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag, AuthorAffiliation
+from app.schemas.threads import CreateThreadRequest, ThreadCard, Tag, AuthorAffiliation, PaginatedThreadCards
 from app.util.errors import ValidationException
 
 
@@ -121,6 +121,74 @@ class ThreadService:
         
         # Convert to ThreadCard DTO
         return self._to_thread_card(thread_data, current_user_id, tags)
+    
+    async def list_threads_new(
+        self,
+        *,
+        cursor: Optional[str] = None,
+        current_user_id: str
+    ) -> PaginatedThreadCards:
+        """List threads in newest order.
+        
+        Args:
+            cursor: Pagination cursor
+            current_user_id: ID of the current user
+            
+        Returns:
+            PaginatedThreadCards with list of threads
+            
+        Raises:
+            ValidationException: If cursor is invalid
+        """
+        # Validate cursor if provided
+        if cursor:
+            try:
+                from app.util.cursor import decode_cursor, validate_threads_cursor
+                cursor_data = decode_cursor(cursor)
+                anchor, errors = validate_threads_cursor(cursor_data)
+                if errors:
+                    raise ValidationException("Invalid cursor format")
+            except ValidationException:
+                raise
+            except Exception:
+                raise ValidationException("Invalid cursor")
+        
+        # Create repository instance
+        repo = ThreadRepository(self._db)
+        
+        # Get threads from repository
+        result = await repo.list_threads_new(cursor=cursor, limit=20)
+        
+        # Convert threads to ThreadCards
+        thread_cards = []
+        for thread_data in result["threads"]:
+            # TODO: Get tags from database in later phase
+            tags = []
+            thread_card = self._to_thread_card(thread_data, current_user_id, tags)
+            thread_cards.append(thread_card)
+        
+        # Generate next cursor if there are more results
+        next_cursor = None
+        if result["has_more"] and thread_cards:
+            last_thread = result["threads"][-1]
+            from app.util.cursor import encode_cursor
+            
+            # Format timestamp for cursor
+            created_at = last_thread["created_at"]
+            if hasattr(created_at, "isoformat"):
+                created_at_str = created_at.isoformat().replace("+00:00", "Z")
+            else:
+                created_at_str = str(created_at)
+            
+            next_cursor = encode_cursor({
+                "createdAt": created_at_str,
+                "id": last_thread["id"]
+            })
+        
+        return PaginatedThreadCards(
+            items=thread_cards,
+            nextCursor=next_cursor
+        )
     
     def _is_valid_thread_id(self, thread_id: str) -> bool:
         """Validate thread ID format.
