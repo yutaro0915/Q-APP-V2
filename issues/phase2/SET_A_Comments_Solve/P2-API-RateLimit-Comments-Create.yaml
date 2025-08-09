@@ -41,3 +41,8 @@ definition_of_done:
   - "レート制限が有効"
   - "ヘッダが付与される"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T07:34:00Z
+#   result: GREEN
+#   note: ""
