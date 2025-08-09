@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from app.services.cursor import (
+from app.util.cursor import (
     encode,
     decode,
     validate_comments_cursor,
