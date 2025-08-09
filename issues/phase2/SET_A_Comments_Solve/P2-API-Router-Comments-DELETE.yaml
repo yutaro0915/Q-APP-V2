@@ -59,3 +59,7 @@ definition_of_done:
   - "DELETEエンドポイントが実装されている"
   - "権限チェックが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+#   result: GREEN
+#   note: "DELETE /comments/{comment_id} endpoint implemented with FastAPI router. Authentication via get_current_user, integrates with CommentService.delete_comment, returns 204 No Content. Router registered in main.py. Core functionality verified working."
