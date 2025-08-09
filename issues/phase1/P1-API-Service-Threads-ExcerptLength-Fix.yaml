@@ -26,3 +26,8 @@ output_format: "Python 実装変更（関数参照差し替えのみ）"
 definition_of_done:
   - "excerpt長が120に統一"
   - "関連テストGREEN（必要なら期待値更新）"
+# done:
+#   id: P1-API-Service-Threads-ExcerptLength-Fix
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:11:00Z
+#   note: "Using schemas.create_excerpt with 120 char length"
