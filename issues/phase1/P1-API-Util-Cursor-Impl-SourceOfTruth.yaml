@@ -59,3 +59,8 @@ definition_of_done:
 # Note:
 # - For Phase 1, both implementations remain to avoid breaking changes
 # - Functions are functionally identical, just different naming conventions
+# done:
+#   id: P1-API-Util-Cursor-Impl-SourceOfTruth
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:02:00Z
+#   note: "Documented app/util/cursor.py as source of truth"
