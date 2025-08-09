@@ -63,3 +63,8 @@ definition_of_done:
   - "get_comments_by_thread_idメソッドが実装されている"
   - "ソート順が正しいこと"
   - "テストケースが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T07:22:00Z
+#   result: GREEN
+#   note: "list_comments_by_thread implemented with ASC ordering, cursor pagination, author affiliation JOIN, and soft-delete filtering. Comprehensive test coverage added."
