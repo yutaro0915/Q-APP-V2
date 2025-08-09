@@ -33,4 +33,8 @@ test_specification:
 definition_of_done:
   - "プロフィールAPIの応答が契約キーで返る"
   - "関連テストがGREEN"
+# done:
+#   finished_at: 2025-08-09T07:17:00Z
+#   result: GREEN
+#   note: "MyProfile schema updated with serialization_alias='userId'. API now outputs userId key instead of id key, matching API contract. Test updated to verify userId presence and id absence. Specific target test passes GREEN."
 
