@@ -173,3 +173,32 @@ git add "$ISSUE_YAML" && git commit -m "chore(issue-note): $ISSUE_ID incident no
 - 実装コミットは「実装1ファイル＋テスト」へ厳格に限定
 - 各コミット前に `bash scripts/test.sh` を必ず実行（GREEN以外はコミット禁止）
 - 仕様差異が発生したら、まずYAMLを更新し整合させてから実装
+
+## 並行実装のためのタスク分割（必須運用）
+- 目的: 複数エージェントが衝突せず同時進行できるよう、依存が薄い単位で Issue YAML を「セット」に分割し、ディレクトリで分離する。
+- 基本ルール
+  - セットは `issues/phaseX/SET_*_.../` に作成（例: `SET_A_*`, `SET_B_*`）。命名は大文字＋短い識別子で機能境界が推測できるようにする。
+  - 分割はファイル移動のみ（`git mv`）。YAML本文は変更しない（`# claim:`/`# done:`/`# issue:` の追記を除く）。
+  - `PHASE_DoD.md` はフェーズ直下に残置する（移動しない）。
+  - 各エージェントは「1セット内のIssue」から選択して着手し、同時期にセットを跨がない（競合低減）。
+  - `# claim:` が既に存在するIssueには着手しない。スタンプ直前・コミット直前に再確認する。
+  - 実装コミットは One-File Rule を厳守。分割コミットは「移動のみ」を単独コミットとする。
+- 手順（例）
+  - ディレクトリ作成と移動
+    ```bash
+    mkdir -p issues/phase2/SET_A_Foo issues/phase2/SET_B_Bar
+    git mv issues/phase2/P2-...Foo....yaml issues/phase2/SET_A_Foo/
+    git mv issues/phase2/P2-...Bar....yaml issues/phase2/SET_B_Bar/
+    ```
+  - 配置確認とコミット
+    ```bash
+    find issues/phase2 -maxdepth 2 -type f | sort
+    git commit -m "chore(issues): phase2 をセット分割（移動のみ）" && git push
+    ```
+- 注意点
+  - セットは「依存が薄い」観点で形成（Repo/Service/Router/Front が同じ境界で閉じる単位を優先）。
+  - 画像・検索・Hot など横断要素は専用セットに切り出し、他セットからの依存を持たせない。
+  - 分割後に参照パスが変わる場合は、実装前に必要最小限の追従修正を別コミットで行う（仕様本文は変更しない）。
+- 運用フロー
+  - セット分割 → 各エージェントがセット内Issueを `# claim:` → TDD（RED→GREEN）→ `# done:`。
+  - 問題発生時は `# issue:` を残し、他エージェントの進行に影響しないよう範囲を限定する。
