@@ -1,0 +1,28 @@
+# claim:
+#   id: P1-API-Auth-Bootstrap-YAMLFix-NoJWT
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:45:00Z
+#   note: ""
+id: P1-API-Auth-Bootstrap-YAMLFix-NoJWT
+phase: 1
+layer: API
+area: Auth
+action: Bootstrap-YAMLFix-NoJWT
+target_file: issues/phase1/P1-API-Auth-Bootstrap.yaml
+test_file: backend/tests/test_auth_bootstrap.py
+depends_on: ["P1-API-DB-Pool", "P0-API-Errors"]
+spec_refs:
+  - "01"  # ドメイン不変条件（JWT不使用）
+  - "04a" # Auth DTO
+estimated_loc: 8
+
+specification:
+  purpose: "P1-API-Auth-Bootstrap.yaml の 'constraints' と 'test_specification' 内のJWTに関する誤記を修正（不透明トークン＋sessions.token_hashに統一）"
+  content_requirements:
+    - "constraints から JWT記述を削除し、'不透明トークン（JWT不使用）' を明記"
+    - "test_specification の 'JWTトークンが生成されること' を 'セッショントークンが生成されること（DBにはsha256ハッシュ）' に修正"
+
+output_format: "YAMLの修正（ドキュメント）"
+
+definition_of_done:
+  - "YAMLの誤記が是正される"
