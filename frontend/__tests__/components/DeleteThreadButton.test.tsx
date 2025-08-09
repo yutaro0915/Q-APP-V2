@@ -17,15 +17,11 @@ vi.mock('next/navigation', () => ({
 // Mock deleteThread action
 vi.mock('@/lib/actions/deleteThread');
 
-// Mock window.confirm
-global.confirm = vi.fn();
-
 describe('DeleteThreadButton', () => {
   const mockDeleteThread = vi.mocked(deleteThreadModule.deleteThread);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(global.confirm).mockReturnValue(true);
   });
 
   it('renders delete button', () => {
@@ -36,23 +32,36 @@ describe('DeleteThreadButton', () => {
     expect(button).toHaveTextContent('削除');
   });
 
-  it('shows confirmation dialog when clicked', async () => {
+  it('shows delete dialog when clicked', async () => {
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
 
-    expect(global.confirm).toHaveBeenCalledWith('このスレッドを削除してもよろしいですか？');
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('スレッドの削除')).toBeInTheDocument();
+      expect(screen.getByText('このスレッドを削除してもよろしいですか？この操作は取り消せません。')).toBeInTheDocument();
+    });
   });
 
-  it('cancels deletion when user declines confirmation', async () => {
-    vi.mocked(global.confirm).mockReturnValue(false);
-    
+  it('closes dialog when cancel is clicked', async () => {
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
 
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    const cancelButton = screen.getByText('キャンセル');
+    fireEvent.click(cancelButton);
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    
     expect(mockDeleteThread).not.toHaveBeenCalled();
   });
 
@@ -61,8 +70,18 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1]; // Last one is in dialog
+    fireEvent.click(dialogDeleteButton);
 
     await waitFor(() => {
       expect(mockDeleteThread).toHaveBeenCalledWith('thr_01234567890123456789012345');
@@ -78,12 +97,21 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(button).toHaveTextContent('削除中...');
-      expect(button).toBeDisabled();
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1];
+    fireEvent.click(dialogDeleteButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('削除中...')).toBeInTheDocument();
     });
   });
 
@@ -96,8 +124,18 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1];
+    fireEvent.click(dialogDeleteButton);
 
     await waitFor(() => {
       expect(screen.getByText('このスレッドを削除する権限がありません')).toBeInTheDocument();
@@ -114,8 +152,18 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1];
+    fireEvent.click(dialogDeleteButton);
 
     await waitFor(() => {
       expect(screen.getByText('スレッドが見つかりません')).toBeInTheDocument();
@@ -132,8 +180,18 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1];
+    fireEvent.click(dialogDeleteButton);
 
     await waitFor(() => {
       expect(screen.getByText('ログインが必要です')).toBeInTheDocument();
@@ -146,26 +204,22 @@ describe('DeleteThreadButton', () => {
     
     render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
     
+    // Open dialog
     const button = screen.getByRole('button', { name: /削除/ });
     fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    // Click delete in dialog
+    const deleteButtons = screen.getAllByText('削除');
+    const dialogDeleteButton = deleteButtons[deleteButtons.length - 1];
+    fireEvent.click(dialogDeleteButton);
 
     await waitFor(() => {
       expect(screen.getByText('Network error')).toBeInTheDocument();
       expect(mockPush).not.toHaveBeenCalled();
-    });
-  });
-
-  it('re-enables button after error', async () => {
-    mockDeleteThread.mockRejectedValue(new Error('Network error'));
-    
-    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
-    
-    const button = screen.getByRole('button', { name: /削除/ });
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(button).not.toBeDisabled();
-      expect(button).toHaveTextContent('削除');
     });
   });
 });
