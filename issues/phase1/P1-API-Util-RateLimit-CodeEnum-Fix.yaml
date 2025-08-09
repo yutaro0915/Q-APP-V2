@@ -25,3 +25,8 @@ output_format: "Python 小変更（One-File Rule）"
 
 definition_of_done:
   - "該当ファイルのみの実装変更＋テストGREEN"
+# done:
+#   id: P1-API-Util-RateLimit-CodeEnum-Fix
+#   assignee: claude_agent
+#   end_at: 2025-08-09T05:49:00Z
+#   note: "Already fixed by pre-commit hook to use RATE_LIMITED"
