@@ -59,3 +59,7 @@ definition_of_done:
   - "reactions_repo.pyが作成されている"
   - "基本構造が定義されている"
   - "テストファイルが作成されている"
+# done:
+#   finished_at: 2025-08-09T07:09:00Z
+#   result: GREEN
+#   note: "Implemented ReactionRepository with basic interface, ID generation, and timestamp helpers. All method signatures defined with NotImplementedError placeholders."
