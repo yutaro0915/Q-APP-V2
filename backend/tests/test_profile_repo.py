@@ -34,23 +34,23 @@ class TestProfileRepository:
             "created_at": "2024-01-01T00:00:00Z"
         }
         
-        mock_db.fetch_one = AsyncMock(return_value=mock_profile)
+        mock_db.fetchrow = AsyncMock(return_value=mock_profile)
         
         # Execute
         result = await repo.get_profile_by_user_id("usr_01234567890123456789012345")
         
         # Assert
         assert result == mock_profile
-        mock_db.fetch_one.assert_called_once()
+        mock_db.fetchrow.assert_called_once()
         
     async def test_get_profile_by_user_id_not_found(self, repo, mock_db):
         """Test getting profile for non-existent user."""
-        mock_db.fetch_one = AsyncMock(return_value=None)
+        mock_db.fetchrow = AsyncMock(return_value=None)
         
         result = await repo.get_profile_by_user_id("usr_99999999999999999999999999")
         
         assert result is None
-        mock_db.fetch_one.assert_called_once()
+        mock_db.fetchrow.assert_called_once()
 
     async def test_upsert_profile_insert(self, repo, mock_db):
         """Test inserting a new profile."""
@@ -99,7 +99,7 @@ class TestProfileRepository:
             "created_at": "2024-01-01T00:00:00Z"
         }
         
-        mock_db.fetch_one = AsyncMock(return_value=mock_profile)
+        mock_db.fetchrow = AsyncMock(return_value=mock_profile)
         
         result = await repo.get_public_profile("usr_01234567890123456789012345")
         
@@ -117,7 +117,7 @@ class TestProfileRepository:
             "created_at": "2024-01-01T00:00:00Z"
         }
         
-        mock_db.fetch_one = AsyncMock(return_value=mock_profile)
+        mock_db.fetchrow = AsyncMock(return_value=mock_profile)
         
         result = await repo.get_public_profile("usr_01234567890123456789012345")
         
@@ -135,7 +135,7 @@ class TestProfileRepository:
             "created_at": "2024-01-01T00:00:00Z"
         }
         
-        mock_db.fetch_one = AsyncMock(return_value=mock_profile)
+        mock_db.fetchrow = AsyncMock(return_value=mock_profile)
         
         result = await repo.get_public_profile("usr_01234567890123456789012345")
         
@@ -144,7 +144,7 @@ class TestProfileRepository:
         
     async def test_get_public_profile_not_found(self, repo, mock_db):
         """Test getting public profile for non-existent user."""
-        mock_db.fetch_one = AsyncMock(return_value=None)
+        mock_db.fetchrow = AsyncMock(return_value=None)
         
         result = await repo.get_public_profile("usr_99999999999999999999999999")
         
