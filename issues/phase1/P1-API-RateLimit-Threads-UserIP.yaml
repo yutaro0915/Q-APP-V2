@@ -1,0 +1,32 @@
+# claim:
+#   id: P1-API-RateLimit-Threads-UserIP
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:47:00Z
+#   note: ""
+id: P1-API-RateLimit-Threads-UserIP
+phase: 1
+layer: API
+area: Util
+action: RateLimit-Threads-UserIP
+target_file: backend/app/util/rate_limit.py
+test_file: backend/tests/test_rate_limit_threads.py
+depends_on: ["P1-API-RateLimit-Threads-Create"]
+spec_refs:
+  - "01"  # 不変条件（user+IP）
+  - "04b" # RateLimit ヘッダ
+estimated_loc: 30
+
+specification:
+  purpose: "スレ作成のレート制限キーを user_id にIPを加味した複合キーに拡張する"
+  content_requirements:
+    - "RateLimiter.check_rate_limit(key: str) の key 生成を (user_id + ':' + ip) に変更するための補助関数を追加"
+    - "Router側で IP を取得（X-Forwarded-For 先頭 or client.host）し、キー生成に使用"
+    - "既存テストは維持（Phase1はuser単位でもGREEN）。後追いのテスト拡張はPhase2で行う"
+
+output_format: "ドキュメント（計画）と小規模コード変更（One-File Ruleは未実施、次Issueで実施）"
+
+constraints:
+  - "本Issueではドキュメントを追加。実装は後続の最小単位Issueで分割実施する"
+
+definition_of_done:
+  - "YAMLが追補され、次の実装タスクが切られている"
