@@ -62,3 +62,7 @@ definition_of_done:
   - "POSTエンドポイントが実装されている"
   - "リクエスト分岐が実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T07:20:20Z
+#   result: GREEN
+#   note: "POST /threads/{id}/solve endpoint implemented. SolveRequest schema with commentId validation. Request branching logic (set vs clear solved). Authentication and authorization integration. Service layer integration with set_solved_comment/clear_solved_comment. Proper error handling for all scenarios. Router registration in main.py. Comprehensive test coverage with 11 test cases covering success, validation, authentication, and error scenarios. All tests passing (11/11)."
