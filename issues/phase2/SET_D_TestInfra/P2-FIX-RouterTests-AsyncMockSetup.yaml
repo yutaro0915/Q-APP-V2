@@ -40,4 +40,23 @@ definition_of_done:
   - "Comments and Reactions router tests are green"
 # issue:
 #   at: 2025-08-09T07:04:41Z
-#   note: "発見した問題: コメント・リアクションルータテストの失敗原因が、単純なasync mock設定の問題ではなく、ルーティング構造とサービスレイヤの基本的な不整合に起因する可能性が高い。15個のテストが失敗しており、影響範囲が広すぎるため、詳細な調査と設計レビューが必要。"
+#   note: |
+#     発見した問題: コメント・リアクションルータテストの失敗原因が、単純なasync mock設定の問題ではない。
+#     
+#     具体的な問題:
+#     1. test_comments_router.py: 7個のテストが失敗
+#        - DELETE /comments/{id} エンドポイントが存在しないか正しく動作しない
+#        - GET /threads/{id}/comments エンドポイントのルーティング不整合
+#        - サービス層のNotFoundException処理が期待通りに動作しない
+#     2. test_reactions_router.py: 8個のテストが失敗  
+#        - POST /threads/{id}/reactions エンドポイント未実装の可能性
+#        - POST /comments/{id}/reactions エンドポイント未実装の可能性
+#        - リアクションサービス全体が実装されていない可能性
+#     
+#     推奨アプローチ:
+#     - まずルーターの実装状況を確認 (comments.py, reactions.py, threads.py)
+#     - サービス層の実装確認 (CommentService, ReactionService)  
+#     - エンドポイントの欠落を特定し、個別YAMLで実装作業を分割
+#     - テスト修正は実装完了後に別途実施
+#     
+#     影響範囲が広すぎるため、テスト修正ではなく基盤実装の問題として扱う必要がある。
