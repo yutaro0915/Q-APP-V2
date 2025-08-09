@@ -59,3 +59,7 @@ definition_of_done:
   - "upsert_save_reactionメソッドが実装されている"
   - "重複制御が実装されている"
   - "テストケースが追加されている"
+# done:
+#   finished_at: 2025-08-09T06:21:45Z
+#   result: GREEN
+#   note: "Implemented insert_save_if_absent method for thread-only save reactions with transaction support and save_count increments"
