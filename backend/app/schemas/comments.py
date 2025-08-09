@@ -115,6 +115,31 @@ class Comment(BaseModel):
         return v
 
 
+class CreatedResponse(BaseModel):
+    """Response after creating a comment."""
+    id: str
+    createdAt: str  # ISO8601
+    
+    @field_validator('id')
+    def validate_id(cls, v: str) -> str:
+        """Validate comment ID format."""
+        if not v.startswith('cmt_'):
+            raise ValueError(f"Comment ID must start with 'cmt_': {v}")
+        if not validate_id_format(v):
+            raise ValueError(f"Invalid ID format: {v}")
+        return v
+    
+    @field_validator('createdAt')
+    def validate_created_at(cls, v: str) -> str:
+        """Validate ISO8601 format."""
+        try:
+            # Parse to validate format
+            datetime.fromisoformat(v.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            raise ValueError(f"Invalid ISO8601 format: {v}")
+        return v
+
+
 class PaginatedComments(BaseModel):
     """Paginated comments response."""
     items: List[Comment]
