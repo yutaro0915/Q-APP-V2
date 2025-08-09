@@ -52,13 +52,13 @@ specification:
 constraints:
   - "匿名認証のみ（Phase 1）"
   - "device_secretの安全な管理"
-  - "JWTの適切な実装"
+  - "不透明トークン（JWT不使用）"
 
 test_specification:
   validation:
     - "新規ユーザーが作成されること"
     - "既存ユーザーが取得されること"
-    - "JWTトークンが生成されること"
+    - "セッショントークンが生成されること（DBにはsha256ハッシュ）"
 
 definition_of_done:
   - "auth.pyが作成されている"
