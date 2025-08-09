@@ -31,7 +31,7 @@ class ProfileRepository:
             WHERE id = $1
         """
         
-        result = await self._db.fetch_one(query, user_id)
+        result = await self._db.fetchrow(query, user_id)
         return dict(result) if result else None
 
     async def upsert_profile(self, user_id: str, profile_data: Dict[str, Any]) -> None:
@@ -81,7 +81,7 @@ class ProfileRepository:
             WHERE id = $1
         """
         
-        result = await self._db.fetch_one(query, user_id)
+        result = await self._db.fetchrow(query, user_id)
         
         if not result:
             # Return default profile for non-existent user
