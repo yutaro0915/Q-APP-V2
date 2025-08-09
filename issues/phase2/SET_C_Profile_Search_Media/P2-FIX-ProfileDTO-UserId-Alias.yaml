@@ -1,0 +1,36 @@
+# claim:
+#   id: P2-FIX-ProfileDTO-UserId-Alias
+#   assignee: claude_agent
+#   start_at: 2025-08-09T07:12:00Z
+#   note: ""
+id: P2-FIX-ProfileDTO-UserId-Alias
+phase: 2
+layer: API
+area: Schemas
+action: Profile-DTO-UserId
+target_file: backend/app/schemas/profile.py
+test_file: backend/tests/test_profile_router.py
+spec_refs:
+  - "04"   # API契約（MyProfile.userId）
+  - "04a"  # DTO/Validation
+estimated_loc: 30
+
+specification:
+  purpose: "MyProfileのJSONキーを契約に合わせ userId でシリアライズする（id→userId）"
+  content_requirements:
+    - "Pydantic v2 のエイリアス設定（alias/serialization）でJSON出力を userId にする"
+    - "内部属性/既存サービスへの影響を最小化（populate_by_name等を適宜設定）"
+
+output_format: "Python スキーマ修正（profile.py）"
+
+constraints:
+  - "サービス/リポジトリの大規模改修は行わない（まずはシリアライズ整合）"
+
+test_specification:
+  validation:
+    - "GET /auth/me/profile の応答JSONで userId が存在し、id キーは出力されない"
+
+definition_of_done:
+  - "プロフィールAPIの応答が契約キーで返る"
+  - "関連テストがGREEN"
+
