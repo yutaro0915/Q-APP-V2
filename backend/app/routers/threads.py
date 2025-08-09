@@ -8,7 +8,9 @@ from fastapi.responses import JSONResponse
 from app.routers.auth import get_current_user
 from app.core.db import get_db_connection
 from app.schemas.threads import CreateThreadRequest, PaginatedThreadCards, ThreadDetail
+from app.schemas.comments import CreateCommentRequest, CreatedResponse
 from app.services.threads_service import ThreadService
+from app.services.comments_service import CommentService
 from app.util.errors import ValidationException
 from app.util.rate_limit import rate_limiter, create_rate_limit_response
 
@@ -168,4 +170,40 @@ async def delete_thread(
         await service.delete_thread(
             thread_id=thread_id,
             current_user_id=current_user_id
+        )
+
+
+@router.post("/{thread_id}/comments", status_code=status.HTTP_201_CREATED, response_model=CreatedResponse)
+async def create_comment(
+    thread_id: str,
+    comment_create: CreateCommentRequest,
+    authorization: str = Header(...),
+    db = Depends(get_db_connection)
+) -> CreatedResponse:
+    """Create a new comment on a thread.
+    
+    Args:
+        thread_id: ID of the thread to comment on
+        comment_create: Comment creation request
+        authorization: Authorization header (required)
+        db: Database connection
+        
+    Returns:
+        CreatedResponse with comment ID and timestamp
+        
+    Raises:
+        UnauthorizedException: If not authenticated
+        NotFoundException: If thread doesn't exist
+        ValidationException: If validation fails
+        RateLimitException: If rate limit exceeded
+    """
+    # Get current user ID (authentication required)
+    user_id = await get_current_user(authorization)
+    
+    async with db as conn:
+        service = CommentService(db=conn)
+        return await service.create_comment(
+            user_id=user_id,
+            thread_id=thread_id,
+            dto=comment_create
         )
