@@ -57,3 +57,7 @@ definition_of_done:
   - "AuthorChip.tsxが作成されている"
   - "学部・学年表示ロジックが実装されている"
   - "色分けスタイルが実装されている"
+# done:
+#   finished_at: 2025-08-09T06:43:38Z
+#   result: GREEN
+#   note: "AuthorChip component implemented with faculty/year badge display, faculty-specific color palette (12 departments), responsive sizing, accessibility support, and privacy-aware display. Component reuses helper functions from updateProfile.ts."
