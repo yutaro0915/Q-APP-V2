@@ -98,14 +98,6 @@ def test_methods_raise_not_implemented():
     """Test that non-implemented methods raise NotImplementedError as expected during init phase."""
     repo = CommentRepository(db=MagicMock())
 
-    # Test list_comments_by_thread raises NotImplementedError
-    async def test_list():
-        try:
-            await repo.list_comments_by_thread(thread_id="thr_test")
-            assert False, "Should have raised NotImplementedError"
-        except NotImplementedError:
-            pass
-
     # Test soft_delete_comment raises NotImplementedError  
     async def test_delete():
         try:
@@ -121,7 +113,6 @@ def test_methods_raise_not_implemented():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(test_list())
         loop.run_until_complete(test_delete())
     finally:
         loop.close()
@@ -170,6 +161,166 @@ def test_create_comment_success():
         loop.close()
 
 
+def test_list_comments_by_thread_success():
+    """Test successful listing of comments in ASC order."""
+    mock_db = AsyncMock()
+    
+    # Mock response: comments in ASC order with author affiliation
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "First comment",
+            "up_count": 2,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": "理学部",
+            "author_year": 2
+        },
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNQ",
+            "body": "Second comment", 
+            "up_count": 1,
+            "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        # Should return list of comment dicts
+        assert len(result) == 2
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNP"
+        assert result[0]["body"] == "First comment"
+        assert result[0]["author_faculty"] == "理学部"
+        assert result[0]["author_year"] == 2
+        
+        assert result[1]["id"] == "cmt_01HX123456789ABCDEFGHJKMNQ"
+        assert result[1]["author_faculty"] is None
+        assert result[1]["author_year"] is None
+        
+        # Should call fetch with proper query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "SELECT" in query
+        assert "ORDER BY c.created_at ASC, c.id ASC" in query
+        assert "c.deleted_at IS NULL" in query
+        assert "JOIN users u ON u.id = c.author_id" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_with_cursor():
+    """Test listing comments with cursor pagination."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNR",
+            "body": "Later comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 8, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        anchor_time = datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc)
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            anchor_created_at=anchor_time,
+            anchor_id="cmt_01HX123456789ABCDEFGHJKMNQ"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNR"
+        
+        # Should include cursor conditions in query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "(c.created_at, c.id) > ($2, $3)" in query or "c.created_at > $2" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_empty_result():
+    """Test listing comments for non-existent thread returns empty list."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_nonexistent"
+        )
+        
+        assert result == []
+        mock_db.fetch.assert_called_once()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_excludes_deleted():
+    """Test that deleted comments are excluded from results."""
+    mock_db = AsyncMock()
+    
+    # Only return non-deleted comments
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "Active comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["body"] == "Active comment"
+        
+        # Should filter out deleted comments in WHERE clause
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "c.deleted_at IS NULL" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
 def test_create_comment_with_image():
     """Test comment creation with image key."""
     mock_db = AsyncMock()
@@ -201,6 +352,166 @@ def test_create_comment_with_image():
         loop.close()
 
 
+def test_list_comments_by_thread_success():
+    """Test successful listing of comments in ASC order."""
+    mock_db = AsyncMock()
+    
+    # Mock response: comments in ASC order with author affiliation
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "First comment",
+            "up_count": 2,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": "理学部",
+            "author_year": 2
+        },
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNQ",
+            "body": "Second comment", 
+            "up_count": 1,
+            "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        # Should return list of comment dicts
+        assert len(result) == 2
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNP"
+        assert result[0]["body"] == "First comment"
+        assert result[0]["author_faculty"] == "理学部"
+        assert result[0]["author_year"] == 2
+        
+        assert result[1]["id"] == "cmt_01HX123456789ABCDEFGHJKMNQ"
+        assert result[1]["author_faculty"] is None
+        assert result[1]["author_year"] is None
+        
+        # Should call fetch with proper query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "SELECT" in query
+        assert "ORDER BY c.created_at ASC, c.id ASC" in query
+        assert "c.deleted_at IS NULL" in query
+        assert "JOIN users u ON u.id = c.author_id" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_with_cursor():
+    """Test listing comments with cursor pagination."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNR",
+            "body": "Later comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 8, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        anchor_time = datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc)
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            anchor_created_at=anchor_time,
+            anchor_id="cmt_01HX123456789ABCDEFGHJKMNQ"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNR"
+        
+        # Should include cursor conditions in query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "(c.created_at, c.id) > ($2, $3)" in query or "c.created_at > $2" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_empty_result():
+    """Test listing comments for non-existent thread returns empty list."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_nonexistent"
+        )
+        
+        assert result == []
+        mock_db.fetch.assert_called_once()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_excludes_deleted():
+    """Test that deleted comments are excluded from results."""
+    mock_db = AsyncMock()
+    
+    # Only return non-deleted comments
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "Active comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["body"] == "Active comment"
+        
+        # Should filter out deleted comments in WHERE clause
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "c.deleted_at IS NULL" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
 def test_create_comment_foreign_key_error():
     """Test comment creation with non-existent thread_id."""
     import asyncpg
@@ -221,6 +532,166 @@ def test_create_comment_foreign_key_error():
             assert False, "Should have raised ForeignKeyViolationError"
         except asyncpg.ForeignKeyViolationError:
             pass  # Expected
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_success():
+    """Test successful listing of comments in ASC order."""
+    mock_db = AsyncMock()
+    
+    # Mock response: comments in ASC order with author affiliation
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "First comment",
+            "up_count": 2,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": "理学部",
+            "author_year": 2
+        },
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNQ",
+            "body": "Second comment", 
+            "up_count": 1,
+            "created_at": datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        # Should return list of comment dicts
+        assert len(result) == 2
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNP"
+        assert result[0]["body"] == "First comment"
+        assert result[0]["author_faculty"] == "理学部"
+        assert result[0]["author_year"] == 2
+        
+        assert result[1]["id"] == "cmt_01HX123456789ABCDEFGHJKMNQ"
+        assert result[1]["author_faculty"] is None
+        assert result[1]["author_year"] is None
+        
+        # Should call fetch with proper query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "SELECT" in query
+        assert "ORDER BY c.created_at ASC, c.id ASC" in query
+        assert "c.deleted_at IS NULL" in query
+        assert "JOIN users u ON u.id = c.author_id" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_with_cursor():
+    """Test listing comments with cursor pagination."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNR",
+            "body": "Later comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 8, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        anchor_time = datetime(2025, 8, 9, 7, 0, 0, tzinfo=timezone.utc)
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            anchor_created_at=anchor_time,
+            anchor_id="cmt_01HX123456789ABCDEFGHJKMNQ"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["id"] == "cmt_01HX123456789ABCDEFGHJKMNR"
+        
+        # Should include cursor conditions in query
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "(c.created_at, c.id) > ($2, $3)" in query or "c.created_at > $2" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_empty_result():
+    """Test listing comments for non-existent thread returns empty list."""
+    mock_db = AsyncMock()
+    mock_db.fetch = AsyncMock(return_value=[])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_nonexistent"
+        )
+        
+        assert result == []
+        mock_db.fetch.assert_called_once()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_list_comments_by_thread_excludes_deleted():
+    """Test that deleted comments are excluded from results."""
+    mock_db = AsyncMock()
+    
+    # Only return non-deleted comments
+    mock_db.fetch = AsyncMock(return_value=[
+        {
+            "id": "cmt_01HX123456789ABCDEFGHJKMNP",
+            "body": "Active comment",
+            "up_count": 0,
+            "created_at": datetime(2025, 8, 9, 6, 0, 0, tzinfo=timezone.utc),
+            "author_faculty": None,
+            "author_year": None
+        }
+    ])
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.list_comments_by_thread(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert len(result) == 1
+        assert result[0]["body"] == "Active comment"
+        
+        # Should filter out deleted comments in WHERE clause
+        mock_db.fetch.assert_called_once()
+        query = mock_db.fetch.call_args[0][0]
+        assert "c.deleted_at IS NULL" in query
     
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

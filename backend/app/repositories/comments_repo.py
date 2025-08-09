@@ -122,8 +122,57 @@ class CommentRepository:
         Returns:
             List of comment records as dictionaries
         """
-        # Implementation will be added in P2-API-Repo-Comments-ListAsc
-        raise NotImplementedError("list_comments_by_thread will be implemented in P2-API-Repo-Comments-ListAsc")
+        # Build the base query with JOIN to users for author affiliation
+        query = """
+            SELECT 
+                c.id,
+                c.body,
+                c.up_count,
+                c.created_at,
+                CASE WHEN u.faculty_public AND u.faculty IS NOT NULL THEN u.faculty END AS author_faculty,
+                CASE WHEN u.year_public AND u.year IS NOT NULL THEN u.year END AS author_year
+            FROM comments c 
+            JOIN users u ON u.id = c.author_id
+            WHERE c.thread_id = $1 
+            AND c.deleted_at IS NULL
+        """
+        
+        params = [thread_id]
+        
+        # Add cursor conditions if provided
+        if anchor_created_at is not None and anchor_id is not None:
+            query += " AND (c.created_at, c.id) > ($2, $3)"
+            params.extend([anchor_created_at, anchor_id])
+        
+        # Add ordering and limit
+        query += """
+            ORDER BY c.created_at ASC, c.id ASC
+            LIMIT ${}
+        """.format(len(params) + 1)
+        
+        params.append(limit)
+        
+        # Execute query and return results
+        try:
+            rows = await self._db.fetch(query, *params)
+            
+            # Convert asyncpg records to dictionaries
+            result = []
+            for row in rows:
+                result.append({
+                    "id": row["id"],
+                    "body": row["body"],
+                    "up_count": row["up_count"],
+                    "created_at": row["created_at"],
+                    "author_faculty": row["author_faculty"],
+                    "author_year": row["author_year"]
+                })
+            
+            return result
+            
+        except Exception as e:
+            # Re-raise database exceptions for proper error handling upstream
+            raise
 
     async def soft_delete_comment(
         self,
