@@ -63,3 +63,7 @@ definition_of_done:
   - "POSTエンドポイントが実装されている"
   - "リアクション種別分岐が実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T07:09:15Z
+#   result: GREEN
+#   note: "Implemented POST /threads/{id}/reactions endpoint with both 'up' and 'save' reaction support. TDD complete with comprehensive test coverage. Endpoint handles authentication, validation, and error handling correctly."
