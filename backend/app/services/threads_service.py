@@ -4,7 +4,7 @@ from typing import Any, Optional
 import re
 
 from app.repositories.threads_repo import ThreadRepository
-from app.schemas.threads import CreateThreadRequest, ThreadCard, ThreadDetail, Tag, AuthorAffiliation, PaginatedThreadCards
+from app.schemas.threads import CreateThreadRequest, ThreadCard, ThreadDetail, Tag, AuthorAffiliation, PaginatedThreadCards, create_excerpt
 from app.util.errors import ValidationException
 
 
@@ -254,8 +254,8 @@ class ThreadService:
         Returns:
             ThreadCard DTO
         """
-        # Create excerpt from body
-        excerpt = self._create_excerpt(thread_data.get("body", ""))
+        # Create excerpt from body using standard 120 char length
+        excerpt = create_excerpt(thread_data.get("body", ""), 120)
         
         # Determine if thread is solved
         is_solved = thread_data.get("solved_comment_id") is not None
@@ -332,31 +332,3 @@ class ThreadService:
             isMine=is_mine
         )
     
-    def _create_excerpt(self, body: str, max_length: int = 100) -> str:
-        """Create an excerpt from body text.
-        
-        Args:
-            body: Full body text
-            max_length: Maximum excerpt length
-            
-        Returns:
-            Excerpt string
-        """
-        if not body:
-            return ""
-        
-        # Normalize whitespace
-        excerpt = " ".join(body.split())
-        
-        # Truncate if needed
-        if len(excerpt) <= max_length:
-            return excerpt
-        
-        # Truncate at word boundary if possible
-        truncated = excerpt[:max_length]
-        last_space = truncated.rfind(" ")
-        
-        if last_space > max_length * 0.8:  # If we can keep at least 80% of the text
-            return truncated[:last_space] + "..."
-        
-        return truncated + "..."
