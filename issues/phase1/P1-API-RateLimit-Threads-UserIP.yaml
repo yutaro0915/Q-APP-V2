@@ -30,3 +30,8 @@ constraints:
 
 definition_of_done:
   - "YAMLが追補され、次の実装タスクが切られている"
+# done:
+#   id: P1-API-RateLimit-Threads-UserIP
+#   assignee: claude_agent
+#   end_at: 2025-08-09T05:48:00Z
+#   note: "Helper functions added for IP-based rate limiting"
