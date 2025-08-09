@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-API-Router-Profile-GET-PATCH
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:21:35Z
+#   note: ""
 id: P2-API-Router-Profile-GET-PATCH
 phase: 2
 layer: API
