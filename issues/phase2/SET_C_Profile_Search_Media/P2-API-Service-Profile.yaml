@@ -61,3 +61,7 @@ definition_of_done:
   - "profile_service.pyが作成されている"
   - "全メソッドが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T06:18:46Z
+#   result: GREEN
+#   note: "ProfileService implemented with DTOs, 9 passing tests, full test suite at 219/219"
