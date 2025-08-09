@@ -98,12 +98,11 @@ def test_methods_raise_not_implemented():
     """Test that non-implemented methods raise NotImplementedError as expected during init phase."""
     repo = CommentRepository(db=MagicMock())
 
-    # Test soft_delete_comment raises NotImplementedError  
-    async def test_delete():
+    # Test get_comment_by_id raises NotImplementedError  
+    async def test_get():
         try:
-            await repo.soft_delete_comment(
-                comment_id="cmt_test",
-                author_id="usr_test"
+            await repo.get_comment_by_id(
+                comment_id="cmt_test"
             )
             assert False, "Should have raised NotImplementedError"
         except NotImplementedError:
@@ -113,7 +112,7 @@ def test_methods_raise_not_implemented():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(test_delete())
+        loop.run_until_complete(test_get())
     finally:
         loop.close()
 
@@ -532,6 +531,132 @@ def test_create_comment_foreign_key_error():
             assert False, "Should have raised ForeignKeyViolationError"
         except asyncpg.ForeignKeyViolationError:
             pass  # Expected
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_soft_delete_comment_by_author():
+    """Test soft delete comment succeeds when called by the author."""
+    mock_db = AsyncMock()
+    
+    # Mock successful update (returns affected row)
+    mock_db.fetchrow = AsyncMock(return_value={
+        "id": "cmt_01HX123456789ABCDEFGHJKMNP"
+    })
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.soft_delete_comment(
+            comment_id="cmt_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is True
+        
+        # Verify the SQL query structure
+        mock_db.fetchrow.assert_called_once()
+        query = mock_db.fetchrow.call_args[0][0]
+        params = mock_db.fetchrow.call_args[0][1:]
+        
+        assert "UPDATE comments" in query
+        assert "SET deleted_at" in query
+        assert "WHERE id = $2" in query
+        assert "AND author_id = $3" in query
+        assert "AND deleted_at IS NULL" in query
+        assert "RETURNING id" in query
+        
+        # Check parameters (timestamp, comment_id, author_id)
+        assert len(params) == 3
+        assert params[1] == "cmt_01HX123456789ABCDEFGHJKMNP"
+        assert params[2] == "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_soft_delete_comment_by_non_author():
+    """Test soft delete comment fails when called by non-author."""
+    mock_db = AsyncMock()
+    
+    # Mock no rows updated (returns None)
+    mock_db.fetchrow = AsyncMock(return_value=None)
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.soft_delete_comment(
+            comment_id="cmt_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_DIFFERENT123456789ABCDEFGH"
+        )
+        
+        assert result is False
+        
+        # Query should still be executed
+        mock_db.fetchrow.assert_called_once()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_soft_delete_comment_already_deleted():
+    """Test soft delete comment fails when comment is already deleted."""
+    mock_db = AsyncMock()
+    
+    # Mock no rows updated because deleted_at IS NULL check fails
+    mock_db.fetchrow = AsyncMock(return_value=None)
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.soft_delete_comment(
+            comment_id="cmt_01HX123456789ABCDEFGHJKMNP",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is False
+        
+        # Should include deleted_at IS NULL check in query
+        query = mock_db.fetchrow.call_args[0][0]
+        assert "deleted_at IS NULL" in query
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(run_test())
+    finally:
+        loop.close()
+
+
+def test_soft_delete_comment_nonexistent():
+    """Test soft delete comment fails when comment doesn't exist."""
+    mock_db = AsyncMock()
+    
+    # Mock no rows found
+    mock_db.fetchrow = AsyncMock(return_value=None)
+    
+    repo = CommentRepository(db=mock_db)
+    
+    async def run_test():
+        result = await repo.soft_delete_comment(
+            comment_id="cmt_NONEXISTENT123456789ABCDEF",
+            author_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+        
+        assert result is False
     
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

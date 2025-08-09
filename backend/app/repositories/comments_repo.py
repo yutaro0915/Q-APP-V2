@@ -189,8 +189,34 @@ class CommentRepository:
         Returns:
             True if comment was deleted, False if not found or not owned by author
         """
-        # Implementation will be added in P2-API-Repo-Comments-SoftDelete
-        raise NotImplementedError("soft_delete_comment will be implemented in P2-API-Repo-Comments-SoftDelete")
+        # Generate timestamp for deletion
+        now_utc = self._now_utc()
+        
+        # Build SQL query with strict conditions
+        query = """
+            UPDATE comments 
+            SET deleted_at = $1::timestamptz
+            WHERE id = $2 
+            AND author_id = $3 
+            AND deleted_at IS NULL
+            RETURNING id
+        """
+        
+        try:
+            # Execute update and check if any row was affected
+            result = await self._db.fetchrow(
+                query,
+                now_utc,      # $1 - deleted_at timestamp
+                comment_id,   # $2 - comment ID
+                author_id     # $3 - author ID (ownership check)
+            )
+            
+            # Return True if a row was updated, False otherwise
+            return result is not None
+            
+        except Exception as e:
+            # Re-raise database exceptions for proper error handling upstream
+            raise
 
     async def get_comment_by_id(
         self,
