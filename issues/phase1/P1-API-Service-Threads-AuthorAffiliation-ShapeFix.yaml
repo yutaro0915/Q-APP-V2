@@ -1,0 +1,29 @@
+# claim:
+#   id: P1-API-Service-Threads-AuthorAffiliation-ShapeFix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:05:00Z
+#   note: ""
+id: P1-API-Service-Threads-AuthorAffiliation-ShapeFix
+phase: 1
+layer: API
+area: Service
+action: Threads-AuthorAffiliation-ShapeFix
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Schemas-ThreadDTO"]
+spec_refs:
+  - "04a"  # AuthorAffiliation の定義（faculty/year のみ）
+  - "05"   # プロフィール公開付与ロジック
+estimated_loc: 15
+
+specification:
+  purpose: "ThreadService._to_thread_card の authorAffiliation 生成を 04a に一致させる（余計なフィールドを渡さない/Noneを基本）"
+  content_requirements:
+    - "Phase1では authorAffiliation=None を返す（JOIN未実装のため）"
+    - "将来のJOIN実装時は faculty/year のみ付与（公開フラグに従う）"
+
+output_format: "Python 実装変更（関数内の生成ロジック最小修正）"
+
+definition_of_done:
+  - "ThreadCard の authorAffiliation が 04a 構造に準拠"
+  - "関連テストGREEN（必要なら軽微な期待値更新）"
