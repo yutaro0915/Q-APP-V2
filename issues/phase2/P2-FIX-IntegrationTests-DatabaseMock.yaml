@@ -1,0 +1,40 @@
+id: P2-FIX-IntegrationTests-DatabaseMock
+phase: 2
+layer: API
+area: Test
+action: IntegrationTests-DatabaseMock
+target_file: backend/tests/integration/test_threads_integration_list_new.py
+test_file: backend/tests/integration/test_threads_integration_list_new.py
+depends_on: ["P1-API-Router-Threads-GET-List"]
+spec_refs:
+  - "04"   # API contract
+  - "05"   # Backend design
+
+estimated_loc: 30
+
+specification:
+  purpose: "Fix integration tests to work without requiring DATABASE_URL by mocking database dependencies"
+  content_requirements:
+    - "Mock database connection pool in integration tests"
+    - "Provide mock data for threads list endpoint testing"
+    - "Maintain contract verification while avoiding real database dependency"
+    - "Test X-Request-Id header presence and error response formats"
+
+output_format: "Python integration test updates with proper mocking"
+
+constraints:
+  - "Integration tests should focus on contract compliance, not database functionality"
+  - "Mock responses should match actual API contract schemas"
+  - "Do not require DATABASE_URL environment variable for integration tests"
+
+test_specification:
+  validation:
+    - "Integration tests pass without database setup"
+    - "Response format matches OpenAPI contract"
+    - "Headers include required X-Request-Id"
+    - "Error responses follow ErrorResponse schema"
+
+definition_of_done:
+  - "All integration tests pass without DATABASE_URL"
+  - "Contract compliance is verified through mocked responses"
+  - "Integration test suite provides value for regression testing"

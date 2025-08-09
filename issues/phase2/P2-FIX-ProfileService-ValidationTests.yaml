@@ -1,0 +1,35 @@
+id: P2-FIX-ProfileService-ValidationTests
+phase: 2
+layer: API
+area: Service
+action: ProfileService-ValidationTests
+target_file: backend/tests/test_profile_service.py
+test_file: backend/tests/test_profile_service.py
+depends_on: ["P2-API-Service-Profile"]
+spec_refs:
+  - "05"   # Backend design
+
+estimated_loc: 15
+
+specification:
+  purpose: "Fix profile service validation tests that fail due to Pydantic model validation occurring before service method calls"
+  content_requirements:
+    - "Fix test_update_my_profile_validation_faculty_too_long to handle Pydantic ValidationError"
+    - "Fix test_update_my_profile_validation_year_out_of_range to handle Pydantic ValidationError"
+    - "Tests should verify that validation happens at Pydantic model level, not service level"
+
+output_format: "Python test fixes (test_profile_service.py only)"
+
+constraints:
+  - "Do not change service implementation - validation is correctly happening at Pydantic model level"
+  - "Tests should expect ValidationError from Pydantic, not service-level exceptions"
+
+test_specification:
+  validation:
+    - "Tests should pass when Pydantic model validation properly rejects invalid input"
+    - "Use pytest.raises(ValidationError) to verify Pydantic validation works correctly"
+
+definition_of_done:
+  - "All profile service tests pass"
+  - "Test strategy reflects correct validation layer (Pydantic models, not service layer)"
+  - "Overall test suite remains GREEN"
