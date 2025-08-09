@@ -1,0 +1,45 @@
+# claim:
+#   id: P1-API-Service-Threads-ListNew-ContractFix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:55:00Z
+#   note: ""
+id: P1-API-Service-Threads-ListNew-ContractFix
+phase: 1
+layer: API
+area: Service
+action: Threads-ListNew-ContractFix
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-ListNew", "P1-API-Service-Threads-ListNew"]
+spec_refs:
+  - "04b"  # API規約（カーソル/20件固定）
+  - "05"   # レイヤ責務・カーソルの責務分担
+estimated_loc: 25
+
+specification:
+  purpose: "Service↔Repo の返却形式を {items,nextCursor} に統一し、整合させる"
+  content_requirements:
+    - section: "list_threads_new の入出力"
+      items:
+        - "Repo返却: { items: Row[], nextCursor?: string|null } を受け取る"
+        - "Serviceは items を ThreadCard[] に変換し、nextCursor は Repoの値をそのまま返す"
+        - "cursorの検証は app.util.cursor に委譲（v=1, createdAt, id）"
+    - section: "エラーハンドリング"
+      items:
+        - "不正cursorは ValidationException(400) に正規化"
+
+output_format: "Python サービス実装（関数本体の修正のみ）"
+
+constraints:
+  - "既存の型: PaginatedThreadCards を維持"
+  - "RepoのSQLやDTO定義には触れない（One-File Rule）"
+
+test_specification:
+  validation:
+    - "モックRepoの返却を {items,nextCursor} に変更し、Serviceが正しく変換すること"
+    - "nextCursorがNone/非Noneの双方で透過されること"
+    - "不正cursorで ValidationException となること"
+
+definition_of_done:
+  - "list_threads_new が {items,nextCursor} で動作"
+  - "関連テストがGREEN"
