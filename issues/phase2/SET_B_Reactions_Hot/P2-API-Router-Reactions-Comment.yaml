@@ -63,3 +63,7 @@ definition_of_done:
   - "POSTエンドポイントが実装されている"
   - "リアクション制限が実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T06:47:32Z
+#   result: GREEN
+#   note: "Implemented POST /comments/{id}/reactions endpoint with authentication, validation, and error handling. TDD complete with comprehensive test coverage."
