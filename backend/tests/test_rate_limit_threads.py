@@ -174,6 +174,10 @@ def test_rate_limit_headers(mock_get_current_user, mock_get_db_pool):
             assert int(response2.headers["Retry-After"]) > 0
             assert response2.headers["X-RateLimit-Limit"] == "1"
             assert response2.headers["X-RateLimit-Remaining"] == "0"
+            
+            # Check error code is RATE_LIMITED per spec
+            json_body = response2.json()
+            assert json_body["error"]["code"] == "RATE_LIMITED"
 
 
 @patch('app.core.db.get_db_pool')
