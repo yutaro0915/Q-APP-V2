@@ -149,6 +149,21 @@ def test_rate_limit_comment_headers(mock_get_current_user, mock_get_db_pool):
             json_body = response2.json()
             assert json_body["error"]["code"] == "RATE_LIMITED"
             assert "comment" in json_body["error"]["message"].lower()
+            
+            # Check that details is now an array (not a dict)
+            assert "details" in json_body["error"]
+            assert isinstance(json_body["error"]["details"], list)
+            assert len(json_body["error"]["details"]) == 1
+            
+            # Check array contains correct structure
+            details_item = json_body["error"]["details"][0]
+            assert "retryAfter" in details_item
+            assert "limit" in details_item  
+            assert "remaining" in details_item
+            assert "reset" in details_item
+            assert details_item["limit"] == 1
+            assert details_item["remaining"] == 0
+            assert details_item["retryAfter"] > 0
 
 
 @patch('app.core.db.get_db_pool')

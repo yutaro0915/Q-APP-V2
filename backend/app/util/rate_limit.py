@@ -145,7 +145,7 @@ rate_limiter = RateLimiter(limit=1, window_seconds=60)
 comment_rate_limiter = RateLimiter(limit=1, window_seconds=10)
 
 
-def create_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int) -> JSONResponse:
+def create_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int, message: str = "Too many requests. Please wait before creating another thread.") -> JSONResponse:
     """Create standardized rate limit error response.
     
     Args:
@@ -153,6 +153,7 @@ def create_rate_limit_response(retry_after: int, limit: int, remaining: int, res
         limit: Rate limit per window
         remaining: Remaining requests in window
         reset_time: Unix timestamp when limit resets
+        message: Custom error message (optional)
         
     Returns:
         JSONResponse with error details and headers
@@ -162,13 +163,13 @@ def create_rate_limit_response(retry_after: int, limit: int, remaining: int, res
         content={
             "error": {
                 "code": "RATE_LIMITED",
-                "message": "Too many requests. Please wait before creating another thread.",
-                "details": {
+                "message": message,
+                "details": [{
                     "retryAfter": retry_after,
                     "limit": limit,
                     "remaining": remaining,
                     "reset": reset_time
-                }
+                }]
             }
         }
     )
@@ -182,7 +183,7 @@ def create_rate_limit_response(retry_after: int, limit: int, remaining: int, res
     return response
 
 
-def create_comment_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int) -> JSONResponse:
+def create_comment_rate_limit_response(retry_after: int, limit: int, remaining: int, reset_time: int, message: str = "Too many requests. Please wait before creating another comment.") -> JSONResponse:
     """Create comment-specific rate limit error response.
     
     Args:
@@ -190,6 +191,7 @@ def create_comment_rate_limit_response(retry_after: int, limit: int, remaining: 
         limit: Rate limit per window
         remaining: Remaining requests in window
         reset_time: Unix timestamp when limit resets
+        message: Custom error message (optional)
         
     Returns:
         JSONResponse with error details and headers
@@ -199,13 +201,13 @@ def create_comment_rate_limit_response(retry_after: int, limit: int, remaining: 
         content={
             "error": {
                 "code": "RATE_LIMITED",
-                "message": "Too many requests. Please wait before creating another comment.",
-                "details": {
+                "message": message,
+                "details": [{
                     "retryAfter": retry_after,
                     "limit": limit,
                     "remaining": remaining,
                     "reset": reset_time
-                }
+                }]
             }
         }
     )
