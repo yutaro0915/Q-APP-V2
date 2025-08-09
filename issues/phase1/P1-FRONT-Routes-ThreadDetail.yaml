@@ -63,3 +63,12 @@ definition_of_done:
   - "thread/[id]/page.tsxが作成されている"
   - "動的ルーティングが機能"
   - "エラー処理が実装されている"
+
+# done:
+#   id: P1-FRONT-Routes-ThreadDetail
+#   assignee: claude_agent
+#   end_at: 2025-08-09T04:01:00Z
+#   note: "Server Component実装完了。認証はClient Componentで処理。"
+# issue:
+#   at: 2025-08-09T04:01:00Z
+#   note: "Server ComponentとCSR認証の不整合: Server Componentでは localStorage にアクセスできないため、is_mine フラグが正しく設定されない。削除ボタンはClient Componentとして切り出して対応。将来的にはCookieベースの認証やmiddlewareでの処理が必要。"
