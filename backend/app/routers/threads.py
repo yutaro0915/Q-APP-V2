@@ -128,3 +128,36 @@ async def get_thread_detail(
             thread_id=thread_id,
             current_user_id=current_user_id
         )
+
+
+@router.delete("/{thread_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_thread(
+    thread_id: str,
+    authorization: str = Header(...),
+    db = Depends(get_db_connection)
+) -> None:
+    """Delete a thread (soft delete).
+    
+    Args:
+        thread_id: Thread ID to delete
+        authorization: Authorization header (required)
+        db: Database connection
+        
+    Returns:
+        None (204 No Content)
+        
+    Raises:
+        UnauthorizedException: If not authenticated
+        ForbiddenException: If not the thread owner
+        NotFoundException: If thread doesn't exist
+        ValidationException: If thread ID format is invalid
+    """
+    # Get current user ID (authentication required)
+    current_user_id = await get_current_user(authorization)
+    
+    async with db as conn:
+        service = ThreadService(db=conn)
+        await service.delete_thread(
+            thread_id=thread_id,
+            current_user_id=current_user_id
+        )

@@ -528,3 +528,123 @@ def test_get_thread_invalid_id(mock_get_db_pool):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         data = response.json()
         assert data["error"]["code"] == "VALIDATION_ERROR"
+
+
+@patch('app.core.db.get_db_pool')
+@patch('app.routers.threads.get_current_user')
+def test_delete_thread_by_owner(mock_get_current_user, mock_get_db_pool):
+    """Test deleting thread by owner."""
+    from app.main import app
+    client = TestClient(app)
+    
+    # Mock get_current_user
+    mock_get_current_user.return_value = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to delete successfully
+    mock_service = MagicMock()
+    mock_service.delete_thread = AsyncMock(return_value=None)
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.delete(
+            "/api/v1/threads/thr_01HX123456789ABCDEFGHJKMNP",
+            headers={"Authorization": "Bearer test_token"}
+        )
+        
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        # Verify service was called
+        mock_service.delete_thread.assert_called_once_with(
+            thread_id="thr_01HX123456789ABCDEFGHJKMNP",
+            current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+        )
+
+
+@patch('app.core.db.get_db_pool')
+@patch('app.routers.threads.get_current_user')
+def test_delete_thread_by_non_owner(mock_get_current_user, mock_get_db_pool):
+    """Test deleting thread by non-owner returns 403."""
+    from app.main import app
+    from app.util.errors import ForbiddenException
+    client = TestClient(app)
+    
+    # Mock get_current_user
+    mock_get_current_user.return_value = "usr_99HX123456789ABCDEFGHJKMNP"
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to raise ForbiddenException
+    mock_service = MagicMock()
+    mock_service.delete_thread = AsyncMock(
+        side_effect=ForbiddenException("You can only delete your own threads")
+    )
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.delete(
+            "/api/v1/threads/thr_01HX123456789ABCDEFGHJKMNP",
+            headers={"Authorization": "Bearer test_token"}
+        )
+        
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        data = response.json()
+        assert data["error"]["code"] == "FORBIDDEN"
+
+
+@patch('app.routers.threads.get_current_user')
+def test_delete_thread_unauthenticated(mock_get_current_user):
+    """Test deleting thread without authentication returns 401."""
+    from app.main import app
+    from app.util.errors import UnauthorizedException
+    client = TestClient(app)
+    
+    # Mock get_current_user to raise UnauthorizedException
+    mock_get_current_user.side_effect = UnauthorizedException("Invalid or expired session")
+    
+    response = client.delete(
+        "/api/v1/threads/thr_01HX123456789ABCDEFGHJKMNP",
+        headers={"Authorization": "Bearer invalid_token"}
+    )
+    
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    data = response.json()
+    assert data["error"]["code"] == "UNAUTHORIZED"
+
+
+@patch('app.core.db.get_db_pool')
+@patch('app.routers.threads.get_current_user')
+def test_delete_thread_not_found(mock_get_current_user, mock_get_db_pool):
+    """Test deleting non-existent thread returns 404."""
+    from app.main import app
+    from app.util.errors import NotFoundException
+    client = TestClient(app)
+    
+    # Mock get_current_user
+    mock_get_current_user.return_value = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock database pool and connection
+    mock_conn = AsyncMock()
+    mock_pool = MagicMock()
+    mock_pool.acquire.return_value = MockAcquire(mock_conn)
+    mock_get_db_pool.return_value = mock_pool
+    
+    # Mock service to raise NotFoundException
+    mock_service = MagicMock()
+    mock_service.delete_thread = AsyncMock(side_effect=NotFoundException("Thread not found"))
+    
+    with patch('app.routers.threads.ThreadService', return_value=mock_service):
+        response = client.delete(
+            "/api/v1/threads/thr_99HX123456789ABCDEFGHJKMNP",
+            headers={"Authorization": "Bearer test_token"}
+        )
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        data = response.json()
+        assert data["error"]["code"] == "NOT_FOUND"
