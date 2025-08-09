@@ -1,0 +1,38 @@
+# claim:
+#   id: P1-API-Service-Threads-Get-ReturnDetail
+#   assignee: claude_agent
+#   start_at: 2025-08-09T05:52:00Z
+#   note: ""
+id: P1-API-Service-Threads-Get-ReturnDetail
+phase: 1
+layer: API
+area: Service
+action: Threads-Get-ReturnDetail
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Schemas-ThreadDTO", "P1-API-Repo-Threads-GetById"]
+spec_refs:
+  - "04a"  # ThreadDetail DTO
+  - "05"   # サービスの責務（詳細はThreadDetailで返す）
+estimated_loc: 30
+
+specification:
+  purpose: "get_thread の戻り型を ThreadCard → ThreadDetail に正す（Routerのresponse_modelと整合）"
+  content_requirements:
+    - "Service.get_thread は本文(body), upCount, saveCount, lastActivityAt, solvedCommentId を含む ThreadDetail を返す"
+    - "所有者判定は isMine(optional) で付与（04aに追補が必要なら別Issueで対応）"
+    - "Repo.get_thread_by_id の戻り（行データ）をThreadDetailにマッピング"
+
+output_format: "Python 実装変更（Serviceの該当メソッドのみ）"
+
+constraints:
+  - "One-File Rule（サービスのみ編集）。テストは同一コミットで修正"
+
+test_specification:
+  validation:
+    - "get_thread_exists が ThreadDetail を想定するように更新"
+    - "Router 統合テストはモック不要でも通る（Serviceが正しい型を返す）"
+
+definition_of_done:
+  - "Routerの response_model=ThreadDetail と実装が一致"
+  - "関連テストGREEN"
