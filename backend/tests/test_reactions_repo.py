@@ -89,3 +89,84 @@ class TestReactionRepository:
                 user_id="usr_01H0000000000000000000000",
                 target_ids=["thr_01H0000000000000000000000"]
             )
+
+    # Tests for P2-API-Repo-Reactions-UpsertUp functionality
+    @pytest.mark.asyncio
+    async def test_insert_up_if_absent_thread_new_reaction(self):
+        """Test insert_up_if_absent creates new thread reaction successfully."""
+        # Mock transaction context manager
+        mock_transaction = AsyncMock()
+        mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
+        mock_transaction.__aexit__ = AsyncMock(return_value=None)
+        self.mock_db.transaction = Mock(return_value=mock_transaction)
+        
+        # Mock database responses
+        self.mock_db.execute = AsyncMock(return_value="INSERT 0 1")  # 1 row affected
+        
+        result = await self.repo.insert_up_if_absent("thread", "thr_01H0000000000000000000000", "usr_01H0000000000000000000000")
+        
+        assert result is True
+        # Verify transaction was called
+        self.mock_db.transaction.assert_called_once()
+        # Verify execute was called twice (INSERT + UPDATE)
+        assert self.mock_db.execute.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_insert_up_if_absent_thread_existing_reaction(self):
+        """Test insert_up_if_absent returns False for existing thread reaction."""
+        # Mock transaction context manager
+        mock_transaction = AsyncMock()
+        mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
+        mock_transaction.__aexit__ = AsyncMock(return_value=None)
+        self.mock_db.transaction = Mock(return_value=mock_transaction)
+        
+        # Mock database responses - ON CONFLICT DO NOTHING returns 0 rows affected
+        self.mock_db.execute = AsyncMock(return_value="INSERT 0 0")  # 0 rows affected
+        
+        result = await self.repo.insert_up_if_absent("thread", "thr_01H0000000000000000000000", "usr_01H0000000000000000000000")
+        
+        assert result is False
+        # Should only call execute once (INSERT), no UPDATE since no rows affected
+        assert self.mock_db.execute.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_insert_up_if_absent_comment_new_reaction(self):
+        """Test insert_up_if_absent creates new comment reaction successfully."""
+        # Mock transaction context manager
+        mock_transaction = AsyncMock()
+        mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
+        mock_transaction.__aexit__ = AsyncMock(return_value=None)
+        self.mock_db.transaction = Mock(return_value=mock_transaction)
+        
+        # Mock database responses
+        self.mock_db.execute = AsyncMock(return_value="INSERT 0 1")  # 1 row affected
+        
+        result = await self.repo.insert_up_if_absent("comment", "cmt_01H0000000000000000000000", "usr_01H0000000000000000000000")
+        
+        assert result is True
+        # Verify execute was called twice (INSERT + UPDATE)
+        assert self.mock_db.execute.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_insert_up_if_absent_comment_existing_reaction(self):
+        """Test insert_up_if_absent returns False for existing comment reaction."""
+        # Mock transaction context manager
+        mock_transaction = AsyncMock()
+        mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
+        mock_transaction.__aexit__ = AsyncMock(return_value=None)
+        self.mock_db.transaction = Mock(return_value=mock_transaction)
+        
+        # Mock database responses - ON CONFLICT DO NOTHING returns 0 rows affected
+        self.mock_db.execute = AsyncMock(return_value="INSERT 0 0")  # 0 rows affected
+        
+        result = await self.repo.insert_up_if_absent("comment", "cmt_01H0000000000000000000000", "usr_01H0000000000000000000000")
+        
+        assert result is False
+        # Should only call execute once (INSERT), no UPDATE since no rows affected
+        assert self.mock_db.execute.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_insert_up_if_absent_invalid_target_type(self):
+        """Test insert_up_if_absent raises error for invalid target type."""
+        with pytest.raises(ValueError):
+            await self.repo.insert_up_if_absent("invalid", "thr_01H0000000000000000000000", "usr_01H0000000000000000000000")

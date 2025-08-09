@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Literal
 
 from app.util.idgen import generate_id
 
@@ -26,6 +26,74 @@ class ReactionRepository:
     def _now_utc(self) -> str:
         """Get current UTC timestamp in ISO8601 format."""
         return datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    # ---- P2-API-Repo-Reactions-UpsertUp implementation ----
+    async def insert_up_if_absent(
+        self,
+        target_type: Literal['thread', 'comment'],
+        target_id: str,
+        user_id: str,
+    ) -> bool:
+        """Insert 'up' reaction if not already present.
+        
+        Args:
+            target_type: Either 'thread' or 'comment'
+            target_id: ID of the target being reacted to
+            user_id: ID of user performing the reaction
+            
+        Returns:
+            True if new reaction was inserted, False if duplicate
+            
+        Raises:
+            ValueError: If target_type is not 'thread' or 'comment'
+        """
+        if target_type not in ('thread', 'comment'):
+            raise ValueError(f"Invalid target_type: {target_type}. Must be 'thread' or 'comment'")
+        
+        # Generate new reaction ID
+        reaction_id = self._generate_reaction_id()
+        
+        # Use a transaction to ensure atomicity between reaction insert and count update
+        async with self._db.transaction():
+            # Insert reaction with ON CONFLICT DO NOTHING
+            insert_query = """
+                INSERT INTO reactions (id, user_id, target_type, target_id, kind, created_at)
+                VALUES ($1, $2, $3, $4, 'up', NOW())
+                ON CONFLICT (user_id, target_type, target_id, kind) DO NOTHING
+            """
+            
+            result = await self._db.execute(
+                insert_query,
+                reaction_id,
+                user_id,
+                target_type,
+                target_id
+            )
+            
+            # Check if row was actually inserted by examining result
+            # PostgreSQL returns "INSERT 0 1" for successful insert, "INSERT 0 0" for conflict
+            rows_affected = int(result.split()[-1]) if result else 0
+            
+            if rows_affected > 0:
+                # Increment up_count in the appropriate table
+                if target_type == 'thread':
+                    update_query = """
+                        UPDATE threads 
+                        SET up_count = up_count + 1 
+                        WHERE id = $1
+                    """
+                else:  # target_type == 'comment'
+                    update_query = """
+                        UPDATE comments 
+                        SET up_count = up_count + 1 
+                        WHERE id = $1
+                    """
+                
+                await self._db.execute(update_query, target_id)
+                return True
+            else:
+                # Reaction already exists (conflict occurred)
+                return False
 
     # ---- interface signatures ----
     async def upsert_thread_reaction(
