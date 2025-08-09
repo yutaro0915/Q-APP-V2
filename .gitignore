@@ -40,3 +40,20 @@ htmlcov/
 # Temporary
 .current-issue.yaml
 *.tmp
+
+# E2E (local DB data / Playwright artifacts)
+e2e/pgdata/
+playwright-report/
+test-results/
+*.trace.zip
+
+# Docker
+*.pid
+*.opts
+
+# Python virtual env (safety)
+backend/.venv/
+
+# Frontend cache
+frontend/.turbo/
+frontend/.vercel/
