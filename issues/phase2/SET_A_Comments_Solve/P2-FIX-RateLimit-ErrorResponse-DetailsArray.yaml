@@ -1,0 +1,40 @@
+# claim:
+#   id: P2-FIX-RateLimit-ErrorResponse-DetailsArray
+#   assignee: claude_agent
+#   start_at: 2025-08-09T11:02:53Z
+#   note: ""
+id: P2-FIX-RateLimit-ErrorResponse-DetailsArray
+phase: 2
+layer: API
+area: Util
+action: RateLimit-ErrorResponse-Shape
+target_file: backend/app/util/rate_limit.py
+test_file: backend/tests/test_rate_limit_comments.py
+spec_refs:
+  - "04b"  # API 規約（ErrorResponse 形式）
+estimated_loc: 20
+
+specification:
+  purpose: "RateLimitのErrorResponse.detailsを配列へ正規化し、文言を可変化する"
+  content_requirements:
+    - section: "details配列化/文言可変"
+      items:
+        - "create_rate_limit_response の details を [ { retryAfter, limit, remaining, reset } ] の配列で返す"
+        - "必要に応じてメッセージ文字列を引数で上書き可能に（デフォルトは現行の文言）"
+        - "429時ヘッダは 04b 準拠のまま維持（Retry-After / X-RateLimit-*）"
+
+output_format: "Python ユーティリティ修正（rate_limit.py のみ）"
+
+constraints:
+  - "既存の threads 作成レート制限テストに影響しない（配列化は本質に影響せず）"
+  - "外部呼び出し側のシグネチャ破壊を避ける（メッセージ引数は任意）"
+
+test_specification:
+  validation:
+    - "test_rate_limit_comments で details が配列で返ることを確認"
+    - "ヘッダ値は従来どおり設定される"
+
+definition_of_done:
+  - "ErrorResponse.details が配列へ統一"
+  - "関連テストがGREEN"
+
