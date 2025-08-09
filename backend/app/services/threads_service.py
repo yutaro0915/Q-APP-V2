@@ -83,6 +83,68 @@ class ThreadService:
         # Convert to ThreadCard DTO
         return self._to_thread_card(thread_data, user_id, thread_create.tags)
     
+    async def get_thread(
+        self,
+        *,
+        thread_id: str,
+        current_user_id: str
+    ) -> Optional[ThreadCard]:
+        """Get a thread by ID.
+        
+        Args:
+            thread_id: ID of the thread to retrieve
+            current_user_id: ID of the current user
+            
+        Returns:
+            ThreadCard DTO if thread exists and not deleted, None otherwise
+            
+        Raises:
+            ValidationException: If thread ID format is invalid
+        """
+        # Validate thread ID format
+        if not self._is_valid_thread_id(thread_id):
+            raise ValidationException("Invalid thread ID")
+        
+        # Create repository instance
+        repo = ThreadRepository(self._db)
+        
+        # Get thread from repository
+        thread_data = await repo.get_thread_by_id(thread_id=thread_id)
+        
+        # Return None if thread doesn't exist or is deleted
+        if not thread_data:
+            return None
+        
+        # TODO: Get tags from database in later phase
+        # For now, use empty list
+        tags = []
+        
+        # Convert to ThreadCard DTO
+        return self._to_thread_card(thread_data, current_user_id, tags)
+    
+    def _is_valid_thread_id(self, thread_id: str) -> bool:
+        """Validate thread ID format.
+        
+        Args:
+            thread_id: Thread ID to validate
+            
+        Returns:
+            True if valid, False otherwise
+        """
+        # Thread ID must match format: thr_{26 char ULID}
+        if not thread_id or not thread_id.startswith("thr_"):
+            return False
+        
+        ulid_part = thread_id[4:]  # Remove "thr_" prefix
+        
+        # ULID must be exactly 26 characters
+        if len(ulid_part) != 26:
+            return False
+        
+        # ULID uses specific character set (Crockford's base32, no I, L, O, U)
+        valid_chars = set("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
+        return all(c in valid_chars for c in ulid_part)
+    
     def _to_thread_card(self, thread_data: dict, current_user_id: str, tags: list[Tag]) -> ThreadCard:
         """Convert thread data to ThreadCard DTO.
         

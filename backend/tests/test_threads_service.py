@@ -343,3 +343,204 @@ def test_create_thread_max_title_length():
     # Check that the error is about title length
     assert "title" in str(exc_info.value).lower()
     assert "60" in str(exc_info.value)
+
+
+def test_get_thread_exists():
+    """Test getting an existing thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    author_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    created_at = datetime.now(timezone.utc)
+    
+    # Mock repository return value
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": author_id,
+        "title": "Test Thread",
+        "body": "This is a test thread body",
+        "up_count": 5,
+        "save_count": 2,
+        "solved_comment_id": None,
+        "heat": 1.5,
+        "created_at": created_at,
+        "last_activity_at": created_at,
+        "deleted_at": None
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            # Get thread as the author
+            result = await service.get_thread(
+                thread_id=thread_id,
+                current_user_id=author_id
+            )
+            
+            # Verify result
+            assert isinstance(result, ThreadCard)
+            assert result.id == thread_id
+            assert result.title == "Test Thread"
+            assert result.excerpt == "This is a test thread body"
+            assert result.heat == 1
+            assert result.saves == 2
+            assert result.solved is False
+            
+            # Verify repository was called
+            mock_repo.get_thread_by_id.assert_called_once_with(thread_id=thread_id)
+    
+    asyncio.run(run_test())
+
+
+def test_get_thread_not_mine():
+    """Test getting a thread that doesn't belong to current user."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    author_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    current_user_id = "usr_01HX987654321ZYXWVUTSRQP"
+    created_at = datetime.now(timezone.utc)
+    
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": author_id,
+        "title": "Someone else's thread",
+        "body": "Body content",
+        "up_count": 0,
+        "save_count": 0,
+        "created_at": created_at,
+        "last_activity_at": created_at,
+        "deleted_at": None
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.get_thread(
+                thread_id=thread_id,
+                current_user_id=current_user_id
+            )
+            
+            # Verify the thread is returned but not marked as mine
+            assert result is not None
+            assert result.id == thread_id
+            # The is_mine field isn't in ThreadCard, but the service should handle it internally
+    
+    asyncio.run(run_test())
+
+
+def test_get_thread_not_found():
+    """Test getting a non-existent thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Repository returns None for non-existent thread
+    mock_repo.get_thread_by_id = AsyncMock(return_value=None)
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.get_thread(
+                thread_id=thread_id,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Should return None for non-existent thread
+            assert result is None
+            mock_repo.get_thread_by_id.assert_called_once_with(thread_id=thread_id)
+    
+    asyncio.run(run_test())
+
+
+def test_get_thread_deleted():
+    """Test that deleted threads are not returned."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    deleted_at = datetime.now(timezone.utc)
+    
+    # Repository should filter out deleted threads
+    mock_repo.get_thread_by_id = AsyncMock(return_value=None)
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.get_thread(
+                thread_id=thread_id,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Deleted threads should return None
+            assert result is None
+    
+    asyncio.run(run_test())
+
+
+def test_get_thread_with_solved():
+    """Test getting a solved thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    created_at = datetime.now(timezone.utc)
+    
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
+        "title": "Solved Question",
+        "body": "How do I do X?",
+        "up_count": 10,
+        "save_count": 3,
+        "solved_comment_id": "cmt_01HX123456789ABCDEFGHJKMNP",  # Has a solved comment
+        "heat": 2.0,
+        "created_at": created_at,
+        "last_activity_at": created_at,
+        "deleted_at": None
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            result = await service.get_thread(
+                thread_id=thread_id,
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+            
+            # Check that solved status is correctly set
+            assert result.solved is True
+            assert result.title == "Solved Question"
+    
+    asyncio.run(run_test())
+
+
+def test_get_thread_id_validation():
+    """Test thread ID validation in get_thread."""
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        # Test with invalid thread ID format
+        with pytest.raises(ValidationException) as exc_info:
+            await service.get_thread(
+                thread_id="invalid_id",
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+        
+        assert "Invalid thread ID" in str(exc_info.value)
+    
+    asyncio.run(run_test())
