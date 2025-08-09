@@ -57,3 +57,7 @@ definition_of_done:
   - "delete_threadメソッドが実装されている"
   - "権限チェックが機能している"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T01:02:44Z
+#   result: GREEN
+#   note: "delete_thread method implemented with ownership check and soft delete"
