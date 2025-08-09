@@ -28,3 +28,32 @@ constraints:
 
 definition_of_done:
   - "YAMLの追補で仕様が明確化される"
+
+# === ThreadDetail Return DTO Specification ===
+#
+# GET /threads/{thread_id} endpoint returns ThreadDetail DTO:
+#
+# Response: ThreadDetail
+# {
+#   "id": "thr_*",               # Thread ID (ULID format)
+#   "title": string,              # Thread title (max 60 chars)
+#   "body": string,               # Full thread body (max 2000 chars)
+#   "imageKey": string | null,    # S3 image key if exists
+#   "tags": Tag[],                # Array of tags
+#   "solved": boolean,            # True if thread is solved
+#   "solvedCommentId": string | null,  # ID of solving comment
+#   "isMine": boolean,            # True if owned by current user
+#   "authorProfile": Profile | null,   # Author's profile if public
+#   "createdAt": string,          # ISO8601 timestamp
+#   "lastActivityAt": string      # ISO8601 timestamp
+# }
+#
+# Router Implementation:
+# - Calls ThreadService.get_thread(thread_id, user_id)
+# - Service returns ThreadDetail or raises exceptions
+# - Router passes through the ThreadDetail without modification
+#
+# Error Handling:
+# - 400 Bad Request: Invalid thread ID format (ValidationException)
+# - 404 Not Found: Thread doesn't exist (NotFoundException)
+# - Both handled by FastAPI exception handlers in app.util.errors
