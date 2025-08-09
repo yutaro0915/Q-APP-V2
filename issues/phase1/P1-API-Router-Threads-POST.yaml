@@ -3,6 +3,11 @@
 #   assignee: claude_agent
 #   start_at: 2025-08-09T01:03:28Z
 #   note: ""
+# done:
+#   id: P1-API-Router-Threads-POST
+#   assignee: claude_agent
+#   end_at: 2025-08-09T01:16:47Z
+#   note: "All tests passing. 201 response implemented correctly."
 id: P1-API-Router-Threads-POST
 phase: 1
 layer: API
