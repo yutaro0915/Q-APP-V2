@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from app.routers.auth import get_current_user
 from app.core.db import get_db_connection
 from app.schemas.threads import CreateThreadRequest, PaginatedThreadCards, ThreadDetail
-from app.schemas.comments import CreateCommentRequest, CreatedResponse
+from app.schemas.comments import CreateCommentRequest, CreatedResponse, PaginatedComments
 from app.services.threads_service import ThreadService
 from app.services.comments_service import CommentService
 from app.util.errors import ValidationException
@@ -206,4 +206,45 @@ async def create_comment(
             user_id=user_id,
             thread_id=thread_id,
             dto=comment_create
+        )
+
+
+@router.get("/{thread_id}/comments", response_model=PaginatedComments)
+async def list_comments(
+    thread_id: str,
+    request: Request,
+    cursor: Optional[str] = Query(None, description="Pagination cursor"),
+    db = Depends(get_db_connection)
+) -> PaginatedComments:
+    """List comments for a thread in ASC order.
+    
+    Args:
+        thread_id: ID of the thread to get comments for
+        request: FastAPI request object
+        cursor: Pagination cursor
+        db: Database connection
+        
+    Returns:
+        PaginatedComments with list of comment DTOs
+        
+    Raises:
+        NotFoundException: If thread doesn't exist
+        ValidationException: If cursor is invalid
+    """
+    # Try to get current user from authorization header (optional for reading)
+    current_user_id = None
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        try:
+            current_user_id = await get_current_user(auth_header)
+        except Exception:
+            # Authentication is optional for listing comments
+            pass
+    
+    async with db as conn:
+        service = CommentService(db=conn)
+        return await service.list_comments(
+            thread_id=thread_id,
+            current_user_id=current_user_id,
+            cursor=cursor
         )
