@@ -1,0 +1,39 @@
+# claim:
+#   id: P1-FIX-Service-Delete-ParamName
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:33:00Z
+#   note: ""
+id: P1-FIX-Service-Delete-ParamName
+phase: 1
+layer: API
+area: Service
+action: Threads-Delete-ParamName
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Repo-Threads-SoftDelete", "P1-API-Service-Threads-Delete"]
+spec_refs:
+  - "05"  # レイヤ責務
+estimated_loc: 8
+
+specification:
+  purpose: "ThreadService.delete_thread → Repo.soft_delete_thread 呼出の引数名を author_id に統一する"
+  content_requirements:
+    - "実装: await repo.soft_delete_thread(thread_id=thread_id, author_id=current_user_id)"
+    - "テスト: 呼出検証を author_id に更新（既存テストの引数名を確認）"
+
+output_format: "Python 実装（Service該当メソッドのみ）＋テスト更新（同コミット）"
+
+constraints:
+  - "One-File Rule（実装=1ファイル＋テスト）"
+
+test_specification:
+  validation:
+    - "delete_thread_by_owner で soft_delete_thread が author_id で呼ばれること"
+
+definition_of_done:
+  - "実行時の TypeError 要因が解消、全テストGREEN"
+# done:
+#   id: P1-FIX-Service-Delete-ParamName
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:33:00Z
+#   note: "Already implemented - soft_delete_thread correctly uses author_id parameter"

@@ -1,0 +1,42 @@
+# claim:
+#   id: P1-FIX-Service-Get-Return-ThreadDetail
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:33:00Z
+#   note: ""
+id: P1-FIX-Service-Get-Return-ThreadDetail
+phase: 1
+layer: API
+area: Service
+action: Threads-Get-Return-ThreadDetail
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Service-Threads-Get", "P1-API-Schemas-ThreadDTO", "P1-API-Repo-Threads-GetById"]
+spec_refs:
+  - "04a"  # ThreadDetail DTO
+  - "05"   # サービスの責務
+estimated_loc: 25
+
+specification:
+  purpose: "Service.get_thread の戻りを ThreadCard → ThreadDetail に正し、Router契約と合致させる"
+  content_requirements:
+    - "本文(body), upCount, saveCount, lastActivityAt, solvedCommentId を含む ThreadDetail を返却"
+    - "authorAffiliation は Phase1では None 固定（JOIN未実装）"
+    - "isMine は optional でTrue/False付与（Phase1では必要時のみ）"
+
+output_format: "Python 実装（Serviceの get_thread 本体）＋テスト更新（同コミット）"
+
+constraints:
+  - "One-File Rule（実装=1ファイル＋テスト）"
+
+test_specification:
+  validation:
+    - "get_thread_exists が ThreadDetail を検証するよう更新"
+    - "Routerレベルの response_model=ThreadDetail と一致（モック不要）"
+
+definition_of_done:
+  - "Router/Serviceの契約整合、全テストGREEN"
+# done:
+#   id: P1-FIX-Service-Get-Return-ThreadDetail
+#   assignee: claude_agent
+#   end_at: 2025-08-09T06:33:00Z
+#   note: "Already implemented - get_thread correctly returns ThreadDetail"
