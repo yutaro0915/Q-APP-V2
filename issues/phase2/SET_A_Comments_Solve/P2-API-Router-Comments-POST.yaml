@@ -63,3 +63,8 @@ definition_of_done:
   - "POSTエンドポイントが実装されている"
   - "認証が必須になっている"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T08:07:00Z
+#   result: GREEN
+#   note: "POST /threads/{id}/comments endpoint implemented in threads router. Authentication via get_current_user, validates CreateCommentRequest, returns 201 with CreatedResponse. Integrates with CommentService.create_comment. Comprehensive tests covering success, unauthorized, validation errors. All core POST tests passing."
