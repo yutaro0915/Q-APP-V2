@@ -65,3 +65,7 @@ definition_of_done:
   - "set_solved_commentメソッドが実装されている"
   - "ビジネスルールが実装されている"
   - "テストが追加されている"
+# done:
+#   finished_at: 2025-08-09T07:09:11Z
+#   result: GREEN
+#   note: "SolveService with set_solved_comment method implemented. Thread ownership validation, question/non-question type detection, comment existence validation, support for replacing existing solved comments. Comprehensive test coverage with 7 test cases covering success, validation errors, and edge cases. All tests passing."
