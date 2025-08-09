@@ -58,3 +58,7 @@ definition_of_done:
   - "profile/page.tsxが作成されている"
   - "フォーム機能が実装されている"
   - "バリデーション機能が実装されている"
+# done:
+#   finished_at: 2025-08-09T06:45:30Z
+#   result: GREEN
+#   note: "Profile settings page implemented at /me/profile with full form editing, faculty/year selection, public/private toggles, real-time validation, change detection, loading states, error handling, success feedback, and responsive design. Integrated with updateProfile/getMyProfile actions."
