@@ -1,0 +1,28 @@
+# claim:
+#   id: P1-API-Service-Threads-ExcerptLength-Fix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:09:00Z
+#   note: ""
+id: P1-API-Service-Threads-ExcerptLength-Fix
+phase: 1
+layer: API
+area: Service
+action: Threads-ExcerptLength-Fix
+target_file: backend/app/services/threads_service.py
+test_file: backend/tests/test_threads_service.py
+depends_on: ["P1-API-Schemas-ThreadDTO"]
+spec_refs:
+  - "04a"  # excerpt=最大120字、改行→空白、連続空白圧縮、超過時のみ …
+estimated_loc: 10
+
+specification:
+  purpose: "excerpt 生成長を 120 に統一し、schemas.create_excerpt を利用する"
+  content_requirements:
+    - "_create_excerpt を削除/委譲して、app.schemas.threads.create_excerpt を使用"
+    - "Service内の利用箇所を書き換え（ThreadCard生成時）"
+
+output_format: "Python 実装変更（関数参照差し替えのみ）"
+
+definition_of_done:
+  - "excerpt長が120に統一"
+  - "関連テストGREEN（必要なら期待値更新）"
