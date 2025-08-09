@@ -6,7 +6,7 @@ from typing import Optional
 
 class MyProfile(BaseModel):
     """My profile DTO with all fields visible to owner."""
-    id: str
+    id: str = Field(serialization_alias="userId")
     faculty: Optional[str]
     year: Optional[int]
     faculty_public: bool

@@ -77,7 +77,8 @@ class TestProfileRouter:
             # Assert response
             assert response.status_code == 200
             data = response.json()
-            assert data["id"] == "usr_01234567890123456789012345"
+            assert data["userId"] == "usr_01234567890123456789012345"
+            assert "id" not in data  # Should not contain id key
             assert data["faculty"] == "工学部"
             assert data["year"] == 3
             assert data["faculty_public"] == True
