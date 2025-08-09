@@ -57,3 +57,8 @@ definition_of_done:
 # - 400 Bad Request: Invalid thread ID format (ValidationException)
 # - 404 Not Found: Thread doesn't exist (NotFoundException)
 # - Both handled by FastAPI exception handlers in app.util.errors
+# done:
+#   id: P1-API-Router-Threads-GET-Detail-ReturnDTO
+#   assignee: claude_agent
+#   end_at: 2025-08-09T05:53:00Z
+#   note: "ThreadDetail DTO specification documented"
