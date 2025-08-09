@@ -191,6 +191,51 @@ class ThreadService:
             nextCursor=next_cursor
         )
     
+    async def delete_thread(
+        self,
+        *,
+        thread_id: str,
+        current_user_id: str
+    ) -> None:
+        """Delete a thread (soft delete).
+        
+        Args:
+            thread_id: ID of the thread to delete
+            current_user_id: ID of the current user
+            
+        Raises:
+            ValidationException: If thread ID is invalid
+            NotFoundException: If thread doesn't exist or already deleted
+            ForbiddenException: If user is not the owner
+        """
+        # Validate thread ID format
+        if not self._is_valid_thread_id(thread_id):
+            raise ValidationException("Invalid thread ID")
+        
+        # Create repository instance
+        repo = ThreadRepository(self._db)
+        
+        # Get thread to check ownership
+        thread_data = await repo.get_thread_by_id(thread_id=thread_id)
+        
+        # Check if thread exists
+        if not thread_data:
+            from app.util.errors import NotFoundException
+            raise NotFoundException("Thread not found")
+        
+        # Check if already deleted
+        if thread_data.get("deleted_at") is not None:
+            from app.util.errors import NotFoundException
+            raise NotFoundException("Thread not found")
+        
+        # Check ownership
+        if thread_data["author_id"] != current_user_id:
+            from app.util.errors import ForbiddenException
+            raise ForbiddenException("You can only delete your own threads")
+        
+        # Perform soft delete
+        await repo.soft_delete_thread(thread_id=thread_id, user_id=current_user_id)
+    
     def _is_valid_thread_id(self, thread_id: str) -> bool:
         """Validate thread ID format.
         

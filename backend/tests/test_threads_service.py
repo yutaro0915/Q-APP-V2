@@ -830,3 +830,181 @@ def test_list_threads_new_cursor_generation():
             # Timestamp should match last thread's created_at
     
     asyncio.run(run_test())
+
+
+def test_delete_thread_by_owner():
+    """Test that owner can delete their thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    owner_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock repository to return thread owned by current user
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": owner_id,
+        "title": "My Thread",
+        "body": "Thread content",
+        "up_count": 0,
+        "save_count": 0,
+        "created_at": datetime.now(timezone.utc),
+        "last_activity_at": datetime.now(timezone.utc),
+        "deleted_at": None
+    })
+    
+    # Mock soft delete method
+    mock_repo.soft_delete_thread = AsyncMock(return_value=True)
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            # Owner should be able to delete their thread
+            await service.delete_thread(
+                thread_id=thread_id,
+                current_user_id=owner_id
+            )
+            
+            # Verify repository methods were called
+            mock_repo.get_thread_by_id.assert_called_once_with(thread_id=thread_id)
+            mock_repo.soft_delete_thread.assert_called_once_with(
+                thread_id=thread_id,
+                user_id=owner_id
+            )
+    
+    asyncio.run(run_test())
+
+
+def test_delete_thread_by_non_owner():
+    """Test that non-owner cannot delete thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    owner_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    other_user_id = "usr_01HX987654321ZYXWVUTSRQP"
+    
+    # Mock repository to return thread owned by another user
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": owner_id,
+        "title": "Someone's Thread",
+        "body": "Thread content",
+        "up_count": 0,
+        "save_count": 0,
+        "created_at": datetime.now(timezone.utc),
+        "last_activity_at": datetime.now(timezone.utc),
+        "deleted_at": None
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            # Non-owner should not be able to delete
+            from app.util.errors import ForbiddenException
+            with pytest.raises(ForbiddenException) as exc_info:
+                await service.delete_thread(
+                    thread_id=thread_id,
+                    current_user_id=other_user_id
+                )
+            
+            assert "You can only delete your own threads" in str(exc_info.value)
+            
+            # Verify soft_delete was NOT called
+            mock_repo.soft_delete_thread.assert_not_called()
+    
+    asyncio.run(run_test())
+
+
+def test_delete_thread_not_found():
+    """Test deleting non-existent thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    user_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock repository to return None (thread not found)
+    mock_repo.get_thread_by_id = AsyncMock(return_value=None)
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            from app.util.errors import NotFoundException
+            with pytest.raises(NotFoundException) as exc_info:
+                await service.delete_thread(
+                    thread_id=thread_id,
+                    current_user_id=user_id
+                )
+            
+            assert "Thread not found" in str(exc_info.value)
+            
+            # Verify soft_delete was NOT called
+            mock_repo.soft_delete_thread.assert_not_called()
+    
+    asyncio.run(run_test())
+
+
+def test_delete_thread_already_deleted():
+    """Test deleting already deleted thread."""
+    mock_repo = AsyncMock()
+    thread_id = "thr_01HX123456789ABCDEFGHJKMNP"
+    owner_id = "usr_01HX123456789ABCDEFGHJKMNP"
+    
+    # Mock repository to return already deleted thread
+    mock_repo.get_thread_by_id = AsyncMock(return_value={
+        "id": thread_id,
+        "author_id": owner_id,
+        "title": "Deleted Thread",
+        "body": "Thread content",
+        "up_count": 0,
+        "save_count": 0,
+        "created_at": datetime.now(timezone.utc),
+        "last_activity_at": datetime.now(timezone.utc),
+        "deleted_at": datetime.now(timezone.utc)  # Already deleted
+    })
+    
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        with patch('app.services.threads_service.ThreadRepository') as MockRepo:
+            MockRepo.return_value = mock_repo
+            
+            from app.util.errors import NotFoundException
+            with pytest.raises(NotFoundException) as exc_info:
+                await service.delete_thread(
+                    thread_id=thread_id,
+                    current_user_id=owner_id
+                )
+            
+            assert "Thread not found" in str(exc_info.value)
+            
+            # Verify soft_delete was NOT called
+            mock_repo.soft_delete_thread.assert_not_called()
+    
+    asyncio.run(run_test())
+
+
+def test_delete_thread_invalid_id():
+    """Test deleting thread with invalid ID format."""
+    mock_conn = AsyncMock()
+    service = ThreadService(db=mock_conn)
+    
+    async def run_test():
+        # Invalid thread ID should raise ValidationException
+        with pytest.raises(ValidationException) as exc_info:
+            await service.delete_thread(
+                thread_id="invalid_id",
+                current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
+            )
+        
+        assert "Invalid thread ID" in str(exc_info.value)
+    
+    asyncio.run(run_test())
