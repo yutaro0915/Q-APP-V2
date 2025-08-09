@@ -43,3 +43,7 @@ definition_of_done:
   - "Profile router tests pass without async mock errors"
   - "Test mock setup matches implementation method calls (fetchrow, execute)"
   - "Overall backend test suite improves from 269/278 to higher pass rate"
+# done:
+#   finished_at: 2025-08-09T06:41:47Z
+#   result: GREEN
+#   note: "Fixed ProfileRepository tests to use fetchrow instead of fetch_one to match implementation. All 8 profile repo tests now pass, 6 profile router tests pass, 9 profile service tests pass."
