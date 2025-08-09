@@ -56,3 +56,8 @@ definition_of_done:
   - "get_threadメソッドが実装されている"
   - "DTO変換が正しく行われる"
   - "テストが追加されている"
+
+# done:
+#   finished_at: 2025-08-09T00:01:28Z
+#   result: GREEN
+#   note: "get_thread method implemented with ID validation and DTO conversion"
