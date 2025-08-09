@@ -61,3 +61,8 @@ definition_of_done:
   - "create_commentメソッドが実装されている"
   - "テストケースが追加されている"
   - "エラーハンドリングが適切に実装されている"
+
+# done:
+#   finished_at: 2025-08-09T07:15:00Z
+#   result: GREEN
+#   note: "create_comment implemented with transaction safety, ID retry logic, and comprehensive error handling. Updates threads.last_activity_at in same transaction."
