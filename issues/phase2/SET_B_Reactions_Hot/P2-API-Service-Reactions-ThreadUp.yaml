@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-API-Service-Reactions-ThreadUp
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:30:22Z
+#   note: ""
 id: P2-API-Service-Reactions-ThreadUp
 phase: 2
 layer: API
