@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-API-Repo-Reactions-UpsertSave
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:20:13Z
+#   note: ""
 id: P2-API-Repo-Reactions-UpsertSave
 phase: 2
 layer: API
