@@ -26,3 +26,8 @@ output_format: "YAMLの修正（ドキュメント）"
 
 definition_of_done:
   - "YAMLの誤記が是正される"
+# done:
+#   id: P1-API-Auth-Bootstrap-YAMLFix-NoJWT
+#   assignee: claude_agent
+#   end_at: 2025-08-09T05:46:00Z
+#   note: "JWT references corrected to opaque tokens"
