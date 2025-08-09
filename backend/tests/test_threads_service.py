@@ -554,7 +554,7 @@ def test_list_threads_new_without_cursor():
     
     # Mock repository return value with multiple threads
     mock_repo.list_threads_new = AsyncMock(return_value={
-        "threads": [
+        "items": [
             {
                 "id": "thr_01HX333333333333333333333",
                 "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
@@ -580,7 +580,7 @@ def test_list_threads_new_without_cursor():
                 "deleted_at": None
             }
         ],
-        "has_more": True
+        "nextCursor": "eyJ2IjoxLCJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsImlkIjoidGhyXzAxSFgyMjIyMjIyMjIyMjIyMjIyMjIyMjIifQ"
     })
     
     mock_conn = AsyncMock()
@@ -601,7 +601,7 @@ def test_list_threads_new_without_cursor():
             assert result.items[0].id == "thr_01HX333333333333333333333"
             assert result.items[0].title == "Newest Thread"
             assert result.items[1].id == "thr_01HX222222222222222222222"
-            assert result.nextCursor is not None
+            assert result.nextCursor == "eyJ2IjoxLCJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsImlkIjoidGhyXzAxSFgyMjIyMjIyMjIyMjIyMjIyMjIyMjIifQ"
             
             # Verify repository was called correctly
             mock_repo.list_threads_new.assert_called_once_with(
@@ -626,7 +626,7 @@ def test_list_threads_new_with_cursor():
     })
     
     mock_repo.list_threads_new = AsyncMock(return_value={
-        "threads": [
+        "items": [
             {
                 "id": "thr_01HX000000000000000000000",
                 "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
@@ -640,7 +640,7 @@ def test_list_threads_new_with_cursor():
                 "deleted_at": None
             }
         ],
-        "has_more": False
+        "nextCursor": None
     })
     
     mock_conn = AsyncMock()
@@ -674,7 +674,7 @@ def test_list_threads_new_empty_result():
     mock_repo = AsyncMock()
     
     mock_repo.list_threads_new = AsyncMock(return_value={
-        "threads": [],
+        "items": [],
         "has_more": False
     })
     
@@ -705,7 +705,7 @@ def test_list_threads_new_with_is_mine():
     created_at = datetime.now(timezone.utc)
     
     mock_repo.list_threads_new = AsyncMock(return_value={
-        "threads": [
+        "items": [
             {
                 "id": "thr_01HX111111111111111111111",
                 "author_id": current_user_id,  # Owned by current user
@@ -731,7 +731,7 @@ def test_list_threads_new_with_is_mine():
                 "deleted_at": None
             }
         ],
-        "has_more": False
+        "nextCursor": None
     })
     
     mock_conn = AsyncMock()
@@ -780,7 +780,7 @@ def test_list_threads_new_cursor_generation():
     last_thread_created = created_at - timedelta(hours=2)
     
     mock_repo.list_threads_new = AsyncMock(return_value={
-        "threads": [
+        "items": [
             {
                 "id": "thr_01HX111111111111111111111",
                 "author_id": "usr_01HX123456789ABCDEFGHJKMNP",
@@ -806,7 +806,7 @@ def test_list_threads_new_cursor_generation():
                 "deleted_at": None
             }
         ],
-        "has_more": True
+        "nextCursor": "eyJ2IjoxLCJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsImlkIjoidGhyXzAxSFgyMjIyMjIyMjIyMjIyMjIyMjIyMjIifQ"
     })
     
     mock_conn = AsyncMock()
@@ -821,14 +821,8 @@ def test_list_threads_new_cursor_generation():
                 current_user_id="usr_01HX123456789ABCDEFGHJKMNP"
             )
             
-            # Next cursor should be based on last thread
-            assert result.nextCursor is not None
-            
-            # Decode and check cursor content
-            from app.util.cursor import decode_cursor
-            cursor_data = decode_cursor(result.nextCursor)
-            assert cursor_data["id"] == "thr_01HX222222222222222222222"
-            # Timestamp should match last thread's created_at
+            # Next cursor should be returned from repository
+            assert result.nextCursor == "eyJ2IjoxLCJjcmVhdGVkQXQiOiIyMDI0LTAxLTAxVDAwOjAwOjAwWiIsImlkIjoidGhyXzAxSFgyMjIyMjIyMjIyMjIyMjIyMjIyMjIifQ"
     
     asyncio.run(run_test())
 
