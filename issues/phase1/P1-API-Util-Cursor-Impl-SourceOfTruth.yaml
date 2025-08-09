@@ -1,0 +1,31 @@
+# claim:
+#   id: P1-API-Util-Cursor-Impl-SourceOfTruth
+#   assignee: claude_agent
+#   start_at: 2025-08-09T06:01:00Z
+#   note: ""
+id: P1-API-Util-Cursor-Impl-SourceOfTruth
+phase: 1
+layer: API
+area: Util
+action: Cursor-Impl-SourceOfTruth
+target_file: backend/app/services/cursor.py
+test_file: backend/tests/test_cursor.py
+depends_on: ["P0-API-Util-Cursor"]
+spec_refs:
+  - "04b"  # カーソル規約
+  - "05"   # 責務分担（Utilとしての一元実装）
+estimated_loc: 20
+
+specification:
+  purpose: "cursor 実装の重複（app/services/cursor.py と app/util/cursor.py）を解消し、前者を正とする"
+  content_requirements:
+    - "app/util/cursor.py は app/services/cursor.py の公開APIに委譲（encode/decode/validate_*）"
+    - "参照先の変更により import 先のズレがないことを確認（テストは既にGREEN）"
+
+output_format: "ドキュメント化のみ（実装は現状の別名委譲で満たす）"
+
+constraints:
+  - "Phase1内では破壊的変更を避ける"
+
+definition_of_done:
+  - "重複実装の正本が明文化"
