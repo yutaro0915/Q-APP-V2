@@ -70,3 +70,8 @@ definition_of_done:
   - "comments.pyが作成されている"
   - "全てのDTOが定義されている"
   - "バリデーションが実装されている"
+
+# done:
+#   finished_at: 2025-08-09T07:04:00Z
+#   result: GREEN
+#   note: "Comment DTOs implemented with validation. CreateCommentRequest, CommentInDB, Comment, PaginatedComments all defined per spec."
