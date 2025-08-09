@@ -29,3 +29,33 @@ constraints:
 
 definition_of_done:
   - "重複実装の正本が明文化"
+
+# === Cursor Implementation Source of Truth Documentation ===
+#
+# Current State:
+# - Two cursor implementations exist:
+#   1. app/services/cursor.py - encode()/decode() functions
+#   2. app/util/cursor.py - encode_cursor()/decode_cursor() functions
+#
+# Decision:
+# - app/util/cursor.py is the PRIMARY implementation (source of truth)
+# - app/services/cursor.py should be considered deprecated
+#
+# Rationale:
+# - app/util/cursor.py contains additional validation functions (validate_threads_cursor, validate_comments_cursor)
+# - Most of the codebase imports from app/util/cursor.py
+# - Services layer should use utilities, not provide them
+#
+# Current Usage:
+# - ThreadService uses app/util/cursor (encode_cursor, decode_cursor, validate_threads_cursor)
+# - ThreadRepository uses app/services/cursor (decode)
+# - Tests primarily use app/util/cursor
+#
+# Migration Plan (Phase 2):
+# 1. Update ThreadRepository to use app/util/cursor.decode_cursor instead of app/services/cursor.decode
+# 2. Remove app/services/cursor.py entirely
+# 3. Keep all cursor logic centralized in app/util/cursor.py
+#
+# Note:
+# - For Phase 1, both implementations remain to avoid breaking changes
+# - Functions are functionally identical, just different naming conventions
