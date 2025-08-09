@@ -3,6 +3,11 @@
 #   assignee: claude_agent
 #   start_at: 2025-08-09T01:22:10Z
 #   note: ""
+# done:
+#   id: P1-API-Router-Threads-GET-Detail
+#   assignee: claude_agent
+#   end_at: 2025-08-09T01:24:35Z
+#   note: "All tests passing. 404 and 400 error handling implemented."
 id: P1-API-Router-Threads-GET-Detail
 phase: 1
 layer: API
