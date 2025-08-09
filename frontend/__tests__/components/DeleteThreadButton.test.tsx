@@ -1,0 +1,171 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { DeleteThreadButton } from '@/components/DeleteThreadButton';
+import * as deleteThreadModule from '@/lib/actions/deleteThread';
+import { ApiError } from '@/lib/api';
+
+// Mock next/navigation
+const mockPush = vi.fn();
+const mockRefresh = vi.fn();
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    refresh: mockRefresh,
+  }),
+}));
+
+// Mock deleteThread action
+vi.mock('@/lib/actions/deleteThread');
+
+// Mock window.confirm
+global.confirm = vi.fn();
+
+describe('DeleteThreadButton', () => {
+  const mockDeleteThread = vi.mocked(deleteThreadModule.deleteThread);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(global.confirm).mockReturnValue(true);
+  });
+
+  it('renders delete button', () => {
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    expect(button).toBeInTheDocument();
+    expect(button).toHaveTextContent('削除');
+  });
+
+  it('shows confirmation dialog when clicked', async () => {
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    expect(global.confirm).toHaveBeenCalledWith('このスレッドを削除してもよろしいですか？');
+  });
+
+  it('cancels deletion when user declines confirmation', async () => {
+    vi.mocked(global.confirm).mockReturnValue(false);
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    expect(mockDeleteThread).not.toHaveBeenCalled();
+  });
+
+  it('deletes thread and redirects on success', async () => {
+    mockDeleteThread.mockResolvedValue({ success: true });
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(mockDeleteThread).toHaveBeenCalledWith('thr_01234567890123456789012345');
+      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it('shows loading state while deleting', async () => {
+    mockDeleteThread.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ success: true }), 100))
+    );
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(button).toHaveTextContent('削除中...');
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('handles 403 permission error', async () => {
+    mockDeleteThread.mockRejectedValue(new ApiError(
+      403,
+      'PERMISSION_DENIED',
+      'You do not have permission'
+    ));
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('このスレッドを削除する権限がありません')).toBeInTheDocument();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  it('handles 404 not found error', async () => {
+    mockDeleteThread.mockRejectedValue(new ApiError(
+      404,
+      'NOT_FOUND',
+      'Thread not found'
+    ));
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('スレッドが見つかりません')).toBeInTheDocument();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  it('handles 401 authentication error', async () => {
+    mockDeleteThread.mockRejectedValue(new ApiError(
+      401,
+      'AUTHENTICATION_ERROR',
+      'Not authenticated'
+    ));
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('ログインが必要です')).toBeInTheDocument();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  it('handles generic error', async () => {
+    mockDeleteThread.mockRejectedValue(new Error('Network error'));
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(screen.getByText('Network error')).toBeInTheDocument();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  it('re-enables button after error', async () => {
+    mockDeleteThread.mockRejectedValue(new Error('Network error'));
+    
+    render(<DeleteThreadButton threadId="thr_01234567890123456789012345" />);
+    
+    const button = screen.getByRole('button', { name: /削除/ });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(button).not.toBeDisabled();
+      expect(button).toHaveTextContent('削除');
+    });
+  });
+});
