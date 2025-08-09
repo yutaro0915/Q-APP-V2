@@ -3,6 +3,11 @@
 #   assignee: claude_agent
 #   start_at: 2025-08-09T05:55:00Z
 #   note: ""
+# claim:
+#   id: P1-API-Service-Threads-ListNew-ContractFix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T00:00:00Z
+#   note: ""
 id: P1-API-Service-Threads-ListNew-ContractFix
 phase: 1
 layer: API

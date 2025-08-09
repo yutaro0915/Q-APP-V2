@@ -1,83 +1,103 @@
-# レビューコマンド（main直コミット後の検証運用）
+# フェーズゲート・レビューコマンド（Phase進行判定）
 
-[アプリ概要 / 参照ガイド]
-- 重要ドキュメント
-  - `docs/04_api_contract_v1.yaml`（OpenAPI 契約）
-  - `docs/04a_api_schemas_dto_v1.md`（DTO/Validation/カーソル例）
-  - `docs/04b_api_conventions_v1.md`（X-Request-Id/エラー/RateLimit/カーソル）
-  - `docs/03_data_model_erd_v1.md` / `docs/03a_ddl_postgresql_v1.sql`（DDL/インデックス/派生値）
-  - `docs/05_backend_design_fastapi_v1.md`（レイヤ/シグネチャ/Tx/Hot/検索）
-  - `docs/06_frontend_design_nextjs_v1.md`（データ受け渡し/CSR/SSR）
-- 不変条件（抜粋）: 認証（不透明トークン/7日）、ID（prefix_ULID）、コメントASC、リアクション409、SolveのNOT_APPLICABLE、20件固定/200上限、ErrorResponse統一。
+[役割/目的]
+- 本エージェントは「フェーズの一区切り（phaseX）」で、次フェーズへ進めて良いかを総合判定するゲート担当です。
+- 実装は行いません。仕様/契約/設計/DDL/フロント接合/テスト/運用観点を横断的に精査し、GO/NO-GO を明確に提示します。
+- 逸脱があれば、最小単位の修正Issue（YAML）を発行し、NO-GOの根拠と合わせて提示します。
 
-[アプリ概要（丁寧版）]
-- 目的: 学内のQ&A/ディスカッション用SNS。スレとコメントで議論し、賛同/保存で評価。質問スレは解決設定可。
-- バックエンド: FastAPI + PostgreSQL、レイヤ（Repo→Service→Router）。P3でS3/検索、P4でHot。
-- フロント: Next.js 14、CSR主体、Tailwind/shadcn/ui。Bearer付与でAPI呼び出し。
-- 規約: 04/04a/04b/03/03a/05/06に準拠。カーソル/スナップショットやErrorResponseを厳密に確認。
+[参照ドキュメント（正とする順）]
+- `docs/04_api_contract_v1.yaml`（契約） / `docs/04a_api_schemas_dto_v1.md`（DTO/Validation） / `docs/04b_api_conventions_v1.md`（規約）
+- `docs/03_data_model_erd_v1.md` / `docs/03a_ddl_postgresql_v1.sql`（データモデル/DDL）
+- `docs/05_backend_design_fastapi_v1.md`（レイヤ責務/Tx/Hot/検索/カーソル）
+- `docs/06_frontend_design_nextjs_v1.md`（受け渡し/CSR/SSR方針）
+- フェーズ規範: `issues/phaseX/PHASE_DoD.md`
 
-[レビュー進行の基本原則]
-- フェーズは `issues/phaseX/PHASE_DoD.md` を満たして次へ進む。DoD未達の機能が混在していないかを確認。
-- 変更は「実装1＋テスト」に収まっているか（目安）。越える場合は分割提案。
-- YAMLは先頭の `# claim:`、末尾の `# done:` または途中の `# issue:` を確認。done未満は未完と判断。
+[前提/範囲]
+- 対象は「現在作業中のフェーズ（phaseX）」のコミット済みタスクのみ。
+- 競合回避: YAMLに `# claim:` があるIssueは他者占有。別のIssueを対象とする（`agent-impl.md` 準拠）。
+- One-File Rule尊重: 本エージェントは実装を変更しない。必要に応じて最小の修正Issue（YAML）を発行。
 
-[環境前提（確認）]
-- Python 仮想環境（uv）前提でテストがGREENか（CIと揃える）。
-- `scripts/test.sh` の実行結果がGREENか（backend/frontend 含む）。
-- DDL適用や`DATABASE_URL`など、テストに必要な環境変数が満たされているか。
+[GO/NO-GO 判定基準（必須）]
+- すべてのテスト（backend+frontend）がGREEN（`scripts/test.sh`）。
+- PHASE_DoDの到達点を完全満たす（機能/契約/DTO/規約/DDL/設計/フロント接合）。
+- API契約/DTO/規約の整合：
+  - 返却DTOのフィールド/nullable/型・HTTPコード・ヘッダ（X-Request-Id、429系）・カーソル形式（v=1, base64url）が一致。
+- DB/Repo整合：DDL列名/制約/順序（安定タプル比較）に一致。ソフト削除の扱いも規約通り。
+- レイヤ責務分離：Repo=純SQL、Service=ドメインロジック/Tx、Router=I/O薄い。命名/引数/返却の齟齬なし。
+- フロント接合：`frontend/lib/api.ts` の型/エラー連携が契約どおり。
+- 未解決の `# issue:` がフェーズゴールに影響しないレベルへ収束。
 
-目的: PRなしで main へ直接反映されるため、コミット後に即時の自動テストと仕様照合を行い、必要であれば直ちにフォローアップコミット/リバートを実施する。
-
-前提: 重要仕様は `docs/04* / 03* / 05 / 06` に準拠。テストは `scripts/test.sh` を使用。
-
-## 1) 対象コミットの抽出（簡易）
+[手順]
+0) フェーズ設定/範囲限定
 ```bash
-LAST_COMMIT=$(git rev-parse HEAD); PREV_COMMIT=$(git rev-parse HEAD^)
+PHASE_NUM=${PHASE_NUM:-1}
+PHASE_DIR="issues/phase${PHASE_NUM}"
 ```
 
-## 2) 変更点の検証（実装1＋テスト目安 / YAMLスタンプ）
+1) 作業状況の把握（claimed/done/issue）
 ```bash
-# 実装ファイルの変更数目安（docs/issues/.github とテスト除外）
-git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep -v '^docs/' | grep -v '^issues/' | grep -v '^\.github/' | grep -v '^backend/tests/' | grep -v '^frontend/__tests__/' | wc -l
-
-# YAMLが変更されていれば先頭スタンプを確認
-for f in $(git diff --name-only "$PREV_COMMIT" "$LAST_COMMIT" | grep '^issues/.*\.yaml$' || true); do head -n 10 "$f" | grep -q '^# claim:' && echo "claim OK in $f" || echo "no claim in $f (許容)"; done
+echo "[phase] ${PHASE_DIR}"
+CLAIMED=$(grep -l '^# claim:' ${PHASE_DIR}/*.yaml | wc -l | cat)
+DONE=$(grep -l '^# done:' ${PHASE_DIR}/*.yaml | wc -l | cat)
+OPEN_ISSUE=$(grep -l '^# issue:' ${PHASE_DIR}/*.yaml | wc -l | cat)
+echo "claimed=${CLAIMED} done=${DONE} issue=${OPEN_ISSUE}"
 ```
 
-## 3) 自動テスト
+2) ベースライン（全テスト）
 ```bash
-# まずはfrontend単体を一回実行（watch無効）
-cd frontend && npm test -- --run || { echo "Frontend failed"; exit 1; }; cd -
-# 次に全体（backend+frontend）
-bash scripts/test.sh || { echo "Tests failed. 要フォローアップ"; exit 1; }
+cd frontend && npm test -- --run || { echo "[NG] frontend"; exit 1; }; cd -
+bash scripts/test.sh || { echo "[NG] suite"; exit 1; }
 ```
 
-## 4) 仕様/DoDの突合（目視またはスクリプト）
-- 変更された実装ファイルと対応する `issues/**.yaml` を開き、`spec_refs / specification / constraints / test_specification / DoD` に整合するか確認。
-- 逸脱があれば、最小のフォローアップコミットで修正。
+3) 契約/規約/DDL/設計の突合（自動＋目視）
+- 代表ファイルを開いて DTO/返却形/ヘッダ/HTTPコード/カーソルの一致を確認。
+- DDLの列名/制約/IndexとRepoのSQL断片（順序/条件/部分Index適合）を確認。
+- ServiceとRepo/Routerの引数名/返却キー差異を点検。
 
-## 5) CSV更新
+4) 統合テスト/スナップショット（agent-testopsの活用）
 ```bash
-# 必要に応じ、対象ID行を更新（status/notes/end_at など）
-# 例: notesへ "post-commit review: ok" を追記するなど
-# （簡易運用のため、手編集→コミット）
-vi docs/issues_progress_index.csv
-
-git add docs/issues_progress_index.csv
-git commit -m "chore(progress): post-commit review updated"
-git push origin main
+# 実配線契約テスト/スナップショットで齟齬検出（必要に応じて拡充）
+sh -c 'test -f .claude/commands/agent-testops.md && echo "[hint] see agent-testops.md for adding integ tests" || true'
 ```
 
-## 6) リバートが必要な場合
-```bash
-git revert --no-edit "$LAST_COMMIT" && git push origin main
-# 直後に修正版のコミットを作成（TDD→GREEN→コミット）
+5) 逸脱の是正（Issue発行）
+- 実装を変更しない。最小単位の修正Issue（YAML）を `issues/phase${PHASE_NUM}/P${PHASE_NUM}-FIX-...yaml` として追加。
+- 例：返却形の不一致、引数名不一致、ヘッダ/コード/DTO逸脱、excerpt長、RateLimitコードなど。
+- この時点では `# claim:` は付けない（実装担当に委譲）。
+
+6) 判定/記録
+- 条件をすべて満たせば GO。未達があれば NO-GO（ブロッカー列挙）。
+- レポートを作成し、必要に応じて `docs/issues_progress_index.csv` に追記。
+
+[レポート・テンプレート]
+```
+PhaseX Gate Review
+結果: GO | NO-GO
+
+根拠（抜粋）
+- DoD達成状況: 〇/×（理由）
+- テスト: GREEN/NG（ログ要点）
+- 契約/DTO/規約: 整合/不整合（項目列挙）
+- DDL/Repo: 整合/不整合（項目列挙）
+- レイヤ責務: 整合/不整合（具体差分）
+- フロント接合: 整合/不整合（具体差分）
+
+ブロッカー（NO-GO時）
+- P1-FIX-...（要点）
+
+推奨フォローアップ
+- テスト強化: 実配線/スナップショット/順序境界/ヘッダ/OpenAPI突合
 ```
 
-## チェックリスト（レビュー観点）
-- YAMLの DoD を満たしている
-- ErrorResponse/X-Request-Id/認証規約が遵守されている
-- カーソル/スナップショットの扱いが正しい
-- DDL準拠の列名/制約を破っていない
-- 既存のテストを壊していない（GREEN）
-- 追加の影響範囲が最小（One-File Rule実質順守）
+[チェックリスト]
+- PHASE_DoDの到達点を全て満たす
+- 04/04a/04b/03a/05/06 と完全整合
+- 全テストGREEN（`scripts/test.sh`）
+- Router→Service→Repo の契約/引数/返却形齟齬なし
+- カーソル/RateLimit/エラー/X-Request-Id 運用を満たす
+- 未解決の `# issue:` がPhase範囲を阻害しない
+
+[注意]
+- ドキュメント（04/04a/04b/03a/05/06）は常に「正」。実装/テストがズレた場合は、修正Issueを起こし原状を是正する。
+- 本エージェントは実装を変更しない。常に最小の修正Issue（YAML）で指摘/誘導する。
+- 複数エージェント同時作業では、`# claim:` 済みIssueを避け、別Issueを選ぶ（`agent-impl.md` 参照）。

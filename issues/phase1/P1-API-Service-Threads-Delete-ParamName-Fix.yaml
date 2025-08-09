@@ -3,6 +3,11 @@
 #   assignee: claude_agent
 #   start_at: 2025-08-09T06:15:00Z
 #   note: ""
+# claim:
+#   id: P1-API-Service-Threads-Delete-ParamName-Fix
+#   assignee: claude_agent
+#   start_at: 2025-08-09T00:00:00Z
+#   note: ""
 id: P1-API-Service-Threads-Delete-ParamName-Fix
 phase: 1
 layer: API
