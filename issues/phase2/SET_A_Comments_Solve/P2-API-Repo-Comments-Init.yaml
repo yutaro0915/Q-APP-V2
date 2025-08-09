@@ -1,3 +1,8 @@
+# claim:
+#   id: P2-API-Repo-Comments-Init
+#   assignee: claude_agent
+#   start_at: 2025-08-09T07:06:00Z
+#   note: ""
 id: P2-API-Repo-Comments-Init
 phase: 2
 layer: API
