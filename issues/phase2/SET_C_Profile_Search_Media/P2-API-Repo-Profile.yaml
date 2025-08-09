@@ -62,3 +62,7 @@ definition_of_done:
   - "profile_repo.pyが作成されている"
   - "全メソッドが実装されている"
   - "テストファイルが作成されている"
+# done:
+#   finished_at: 2025-08-09T06:06:13Z
+#   result: GREEN
+#   note: "ProfileRepository implemented with 8 passing tests"
