@@ -49,3 +49,13 @@ definition_of_done:
 #   finished_at: 2025-08-08T13:52:52Z
 #   result: GREEN
 #   note: "Implemented cursor utilities with base64url encoding and validation"
+
+# reopened:
+#   at: 2025-08-09T00:08:00Z
+#   by: claude_agent
+#   reason: "P1-API-Service-Threads-ListNew で cursor モジュールが必要になり簡易実装した"
+#   issues:
+#     - "実装場所が app/services/cursor.py から app/util/cursor.py に変更された"
+#     - "test_validate_comments_cursor_invalid が失敗（日付検証が未実装）"
+#     - "test_validate_threads_cursor_invalid が失敗（数値型検証が未実装）"
+#     - "バージョン検証の仕様が不明確（v フィールドは必須か任意か）"

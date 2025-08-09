@@ -63,3 +63,8 @@ definition_of_done:
 #   finished_at: 2025-08-09T00:07:48Z
 #   result: GREEN
 #   note: "list_threads_new method implemented with pagination and cursor support"
+
+# concerns:
+#   - "cursor モジュールは P0-API-Util-Cursor で実装されるべきだったが、P1実装に必要だったため簡易実装した"
+#   - "cursor モジュールのテストが2つ失敗: test_validate_comments_cursor_invalid, test_validate_threads_cursor_invalid"
+#   - "日付フォーマット検証やバージョン検証の厳密性が不足している"
