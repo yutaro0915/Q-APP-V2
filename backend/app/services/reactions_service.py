@@ -92,6 +92,45 @@ class ReactionService:
         # Success - return None for 204 No Content
         return None
     
+    async def react_thread_save(
+        self,
+        *,
+        user_id: str,
+        thread_id: str,
+    ) -> None:
+        """React with 'save' on a thread.
+        
+        Args:
+            user_id: ID of the user performing the reaction
+            thread_id: ID of the thread being saved
+            
+        Returns:
+            None (success results in 204 No Content)
+            
+        Raises:
+            ValidationException: If thread ID format is invalid
+            ConflictException: If user already saved this thread
+        """
+        # Validate thread ID format
+        if not self._is_valid_thread_id(thread_id):
+            raise ValidationException("Invalid thread ID")
+        
+        # Create repository instance
+        repo = ReactionRepository(self._db)
+        
+        # Try to insert the save reaction
+        was_inserted = await repo.insert_save_if_absent(
+            target_id=thread_id,
+            user_id=user_id
+        )
+        
+        # If reaction already exists, raise conflict error
+        if not was_inserted:
+            raise ConflictException("User has already saved this thread")
+        
+        # Success - return None for 204 No Content
+        return None
+    
     def _is_valid_comment_id(self, comment_id: str) -> bool:
         """Validate comment ID format.
         
