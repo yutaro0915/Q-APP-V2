@@ -57,3 +57,12 @@ definition_of_done:
   - "page.tsxが実装されている"
   - "SSRでデータ取得される"
   - "レスポンシブ対応"
+
+# done:
+#   id: P1-FRONT-Routes-TL-New
+#   assignee: claude_agent
+#   end_at: 2025-08-09T04:05:00Z
+#   note: "Server Component実装完了。ThreadCardコンポーネントと連携。"
+# issue:
+#   at: 2025-08-09T04:05:00Z
+#   note: "認証なしでの取得のため、is_mineフラグが常にfalse。将来的にはCookieベースの認証やmiddlewareでの処理が必要。"
